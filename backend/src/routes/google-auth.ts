@@ -5,6 +5,17 @@ import { OAuth2Client } from 'google-auth-library';
 
 const router = express.Router();
 
+const isGoogleConfigured = () => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  if (!clientId || !clientSecret) return false;
+  if (clientId === 'your_google_client_id' || clientSecret === 'your_google_client_secret') return false;
+  return true;
+};
+
+const isValidGoogleClientIdFormat = (value?: string) =>
+  Boolean(value && /^[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com$/i.test(value));
+
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET
@@ -26,6 +37,16 @@ setInterval(() => {
 // Google OAuth Login/Register
 router.post('/google', async (req, res) => {
   try {
+    if (!isGoogleConfigured()) {
+      res.status(503).json({ error: 'Google OAuth não configurado. Defina GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET válidos.' });
+      return;
+    }
+
+    if (!isValidGoogleClientIdFormat(process.env.GOOGLE_CLIENT_ID)) {
+      res.status(503).json({ error: 'GOOGLE_CLIENT_ID inválido no backend. Verifique o formato do Client ID.' });
+      return;
+    }
+
     const { credential } = req.body;
 
     if (!credential) {
@@ -169,6 +190,16 @@ router.post('/google', async (req, res) => {
 // Google OAuth with Authorization Code (for popup/redirect flow)
 router.post('/callback', async (req, res) => {
   try {
+    if (!isGoogleConfigured()) {
+      res.status(503).json({ error: 'Google OAuth não configurado. Defina GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET válidos.' });
+      return;
+    }
+
+    if (!isValidGoogleClientIdFormat(process.env.GOOGLE_CLIENT_ID)) {
+      res.status(503).json({ error: 'GOOGLE_CLIENT_ID inválido no backend. Verifique o formato do Client ID.' });
+      return;
+    }
+
     const { code, redirect_uri } = req.body;
 
     if (!code) {

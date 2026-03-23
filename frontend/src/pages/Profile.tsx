@@ -124,7 +124,7 @@ const Profile: React.FC = () => {
 
     if (Object.keys(errors).length > 0) {
       setProfileFieldErrors(errors);
-      const refs: Record<string, React.RefObject<HTMLInputElement | null>> = {
+      const refs: Record<string, React.RefObject<HTMLInputElement>> = {
         name: profileNameRef,
         email: profileEmailRef,
       };
@@ -149,7 +149,7 @@ const Profile: React.FC = () => {
 
     if (Object.keys(errors).length > 0) {
       setPasswordFieldErrors(errors);
-      const refs: Record<string, React.RefObject<HTMLInputElement | null>> = {
+      const refs: Record<string, React.RefObject<HTMLInputElement>> = {
         currentPassword: currentPasswordRef,
         newPassword: newPasswordRef,
         confirmPassword: confirmPasswordRef,
@@ -220,7 +220,7 @@ const Profile: React.FC = () => {
 
     if (Object.keys(errors).length > 0) {
       setAddressFieldErrors(errors);
-      const refs: Record<string, React.RefObject<HTMLInputElement | null>> = {
+      const refs: Record<string, React.RefObject<HTMLInputElement>> = {
         name: addrNameRef,
         phone: addrPhoneRef,
         address: addrAddressRef,
@@ -330,7 +330,7 @@ const Profile: React.FC = () => {
     onChange: React.ChangeEventHandler<HTMLInputElement>;
     disabled: boolean;
     fieldError?: string;
-    inputRef?: React.RefObject<HTMLInputElement | null>;
+    inputRef?: React.RefObject<HTMLInputElement>;
   }) => (
     <div className="space-y-1.5">
       <label htmlFor={id} className="block text-sm font-medium text-gray-700">
@@ -338,7 +338,7 @@ const Profile: React.FC = () => {
       </label>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Icon className={`h-5 w-5 transition-colors ${disabled ? 'text-gray-300' : 'text-amber-700'}`} aria-hidden="true" />
+          <Icon className={`h-5 w-5 transition-colors ${disabled ? 'text-gray-300' : 'text-primary-700'}`} aria-hidden="true" />
         </div>
         <input
           ref={inputRef}
@@ -350,8 +350,8 @@ const Profile: React.FC = () => {
           disabled={disabled}
           className={`block w-full pl-10 pr-3 py-2.5 sm:text-sm rounded-lg transition-all duration-300 outline-none
             ${disabled
-              ? 'bg-gray-50/50 border-transparent text-gray-500 shadow-none'
-              : `bg-white text-gray-900 shadow-sm border focus:ring-2 focus:ring-amber-600 focus:border-amber-600 hover:border-gray-400 ${fieldError ? 'border-red-500' : 'border-gray-300'}`
+              ? 'bg-tertiary-100 border-transparent text-gray-500 shadow-none'
+              : `bg-white text-gray-900 shadow-sm border focus:ring-2 focus:ring-primary-600 focus:border-primary-600 hover:border-gray-400 ${fieldError ? 'border-red-500' : 'border-gray-300'}`
             }`}
         />
       </div>
@@ -375,7 +375,7 @@ const Profile: React.FC = () => {
     value: string;
     onChange: React.ChangeEventHandler<HTMLInputElement>;
     fieldError?: string;
-    inputRef?: React.RefObject<HTMLInputElement | null>;
+    inputRef?: React.RefObject<HTMLInputElement>;
   }) => (
     <div className="space-y-1.5">
       <label htmlFor={id} className="block text-sm font-medium text-gray-700">
@@ -383,7 +383,7 @@ const Profile: React.FC = () => {
       </label>
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Lock className={`h-5 w-5 transition-colors text-amber-700`} aria-hidden="true" />
+          <Lock className={`h-5 w-5 transition-colors text-primary-700`} aria-hidden="true" />
         </div>
         <input
           ref={inputRef}
@@ -392,7 +392,7 @@ const Profile: React.FC = () => {
           id={id}
           value={value}
           onChange={onChange}
-          className={`block w-full pl-10 pr-3 py-2.5 sm:text-sm rounded-lg transition-all duration-300 outline-none bg-white text-gray-900 shadow-sm border focus:ring-2 focus:ring-amber-600 focus:border-amber-600 hover:border-gray-400 ${fieldError ? 'border-red-500' : 'border-gray-300'}`}
+          className={`block w-full pl-10 pr-3 py-2.5 sm:text-sm rounded-lg transition-all duration-300 outline-none bg-white text-gray-900 shadow-sm border focus:ring-2 focus:ring-primary-600 focus:border-primary-600 hover:border-gray-400 ${fieldError ? 'border-red-500' : 'border-gray-300'}`}
         />
       </div>
       {fieldError && (
@@ -402,19 +402,19 @@ const Profile: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50/30 py-8 sm:py-12">
+    <div className="min-h-screen bg-tertiary-100 py-8 sm:py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
 
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-amber-600 to-amber-800"></div>
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary-600 to-primary-800"></div>
           <div className="flex flex-col sm:flex-row items-center sm:items-center gap-6">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex-shrink-0 overflow-hidden border border-amber-100">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex-shrink-0 overflow-hidden border border-primary-100">
               {user?.avatarUrl ? (
                 <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               ) : (
-                <div className="w-full h-full bg-amber-50 flex items-center justify-center">
-                  <User className="h-10 w-10 text-amber-700" />
+                <div className="w-full h-full bg-primary-50 flex items-center justify-center">
+                  <User className="h-10 w-10 text-primary-700" />
                 </div>
               )}
             </div>
@@ -428,7 +428,7 @@ const Profile: React.FC = () => {
                 {user?.role === 'admin' && (
                   <>
                     <span className="hidden sm:inline text-gray-300">•</span>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100/50 text-amber-800 border border-amber-200">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary-100/50 text-primary-800 border border-primary-200">
                       <Shield className="w-3.5 h-3.5" />
                       Administrador
                     </span>
@@ -449,7 +449,7 @@ const Profile: React.FC = () => {
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-amber-500 transition-colors font-medium text-sm w-full sm:w-auto shadow-sm"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 transition-colors font-medium text-sm w-full sm:w-auto shadow-sm"
               >
                 <Edit2 className="h-4 w-4 text-gray-500" />
                 Editar Perfil
@@ -496,7 +496,7 @@ const Profile: React.FC = () => {
                 <button type="button" onClick={() => { setIsEditing(false); setProfileFieldErrors({}); }} className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
                   Cancelar
                 </button>
-                <button type="submit" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-800 text-white font-medium rounded-lg hover:bg-amber-900 transition-colors shadow-sm">
+                <button type="submit" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary-700 text-white font-medium rounded-lg hover:bg-primary-800 transition-colors shadow-sm">
                   <Save className="h-4 w-4" />
                   Guardar Alterações
                 </button>
@@ -510,7 +510,7 @@ const Profile: React.FC = () => {
           <div className="px-6 sm:px-8 py-5 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-amber-600" />
+                <MapPin className="w-5 h-5 text-primary-600" />
                 Moradas de Entrega
               </h2>
               <p className="text-sm text-gray-500 mt-1">Guarde moradas para agilizar as suas encomendas.</p>
@@ -518,7 +518,7 @@ const Profile: React.FC = () => {
             {!showAddressForm && (
               <button
                 onClick={openAddForm}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-amber-500 transition-colors font-medium text-sm w-full sm:w-auto shadow-sm"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 transition-colors font-medium text-sm w-full sm:w-auto shadow-sm"
               >
                 <Plus className="h-4 w-4 text-gray-500" />
                 Adicionar Morada
@@ -529,7 +529,7 @@ const Profile: React.FC = () => {
           <div className="p-6 sm:p-8 space-y-4">
             {/* Add / Edit Form */}
             {showAddressForm && (
-              <div className="border border-amber-200 bg-amber-50/30 rounded-xl p-5 sm:p-6">
+              <div className="border border-primary-200 bg-primary-50/30 rounded-xl p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-5">
                   <h3 className="font-semibold text-gray-900 text-sm">
                     {editingAddress ? 'Editar Morada' : 'Nova Morada'}
@@ -551,7 +551,7 @@ const Profile: React.FC = () => {
                         value={addressForm.name}
                         onChange={handleAddressFormChange}
                         placeholder="ex: Casa, Trabalho"
-                        className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-amber-600 focus:border-amber-600 outline-none ${addressFieldErrors.name ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none ${addressFieldErrors.name ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {addressFieldErrors.name && (
                         <p className="mt-1 text-sm text-red-500">{addressFieldErrors.name}</p>
@@ -568,7 +568,7 @@ const Profile: React.FC = () => {
                         value={addressForm.phone}
                         onChange={handleAddressFormChange}
                         placeholder="912 345 678"
-                        className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-amber-600 focus:border-amber-600 outline-none ${addressFieldErrors.phone ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none ${addressFieldErrors.phone ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {addressFieldErrors.phone && (
                         <p className="mt-1 text-sm text-red-500">{addressFieldErrors.phone}</p>
@@ -585,7 +585,7 @@ const Profile: React.FC = () => {
                         value={addressForm.address}
                         onChange={handleAddressFormChange}
                         placeholder="Rua, número, andar"
-                        className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-amber-600 focus:border-amber-600 outline-none ${addressFieldErrors.address ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none ${addressFieldErrors.address ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {addressFieldErrors.address && (
                         <p className="mt-1 text-sm text-red-500">{addressFieldErrors.address}</p>
@@ -602,7 +602,7 @@ const Profile: React.FC = () => {
                         value={addressForm.city}
                         onChange={handleAddressFormChange}
                         placeholder="Lisboa"
-                        className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-amber-600 focus:border-amber-600 outline-none ${addressFieldErrors.city ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none ${addressFieldErrors.city ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {addressFieldErrors.city && (
                         <p className="mt-1 text-sm text-red-500">{addressFieldErrors.city}</p>
@@ -619,7 +619,7 @@ const Profile: React.FC = () => {
                         value={addressForm.postal_code}
                         onChange={handleAddressFormChange}
                         placeholder="1000-001"
-                        className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-amber-600 focus:border-amber-600 outline-none ${addressFieldErrors.postal_code ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none ${addressFieldErrors.postal_code ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {addressFieldErrors.postal_code && (
                         <p className="mt-1 text-sm text-red-500">{addressFieldErrors.postal_code}</p>
@@ -634,7 +634,7 @@ const Profile: React.FC = () => {
                       name="is_default"
                       checked={addressForm.is_default}
                       onChange={handleAddressFormChange}
-                      className="w-4 h-4 rounded border-gray-300 text-amber-700 focus:ring-amber-600 cursor-pointer"
+                      className="w-4 h-4 rounded border-gray-300 text-primary-700 focus:ring-primary-600 cursor-pointer"
                     />
                     <span className="text-sm text-gray-700">Definir como morada predefinida</span>
                   </label>
@@ -646,7 +646,7 @@ const Profile: React.FC = () => {
                     <button
                       type="submit"
                       disabled={addressSaving}
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-800 text-white font-medium rounded-lg hover:bg-amber-900 transition-colors shadow-sm text-sm disabled:opacity-60"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary-700 text-white font-medium rounded-lg hover:bg-primary-800 transition-colors shadow-sm text-sm disabled:opacity-60"
                     >
                       <Save className="h-4 w-4" />
                       {addressSaving ? 'A guardar...' : 'Guardar Morada'}
@@ -671,13 +671,13 @@ const Profile: React.FC = () => {
                     key={addr.id}
                     className={`relative rounded-xl border p-5 transition-all ${
                       addr.is_default
-                        ? 'border-amber-300 bg-amber-50/40'
-                        : 'border-gray-100 bg-gray-50/30 hover:border-gray-200'
+                        ? 'border-primary-300 bg-primary-50/40'
+                        : 'border-gray-100 bg-tertiary-100 hover:border-gray-200'
                     }`}
                   >
                     {addr.is_default && (
-                      <span className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-                        <Star className="w-2.5 h-2.5 fill-amber-600 text-amber-600" />
+                      <span className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary-100 text-primary-800 border border-primary-200">
+                        <Star className="w-2.5 h-2.5 fill-primary-600 text-primary-600" />
                         Predefinida
                       </span>
                     )}
@@ -698,7 +698,7 @@ const Profile: React.FC = () => {
                       {!addr.is_default && (
                         <button
                           onClick={() => handleSetDefault(addr)}
-                          className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-amber-700 transition-colors font-medium"
+                          className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-primary-700 transition-colors font-medium"
                         >
                           <Star className="w-3.5 h-3.5" />
                           Predefinir
@@ -733,7 +733,7 @@ const Profile: React.FC = () => {
             <div className="px-6 sm:px-8 py-5 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-amber-600" />
+                  <Shield className="w-5 h-5 text-primary-600" />
                   Segurança da Conta
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">Mantenha a sua conta segura atualizando a password regularmente.</p>
@@ -744,7 +744,7 @@ const Profile: React.FC = () => {
               {!showPasswordForm ? (
                 <button
                   onClick={() => setShowPasswordForm(true)}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-amber-500 transition-colors font-medium text-sm w-full sm:w-auto shadow-sm"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 transition-colors font-medium text-sm w-full sm:w-auto shadow-sm"
                 >
                   <KeyRound className="h-4 w-4 text-gray-500" />
                   Alterar Password
@@ -790,7 +790,7 @@ const Profile: React.FC = () => {
                     </button>
                     <button
                       type="submit"
-                      className="w-full sm:w-auto px-6 py-2.5 bg-amber-800 text-white font-medium rounded-lg hover:bg-amber-900 transition-colors shadow-sm"
+                      className="w-full sm:w-auto px-6 py-2.5 bg-primary-700 text-white font-medium rounded-lg hover:bg-primary-800 transition-colors shadow-sm"
                     >
                       Atualizar Password
                     </button>
