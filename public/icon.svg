@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" fill="#C4A668" rx="64"/>
+  <g transform="translate(128, 128)">
+    <!-- Agulha de crochê -->
+    <path d="M180 50 L200 250" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="190" cy="40" r="15" fill="#FFFFFF"/>
+
+    <!-- Fio de lã formando um ponto -->
+    <path d="M150 120 Q170 100 190 120 Q210 140 190 160 Q170 180 150 160 Q130 140 150 120"
+          stroke="#FFFFFF" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Segundo ponto entrelaçado -->
+    <path d="M100 150 Q120 130 140 150 Q160 170 140 190 Q120 210 100 190 Q80 170 100 150"
+          stroke="#FFFFFF" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Detalhes decorativos -->
+    <circle cx="190" cy="120" r="4" fill="#FFFFFF"/>
+    <circle cx="150" cy="160" r="4" fill="#FFFFFF"/>
+    <circle cx="140" cy="150" r="4" fill="#FFFFFF"/>
+  </g>
+</svg>
