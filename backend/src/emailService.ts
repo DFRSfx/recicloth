@@ -151,18 +151,29 @@ const emailTranslations: EmailTranslations = {
 };
 
 class EmailService {
-  private resend: Resend;
+  private resend: Resend | null;
   private from: string;
+  private readonly emailEnabled: boolean;
 
   constructor() {
-    this.resend = new Resend(process.env.RESEND_API_KEY);
+    const apiKey = process.env.RESEND_API_KEY;
+    this.emailEnabled = Boolean(apiKey);
+    this.resend = apiKey ? new Resend(apiKey) : null;
     const name = process.env.EMAIL_FROM_NAME || 'Recicloth';
     const address = process.env.EMAIL_FROM || 'onboarding@resend.dev';
     this.from = `${name} <${address}>`;
-    console.log('✅ Resend email service initialized — from:', this.from);
+    if (this.emailEnabled) {
+      console.log('✅ Resend email service initialized — from:', this.from);
+    } else {
+      console.warn('⚠️ RESEND_API_KEY is missing. Email sending is disabled.');
+    }
   }
 
   async sendPasswordResetEmail(email: string, resetToken: string, userName: string, language = 'pt') {
+    if (!this.resend) {
+      throw new Error('Email service not configured (RESEND_API_KEY missing).');
+    }
+
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/redefinir-senha?token=${resetToken}`;
     const t = emailTranslations[language] || emailTranslations.pt;
     const content = t.resetPassword;
@@ -186,6 +197,10 @@ class EmailService {
   }
 
   async sendPasswordChangedNotification(email: string, userName: string, language = 'pt') {
+    if (!this.resend) {
+      return { success: false, error: 'Email service not configured (RESEND_API_KEY missing).' };
+    }
+
     const t = emailTranslations[language] || emailTranslations.pt;
     const content = t.passwordChanged;
 
@@ -213,6 +228,10 @@ class EmailService {
     orderDetails: any,
     language = 'pt'
   ) {
+    if (!this.resend) {
+      return { success: false, error: 'Email service not configured (RESEND_API_KEY missing).' };
+    }
+
     const t = emailTranslations[language] || emailTranslations.pt;
     const content = t.orderConfirmation;
 
@@ -238,6 +257,10 @@ class EmailService {
   }
 
   async sendEmailVerification(email: string, verificationToken: string, userName: string, language = 'pt') {
+    if (!this.resend) {
+      throw new Error('Email service not configured (RESEND_API_KEY missing).');
+    }
+
     const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verificar-email?token=${verificationToken}`;
     const t = emailTranslations[language] || emailTranslations.pt;
     const content = t.emailVerification;

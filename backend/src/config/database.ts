@@ -3,6 +3,23 @@ import { Pool, PoolClient } from 'pg';
 
 dotenv.config();
 
+const rawHost = process.env.DB_HOST || 'localhost';
+const rawPort = Number(process.env.DB_PORT || 5432);
+const rawDatabase = process.env.DB_NAME || 'postgres';
+const rawUser = process.env.DB_USER || 'postgres';
+
+const isSupabaseHost =
+  rawHost.includes('supabase.co') || rawHost.includes('pooler.supabase.com');
+
+const normalizedPort = rawPort === 3306 ? 5432 : rawPort;
+if (rawPort === 3306) {
+  console.warn('⚠️ DB_PORT=3306 detected (MySQL default). Using 5432 for PostgreSQL.');
+}
+
+if (rawHost === 'localhost' && rawDatabase === 'arte_em_ponto') {
+  console.warn('⚠️ MySQL-looking DB settings detected. Please update backend/.env to PostgreSQL values.');
+}
+
 const toPgParams = (sql: string): string => {
   let i = 0;
   return sql.replace(/\?/g, () => `$${++i}`);
@@ -19,13 +36,13 @@ const adaptSql = (sql: string): string => {
 };
 
 const pgPool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT || 5432),
-  user: process.env.DB_USER || 'postgres',
+  host: rawHost,
+  port: normalizedPort,
+  user: rawUser,
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'postgres',
+  database: rawDatabase,
   max: 10,
-  ssl: process.env.NODE_ENV === 'production'
+  ssl: process.env.DB_SSL === 'true' || (process.env.NODE_ENV === 'production' && isSupabaseHost)
     ? { rejectUnauthorized: false }
     : false
 });

@@ -7,7 +7,15 @@ import emailService from '../emailService.js';
 
 const router = express.Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripeApiKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeApiKey ? new Stripe(stripeApiKey) : null;
+
+const requireStripe = () => {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY in backend/.env');
+  }
+  return stripe;
+};
 
 // Payment callback base URL — used as return_url for Multibanco / MB WAY.
 const PAYMENT_CALLBACK_URL = (
@@ -119,7 +127,7 @@ router.post(
         return;
       }
 
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await requireStripe().paymentIntents.create({
         amount: Math.round(total * 100),
         currency: 'eur',
         automatic_payment_methods: { enabled: true },
@@ -179,7 +187,7 @@ router.post(
         return;
       }
 
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await requireStripe().paymentIntents.create({
         amount: Math.round(total * 100),
         currency: 'eur',
         automatic_payment_methods: { enabled: true },
@@ -275,7 +283,7 @@ router.post(
         // Email is sent exclusively by the webhook (payment_intent.succeeded)
         // to avoid duplicates.
         try {
-          const pi = await stripe.paymentIntents.retrieve(payment_intent_id);
+          const pi = await requireStripe().paymentIntents.retrieve(payment_intent_id);
           if (pi.status === 'succeeded') {
             await pool.execute(
               "UPDATE orders SET status = 'processing', payment_status = 'paid' WHERE id = ?",
@@ -322,7 +330,7 @@ const cardPaymentHandler = [
 
       console.log('Creating Stripe PaymentIntent for order:', order_id);
 
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await requireStripe().paymentIntents.create({
         amount: Math.round(parseFloat(amount) * 100),
         currency: 'eur',
         payment_method_types: ['card'],
@@ -369,7 +377,7 @@ router.post(
 
       console.log('Creating Multibanco PaymentIntent for order:', order_id);
 
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await requireStripe().paymentIntents.create({
         amount: Math.round(parseFloat(amount) * 100),
         currency: 'eur',
         payment_method_types: ['multibanco'],
@@ -412,7 +420,7 @@ router.post(
 
       console.log('Creating MB WAY PaymentIntent for order:', order_id);
 
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await requireStripe().paymentIntents.create({
         amount: Math.round(parseFloat(amount) * 100),
         currency: 'eur',
         payment_method_types: ['mb_way'],
@@ -448,7 +456,7 @@ router.post('/webhook', async (req: any, res: any) => {
 
   if (webhookSecret && webhookSecret !== 'whsec_...') {
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+      event = requireStripe().webhooks.constructEvent(req.body, sig, webhookSecret);
     } catch (err: any) {
       console.error('Stripe webhook signature verification failed:', err.message);
       res.status(400).json({ error: `Webhook error: ${err.message}` });

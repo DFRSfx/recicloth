@@ -10,6 +10,7 @@
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "start:dev": "cross-env NODE_ENV=development node dist/index.js",
     "typecheck": "tsc --noEmit",
+    "db:migrate": "tsx src/database/runMigrations.ts",
     "cleanup-tokens": "tsx src/cleanup-tokens.ts",
     "migrate-images": "tsx src/migrate-images-to-disk.ts",
     "generate-image-variants": "tsx src/generate-image-variants.ts",
