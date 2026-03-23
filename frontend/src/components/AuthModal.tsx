@@ -611,7 +611,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                 <div className="space-y-3">
                   <h3 className="text-xl font-semibold text-gray-800">Já tens conta?</h3>
                   <p className="text-gray-600">
-                    Inicia sessão para aceder à tua conta Arte em Ponto e explorar as nossas coleções exclusivas.
+                    Inicia sessão para aceder à tua conta Recicloth e explorar as nossas coleções exclusivas.
                   </p>
                 </div>
 
@@ -836,7 +836,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     className="w-5 h-5 mt-0.5 text-primary-600 bg-gray-50 border-gray-300 rounded focus:ring-primary-500 cursor-pointer"
                   />
                   <label htmlFor="newsletter" className="ml-3 text-xs text-gray-700 cursor-pointer">
-                    Eu gostaria de receber notícias personalizadas e comunicações comerciais da Arte em Ponto.
+                    Eu gostaria de receber notícias personalizadas e comunicações comerciais da Recicloth.
                   </label>
                 </div>
 
@@ -854,11 +854,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     />
                     <label htmlFor="privacy" className="ml-3 text-xs text-gray-700 cursor-pointer">
                       Li e aceito os{' '}
-                      <a href="/termos" className="text-primary-600 hover:text-primary-700 underline">
+                      <a href="/termos-condicoes" className="text-primary-600 hover:text-primary-700 underline">
                         Termos e Condições
                       </a>
                       {' '}e a{' '}
-                      <a href="/privacidade" className="text-primary-600 hover:text-primary-700 underline">
+                      <a href="/politica-privacidade" className="text-primary-600 hover:text-primary-700 underline">
                         Política de Privacidade
                       </a>
                     </label>

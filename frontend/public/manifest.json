@@ -1,11 +1,11 @@
 {
-  "name": "Arte em Ponto — Croché Feito à Mão",
-  "short_name": "Arte em Ponto",
-  "description": "Loja online de malas de croché feitas à mão em Portugal. Peças únicas, prendas artesanais e decoração em croché artesanal.",
+  "name": "Recicloth — Moda Sustentavel",
+  "short_name": "Recicloth",
+  "description": "Loja online de roupa reciclada e upcycled. Moda que respeita o planeta.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "theme_color": "#C4A668",
+  "theme_color": "#2D6A4F",
   "orientation": "portrait-primary",
   "icons": [
     {

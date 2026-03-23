@@ -317,7 +317,7 @@ const Navbar: React.FC = () => {
             <div className="flex-shrink-0">
               <img
                 src="/images/logo.webp"
-                alt="Arte em Ponto"
+                alt="Recicloth"
                 className="h-20 w-auto"
                 width="1472"
                 height="704"
@@ -773,7 +773,7 @@ const Navbar: React.FC = () => {
                       Olá!
                     </h2>
                     <p className="text-white/90 text-sm mb-6">
-                      Ainda não és cliente da Arte em Ponto?<br />
+                      Ainda não és cliente da Recicloth?<br />
                       <span className="text-white/70 text-xs">O registo é fácil e grátis!</span>
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3">

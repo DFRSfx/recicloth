@@ -33,7 +33,7 @@ router.get('/dashboard', ...requireAdmin, async (req: AuthRequest, res) => {
 
     // Get total users count
     const [userCount]: any = await pool.query(
-      'SELECT COUNT(*) as total FROM users WHERE role != "admin"'
+      "SELECT COUNT(*) as total FROM users WHERE role != 'admin'"
     );
     const totalUsers = userCount[0].total;
 

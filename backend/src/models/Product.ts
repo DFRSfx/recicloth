@@ -1,5 +1,4 @@
 import pool from '../config/database';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 export interface Product {
   id: number;
@@ -41,7 +40,7 @@ export interface ProductFilters {
 
 class ProductModel {
   static async findById(id: number): Promise<Product | null> {
-    const [rows] = await pool.execute<(RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       'SELECT * FROM products WHERE id = ?',
       [id]
     );
@@ -112,7 +111,7 @@ class ProductModel {
 
     query += ' ORDER BY p.created_at DESC';
 
-    const [rows] = await pool.execute<RowDataPacket[]>(query, params);
+    const [rows]: any = await pool.execute(query, params);
 
     // Parse JSON fields
     return rows.map(row => {
@@ -146,7 +145,7 @@ class ProductModel {
     // Convert colors array to JSON string
     const colorsJson = colors ? JSON.stringify(colors) : null;
 
-    const [result] = await pool.execute<ResultSetHeader>(
+    const [result]: any = await pool.execute(
       'INSERT INTO products (name, description, price, category_id, colors, stock, featured) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [name, description, price, category_id, colorsJson, stock, featured || false]
     );
@@ -236,7 +235,7 @@ class ProductModel {
       }
     }
 
-    const [rows] = await pool.execute<RowDataPacket[]>(query, params);
+    const [rows]: any = await pool.execute(query, params);
     return rows[0].total;
   }
 }

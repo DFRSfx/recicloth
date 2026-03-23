@@ -9,7 +9,7 @@ const About: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Sobre a Arte em Ponto
+              Sobre a Recicloth
             </h1>
             <p className="text-xl text-primary-100 max-w-3xl mx-auto">
               Onde cada ponto conta uma história e cada peça é feita com amor e dedicação
@@ -29,7 +29,7 @@ const About: React.FC = () => {
               </h2>
               <div className="space-y-4 text-gray-600 leading-relaxed">
                 <p>
-                  A <span className="font-semibold text-primary-600">Arte em Ponto</span> nasceu da paixão pelo crochê
+                  A <span className="font-semibold text-primary-600">Recicloth</span> nasceu da paixão pelo crochê
                   e do desejo de criar peças únicas que trazem conforto, beleza e alegria para o seu lar.
                 </p>
                 <p>

@@ -78,7 +78,7 @@ router.post(
       res.status(201).json(newCategory[0]);
     } catch (error: any) {
       console.error('Error creating category:', error);
-      if (error.code === 'ER_DUP_ENTRY') {
+      if (error.code === '23505') {
         res.status(400).json({ error: 'Category name or slug already exists' });
         return;
       }
@@ -152,7 +152,7 @@ router.put(
       res.json(updatedCategory[0]);
     } catch (error: any) {
       console.error('Error updating category:', error);
-      if (error.code === 'ER_DUP_ENTRY') {
+      if (error.code === '23505') {
         res.status(400).json({ error: 'Category name or slug already exists' });
         return;
       }

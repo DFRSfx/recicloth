@@ -117,7 +117,7 @@ const Contact: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <SEO
         title="Contacto"
-        description="Entre em contacto com Arte em Ponto. Estamos disponíveis para esclarecer dúvidas, fazer encomendas personalizadas e ajudar com qualquer questão sobre os nossos produtos em crochê."
+        description="Entre em contacto com Recicloth. Estamos disponíveis para esclarecer dúvidas, fazer encomendas personalizadas e ajudar com qualquer questão sobre os nossos produtos em crochê."
         canonical="/contacto"
         ogType="website"
         schema={schemas}
@@ -156,10 +156,10 @@ const Contact: React.FC = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900 text-lg">Email</h3>
                     <a
-                      href="mailto:arteemponto1972@gmail.com"
+                      href="mailto:recicloth1972@gmail.com"
                       className="text-gray-600 hover:text-primary-600 transition-colors mt-1 block"
                     >
-                      arteemponto1972@gmail.com
+                      recicloth1972@gmail.com
                     </a>
                     <p className="text-sm text-gray-400 mt-1">Respondemos em 24h</p>
                   </div>
@@ -172,12 +172,12 @@ const Contact: React.FC = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900 text-lg">Instagram</h3>
                     <a
-                      href="https://www.instagram.com/arteemponto.croche/"
+                      href="https://www.instagram.com/recicloth.croche/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-primary-600 transition-colors mt-1 block"
                     >
-                      @arteemponto.croche
+                      @recicloth.croche
                     </a>
                     <p className="text-sm text-gray-400 mt-1">Veja o nosso processo criativo</p>
                   </div>

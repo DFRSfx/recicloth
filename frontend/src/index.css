@@ -4,7 +4,13 @@
 
 @layer base {
   body {
-    font-family: 'Urbanist', sans-serif;
+    font-family: 'Inter', sans-serif;
+    background-color: #FAFAF8;
+    color: #1A1A1A;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
   }
 }
 
@@ -196,8 +202,8 @@
 }
 
 .PhoneInput:focus-within {
-  border-color: #7D3C0F;
-  box-shadow: 0 0 0 3px rgba(125, 60, 15, 0.12);
+  border-color: #2D6A4F;
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
   background-color: #ffffff;
 }
 
@@ -219,7 +225,7 @@
   background: transparent;
   font-size: 1rem;
   color: #1f2937;
-  font-family: 'Urbanist', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .PhoneInputInput::placeholder {

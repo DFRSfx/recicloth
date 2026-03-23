@@ -1,5 +1,4 @@
 import pool from '../config/database';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 export interface Category {
   id: number;
@@ -19,7 +18,7 @@ export interface CategoryInput {
 
 class CategoryModel {
   static async findById(id: number): Promise<Category | null> {
-    const [rows] = await pool.execute<(Category & RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       'SELECT * FROM categories WHERE id = ?',
       [id]
     );
@@ -27,7 +26,7 @@ class CategoryModel {
   }
 
   static async findBySlug(slug: string): Promise<Category | null> {
-    const [rows] = await pool.execute<(Category & RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       'SELECT * FROM categories WHERE slug = ?',
       [slug]
     );
@@ -35,7 +34,7 @@ class CategoryModel {
   }
 
   static async findAll(): Promise<Category[]> {
-    const [rows] = await pool.execute<(Category & RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       'SELECT * FROM categories ORDER BY name ASC'
     );
     return rows;
@@ -43,7 +42,7 @@ class CategoryModel {
 
   static async create(categoryData: CategoryInput): Promise<number> {
     const { name, slug, description, image } = categoryData;
-    const [result] = await pool.execute<ResultSetHeader>(
+    const [result]: any = await pool.execute(
       'INSERT INTO categories (name, slug, description, image) VALUES (?, ?, ?, ?)',
       [name, slug, description || null, image || null]
     );
@@ -63,7 +62,7 @@ class CategoryModel {
   }
 
   static async count(): Promise<number> {
-    const [rows] = await pool.execute<RowDataPacket[]>(
+    const [rows]: any = await pool.execute(
       'SELECT COUNT(*) as total FROM categories'
     );
     return rows[0].total;

@@ -3,32 +3,57 @@ import { body, validationResult } from 'express-validator';
 import pool from '../config/database.js';
 import { requireAdmin, authenticateToken, AuthRequest } from '../middleware/auth.js';
 import crypto from 'crypto';
+import emailService from '../emailService.js';
+import { BUSINESS_RULES, ORDER_STATUS_MAP, OrderStatusLabel } from '../config/businessRules.js';
 
 const router = express.Router();
 
-// Generate unique tracking token
 function generateTrackingToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
-// Get all orders (admin only)
-router.get('/', ...requireAdmin, async (req: AuthRequest, res) => {
+const parseOrderItems = (row: any) => {
+  const raw = row.order_items || [];
+  const items = Array.isArray(raw) ? raw : JSON.parse(raw);
+  return items.map((item: any) => ({
+    ...item,
+    price: Number(item.price || 0),
+    product: item.product || null
+  }));
+};
+
+const mapStatusToDb = (status: string): string => {
+  if ((BUSINESS_RULES.ORDER_STATUSES as readonly string[]).includes(status)) {
+    return ORDER_STATUS_MAP[status as OrderStatusLabel];
+  }
+  return status;
+};
+
+const isStatusAllowed = (status: string): boolean => {
+  const allowedDb = Object.values(ORDER_STATUS_MAP);
+  return allowedDb.includes(status as any) || (BUSINESS_RULES.ORDER_STATUSES as readonly string[]).includes(status);
+};
+
+router.get('/', ...requireAdmin, async (_req: AuthRequest, res) => {
   try {
     const [orders]: any = await pool.query(`
       SELECT
         o.*,
-        GROUP_CONCAT(
-          JSON_OBJECT(
-            'id', oi.id,
-            'quantity', oi.quantity,
-            'price', oi.price,
-            'product', JSON_OBJECT(
-              'id', p.id,
-              'name', p.name,
-              'image', JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]'))
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', oi.id,
+              'quantity', oi.quantity,
+              'price', oi.price,
+              'product', json_build_object(
+                'id', p.id,
+                'name', p.name,
+                'image', COALESCE((p.images::jsonb ->> 0), '')
+              )
             )
-          )
-        ) as order_items
+          ) FILTER (WHERE oi.id IS NOT NULL),
+          '[]'::json
+        ) AS order_items
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN products p ON oi.product_id = p.id
@@ -36,102 +61,106 @@ router.get('/', ...requireAdmin, async (req: AuthRequest, res) => {
       ORDER BY o.created_at DESC
     `);
 
-    // Parse JSON strings
-    const parsedOrders = orders.map((order: any) => ({
-      ...order,
-      order_items: order.order_items ? JSON.parse(`[${order.order_items}]`) : []
-    }));
-
-    res.json(parsedOrders);
+    res.json(
+      orders.map((order: any) => ({
+        ...order,
+        order_items: parseOrderItems(order)
+      }))
+    );
   } catch (error) {
     console.error('Error fetching orders:', error);
     res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
 
-// Get user's orders (authenticated) - MUST be before /:id route!
 router.get('/my-orders', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    console.log('📦 /my-orders called by user:', req.user?.id, req.user?.email);
-    
-    const [orders]: any = await pool.query(`
+    const [orders]: any = await pool.query(
+      `
       SELECT
         o.*,
-        GROUP_CONCAT(
-          JSON_OBJECT(
-            'id', oi.id,
-            'quantity', oi.quantity,
-            'price', oi.price,
-            'product', JSON_OBJECT(
-              'id', p.id,
-              'name', p.name,
-              'image', JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]'))
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', oi.id,
+              'quantity', oi.quantity,
+              'price', oi.price,
+              'product', json_build_object(
+                'id', p.id,
+                'name', p.name,
+                'image', COALESCE((p.images::jsonb ->> 0), '')
+              )
             )
-          )
-        ) as order_items
+          ) FILTER (WHERE oi.id IS NOT NULL),
+          '[]'::json
+        ) AS order_items
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN products p ON oi.product_id = p.id
       WHERE o.user_id = ?
       GROUP BY o.id
       ORDER BY o.created_at DESC
-    `, [req.user?.id]);
+      `,
+      [req.user?.id]
+    );
 
-    const parsedOrders = orders.map((order: any) => ({
-      ...order,
-      order_items: order.order_items ? JSON.parse(`[${order.order_items}]`) : []
-    }));
-
-    res.json(parsedOrders);
+    res.json(
+      orders.map((order: any) => ({
+        ...order,
+        order_items: parseOrderItems(order)
+      }))
+    );
   } catch (error) {
     console.error('Error fetching user orders:', error);
     res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
 
-// Get single order (admin only)
 router.get('/:id', ...requireAdmin, async (req: AuthRequest, res) => {
   try {
-    const [orders]: any = await pool.query(`
+    const [orders]: any = await pool.query(
+      `
       SELECT
         o.*,
-        GROUP_CONCAT(
-          JSON_OBJECT(
-            'id', oi.id,
-            'quantity', oi.quantity,
-            'price', oi.price,
-            'product', JSON_OBJECT(
-              'id', p.id,
-              'name', p.name,
-              'image', JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]'))
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', oi.id,
+              'quantity', oi.quantity,
+              'price', oi.price,
+              'product', json_build_object(
+                'id', p.id,
+                'name', p.name,
+                'image', COALESCE((p.images::jsonb ->> 0), '')
+              )
             )
-          )
-        ) as order_items
+          ) FILTER (WHERE oi.id IS NOT NULL),
+          '[]'::json
+        ) AS order_items
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN products p ON oi.product_id = p.id
       WHERE o.id = ?
       GROUP BY o.id
-    `, [req.params.id]);
+      `,
+      [req.params.id]
+    );
 
     if (orders.length === 0) {
       res.status(404).json({ error: 'Order not found' });
       return;
     }
 
-    const order = {
+    res.json({
       ...orders[0],
-      order_items: orders[0].order_items ? JSON.parse(`[${orders[0].order_items}]`) : []
-    };
-
-    res.json(order);
+      order_items: parseOrderItems(orders[0])
+    });
   } catch (error) {
     console.error('Error fetching order:', error);
     res.status(500).json({ error: 'Failed to fetch order' });
   }
 });
 
-// Create order (public/authenticated)
 router.post(
   '/',
   [
@@ -141,7 +170,10 @@ router.post(
     body('customer_address').trim().notEmpty().withMessage('Address is required'),
     body('customer_city').trim().notEmpty().withMessage('City is required'),
     body('customer_postal_code').trim().notEmpty().withMessage('Postal code is required'),
-    body('payment_method').trim().notEmpty().withMessage('Payment method is required'),
+    body('delivery_country').trim().notEmpty().withMessage('Delivery country is required'),
+    body('payment_method')
+      .isIn(['Transferência Bancária', 'MBWay'])
+      .withMessage('Payment method is invalid'),
     body('items').isArray({ min: 1 }).withMessage('Order must have at least one item'),
     body('items.*.product_id').isInt().withMessage('Product ID must be an integer'),
     body('items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
@@ -156,7 +188,6 @@ router.post(
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        console.error('Validation errors:', errors.array());
         res.status(400).json({ errors: errors.array() });
         return;
       }
@@ -168,113 +199,128 @@ router.post(
         customer_address,
         customer_city,
         customer_postal_code,
+        delivery_country,
         payment_method,
         items,
         save_address,
         user_id
       } = req.body;
 
-      console.log('Creating order with data:', {
-        customer_name,
-        customer_email,
-        user_id: user_id || 'guest',
-        items_count: items.length
-      });
-
-      // Calculate total including 23% VAT (matches what Stripe charges)
-      const subtotal = items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
-      const total = parseFloat((subtotal * 1.23).toFixed(2));
-
-      // Generate tracking token for guest orders
-      const trackingToken = generateTrackingToken();
-
-      console.log('Generated tracking token:', trackingToken);
-
-      // Create order
-      let orderId: number;
-      try {
-        const [orderResult]: any = await connection.query(
-          `INSERT INTO orders (
-            tracking_token, user_id, customer_name, customer_email, customer_phone,
-            customer_address, customer_city, customer_postal_code,
-            payment_method, total, status, payment_status
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            trackingToken, user_id || null, customer_name, customer_email, customer_phone,
-            customer_address, customer_city, customer_postal_code,
-            payment_method, total, 'pending', 'pending'
-          ]
-        );
-
-        orderId = orderResult.insertId;
-        console.log('Order created successfully, ID:', orderId);
-      } catch (insertError: any) {
-        console.error('❌ Error inserting order:', insertError.message);
-        console.error('SQL Error code:', insertError.code);
-        console.error('SQL Error details:', insertError.sqlMessage);
-        throw new Error(`Database error: ${insertError.message}`);
+      const normalizedCountry = String(delivery_country).toUpperCase();
+      const eligibleCountries = BUSINESS_RULES.SHIPPING.ELIGIBLE_COUNTRIES as readonly string[];
+      if (!eligibleCountries.includes(normalizedCountry)) {
+        res.status(400).json({ error: 'Apenas entregamos na União Europeia.' });
+        return;
       }
 
-      // Create order items
+      const subtotal = items.reduce((sum: number, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
+      const vatAmount = Number((subtotal * BUSINESS_RULES.VAT_RATE).toFixed(2));
+      const shippingCost = subtotal >= BUSINESS_RULES.FREE_SHIPPING_THRESHOLD
+        ? 0
+        : Number((normalizedCountry === 'PT' ? BUSINESS_RULES.SHIPPING.PT.cost : BUSINESS_RULES.SHIPPING.EU.cost).toFixed(2));
+      const total = Number((subtotal + vatAmount + shippingCost).toFixed(2));
+
+      const trackingToken = generateTrackingToken();
+      const [orderResult]: any = await connection.query(
+        `INSERT INTO orders (
+          tracking_token, user_id, customer_name, customer_email, customer_phone,
+          customer_address, customer_city, customer_postal_code, delivery_country,
+          payment_method, subtotal, vat_amount, shipping_cost, total, status, payment_status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          trackingToken, user_id || null, customer_name, customer_email, customer_phone,
+          customer_address, customer_city, customer_postal_code, normalizedCountry,
+          payment_method, subtotal, vatAmount, shippingCost, total, 'pending', 'pending'
+        ]
+      );
+
+      const orderId = orderResult.insertId;
+
       for (const item of items) {
+        const [products]: any = await connection.query(
+          'SELECT id, stock, name FROM products WHERE id = ?',
+          [item.product_id]
+        );
+
+        if (products.length === 0) {
+          throw new Error(`Produto ${item.product_id} não encontrado`);
+        }
+
+        if (Number(products[0].stock) < Number(item.quantity)) {
+          throw new Error(`Stock insuficiente para o produto ${products[0].name}`);
+        }
+
         await connection.query(
           'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
           [orderId, item.product_id, item.quantity, item.price]
         );
 
-        // Update product stock (GREATEST prevents unsigned underflow when stock is 0)
         await connection.query(
           'UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?',
           [item.quantity, item.product_id]
         );
       }
 
-      // Save address if user is authenticated and requested
       if (user_id && save_address) {
-        // Check if address already exists
         const [existingAddresses]: any = await connection.query(
-          `SELECT id FROM shipping_addresses 
+          `SELECT id FROM shipping_addresses
            WHERE user_id = ? AND address = ? AND city = ? AND postal_code = ?`,
           [user_id, customer_address, customer_city, customer_postal_code]
         );
 
         if (existingAddresses.length === 0) {
-          // Get count of existing addresses
           const [addressCount]: any = await connection.query(
             'SELECT COUNT(*) as count FROM shipping_addresses WHERE user_id = ?',
             [user_id]
           );
 
-          const isFirstAddress = addressCount[0].count === 0;
+          const isFirstAddress = Number(addressCount[0].count) === 0;
 
           await connection.query(
-            `INSERT INTO shipping_addresses 
+            `INSERT INTO shipping_addresses
              (user_id, name, address, city, postal_code, phone, is_default)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [user_id, 'Morada Principal', customer_address, customer_city, customer_postal_code, customer_phone, isFirstAddress ? 1 : 0]
+            [user_id, 'Morada Principal', customer_address, customer_city, customer_postal_code, customer_phone, isFirstAddress]
           );
         }
       }
 
       await connection.commit();
 
-      const [newOrder]: any = await connection.query(
-        'SELECT * FROM orders WHERE id = ?',
-        [orderId]
+      const [newOrderRows]: any = await connection.query('SELECT * FROM orders WHERE id = ?', [orderId]);
+      const newOrder = newOrderRows[0];
+
+      await emailService.sendOrderConfirmation(
+        customer_email,
+        customer_name,
+        String(orderId),
+        {
+          total,
+          items: items.map((item: any) => ({
+            name: item.name || `Produto #${item.product_id}`,
+            quantity: Number(item.quantity),
+            price: Number(item.price)
+          }))
+        },
+        'pt'
       );
 
       res.status(201).json({
-        ...newOrder[0],
+        ...newOrder,
+        totals: {
+          subtotal: Number(subtotal.toFixed(2)),
+          vat_rate: BUSINESS_RULES.VAT_RATE,
+          vat_amount: vatAmount,
+          shipping_cost: shippingCost,
+          total,
+          currency: BUSINESS_RULES.CURRENCY
+        },
         tracking_url: `/track-order/${trackingToken}`
       });
     } catch (error) {
       await connection.rollback();
-      console.error('❌ Error creating order:', error);
-      if (error instanceof Error) {
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-      }
-      res.status(500).json({ 
+      console.error('Error creating order:', error);
+      res.status(500).json({
         error: 'Failed to create order',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -284,7 +330,6 @@ router.post(
   }
 );
 
-// Save Multibanco payment reference after Stripe confirmation (public)
 router.patch(
   '/:id/payment-reference',
   [
@@ -314,15 +359,10 @@ router.patch(
   }
 );
 
-// Update order status (admin only)
 router.patch(
   '/:id/status',
   ...requireAdmin,
-  [
-    body('status')
-      .isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled'])
-      .withMessage('Invalid status')
-  ],
+  [body('status').trim().notEmpty().withMessage('Invalid status')],
   async (req: AuthRequest, res) => {
     try {
       const errors = validationResult(req);
@@ -331,22 +371,26 @@ router.patch(
         return;
       }
 
-      const { status } = req.body;
+      const mappedStatus = mapStatusToDb(req.body.status);
+      if (!isStatusAllowed(mappedStatus)) {
+        res.status(400).json({ error: 'Invalid status' });
+        return;
+      }
 
-      await pool.query(
+      const [updateResult]: any = await pool.query(
         'UPDATE orders SET status = ? WHERE id = ?',
-        [status, req.params.id]
+        [mappedStatus, req.params.id]
       );
+
+      if (updateResult.affectedRows === 0) {
+        res.status(404).json({ error: 'Order not found' });
+        return;
+      }
 
       const [updatedOrder]: any = await pool.query(
         'SELECT * FROM orders WHERE id = ?',
         [req.params.id]
       );
-
-      if (updatedOrder.length === 0) {
-        res.status(404).json({ error: 'Order not found' });
-        return;
-      }
 
       res.json(updatedOrder[0]);
     } catch (error) {
@@ -356,7 +400,6 @@ router.patch(
   }
 );
 
-// Delete order (admin only)
 router.delete('/:id', ...requireAdmin, async (req: AuthRequest, res) => {
   try {
     const [result]: any = await pool.query(
@@ -376,10 +419,10 @@ router.delete('/:id', ...requireAdmin, async (req: AuthRequest, res) => {
   }
 });
 
-// Track order by token (public - for guest orders)
 router.get('/track/:token', async (req, res) => {
   try {
-    const [orders]: any = await pool.query(`
+    const [orders]: any = await pool.query(
+      `
       SELECT
         o.id,
         o.tracking_token,
@@ -388,42 +431,57 @@ router.get('/track/:token', async (req, res) => {
         o.customer_address,
         o.customer_city,
         o.customer_postal_code,
+        o.delivery_country,
+        o.subtotal,
+        o.vat_amount,
+        o.shipping_cost,
         o.total,
         o.status,
         o.payment_status,
         o.payment_method,
         o.created_at,
         o.updated_at,
-        GROUP_CONCAT(
-          JSON_OBJECT(
-            'id', oi.id,
-            'quantity', oi.quantity,
-            'price', oi.price,
-            'product', JSON_OBJECT(
-              'id', p.id,
-              'name', p.name,
-              'image', JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]'))
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', oi.id,
+              'quantity', oi.quantity,
+              'price', oi.price,
+              'product', json_build_object(
+                'id', p.id,
+                'name', p.name,
+                'image', COALESCE((p.images::jsonb ->> 0), '')
+              )
             )
-          )
-        ) as order_items
+          ) FILTER (WHERE oi.id IS NOT NULL),
+          '[]'::json
+        ) AS order_items
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN products p ON oi.product_id = p.id
       WHERE o.tracking_token = ?
       GROUP BY o.id
-    `, [req.params.token]);
+      `,
+      [req.params.token]
+    );
 
     if (orders.length === 0) {
       res.status(404).json({ error: 'Order not found' });
       return;
     }
 
-    const order = {
+    res.json({
       ...orders[0],
-      order_items: orders[0].order_items ? JSON.parse(`[${orders[0].order_items}]`) : []
-    };
-
-    res.json(order);
+      order_items: parseOrderItems(orders[0]),
+      totals: {
+        subtotal: Number(orders[0].subtotal || 0),
+        vat_rate: BUSINESS_RULES.VAT_RATE,
+        vat_amount: Number(orders[0].vat_amount || 0),
+        shipping_cost: Number(orders[0].shipping_cost || 0),
+        total: Number(orders[0].total || 0),
+        currency: BUSINESS_RULES.CURRENCY
+      }
+    });
   } catch (error) {
     console.error('Error tracking order:', error);
     res.status(500).json({ error: 'Failed to track order' });

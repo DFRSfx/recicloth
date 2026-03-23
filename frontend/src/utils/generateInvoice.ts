@@ -60,7 +60,7 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Fatura ${invoiceNumber} · Arte em Ponto</title>
+  <title>Fatura ${invoiceNumber} · Recicloth</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -192,9 +192,9 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
 
     <div class="invoice-header">
       <div class="brand">
-        <img src="${logoUrl}" alt="Arte em Ponto" onerror="this.style.display='none'" />
+        <img src="${logoUrl}" alt="Recicloth" onerror="this.style.display='none'" />
         <div>
-          <div class="brand-name">Arte em Ponto</div>
+          <div class="brand-name">Recicloth</div>
           <div class="brand-sub">Artesanato em Crochê Feito à Mão</div>
         </div>
       </div>
@@ -275,7 +275,7 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
     </div>
 
     <div class="invoice-footer">
-      <p>Arte em Ponto · Artesanato em Crochê Feito à Mão</p>
+      <p>Recicloth · Artesanato em Crochê Feito à Mão</p>
       <p class="note">Este documento é meramente informativo e não substitui uma fatura fiscal oficial.</p>
     </div>
     <div class="stripe-bottom"></div>

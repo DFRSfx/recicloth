@@ -112,7 +112,7 @@ router.post('/google', async (req, res) => {
         userAvatarUrl = picture || null;
       } catch (insertError: any) {
         // If duplicate entry (race condition), try to fetch the user again
-        if (insertError.code === 'ER_DUP_ENTRY') {
+        if (insertError.code === '23505') {
           const [retryUsers]: any = await pool.query(
             'SELECT id, email, name, role, status, email_verified, google_id, avatar_url FROM users WHERE email = ?',
             [email]
@@ -285,7 +285,7 @@ router.post('/callback', async (req, res) => {
         userAvatarUrl = picture || null;
       } catch (insertError: any) {
         // If duplicate entry (race condition), try to fetch the user again
-        if (insertError.code === 'ER_DUP_ENTRY') {
+        if (insertError.code === '23505') {
           const [retryUsers]: any = await pool.query(
             'SELECT id, email, name, role, status, email_verified, google_id, avatar_url FROM users WHERE email = ?',
             [email]

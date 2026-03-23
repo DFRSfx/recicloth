@@ -20,9 +20,9 @@ const SEO: React.FC<SEOProps> = ({
   schema,
   noindex = false,
 }) => {
-  const siteName = 'Arte em Ponto';
+  const siteName = 'Recicloth';
   const fullTitle = `${title} | ${siteName}`;
-  const siteUrl = 'https://arteemponto.pt';
+  const siteUrl = 'https://recicloth.pt';
   const canonicalUrl = canonical ? `${siteUrl}${canonical}` : siteUrl;
   const resolvedOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
 
@@ -56,7 +56,7 @@ const SEO: React.FC<SEOProps> = ({
 
       {/* Additional Meta Tags */}
       <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
-      <meta name="author" content="Arte em Ponto" />
+      <meta name="author" content="Recicloth" />
 
       {/* Structured Data */}
       {schema && (

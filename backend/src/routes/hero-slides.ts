@@ -2,7 +2,6 @@ import express from 'express';
 import pool from '../config/database.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { upload } from '../config/upload.js';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
@@ -47,7 +46,7 @@ async function saveSlideImages(id: number | string, buffer: Buffer): Promise<voi
   );
 }
 
-interface HeroSlide extends RowDataPacket {
+interface HeroSlide {
   id: number;
   title: string;
   description: string;
@@ -135,7 +134,7 @@ router.post('/', ...requireAdmin, upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields or image' });
     }
 
-    const [result] = await pool.query<ResultSetHeader>(
+    const [result]: any = await pool.query(
       `INSERT INTO hero_slides (title, description, button_text, button_link, text_color, display_order, is_active)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [title, description, button_text, button_link, text_color, display_order, is_active === 'true']
@@ -171,7 +170,7 @@ router.put('/:id', ...requireAdmin, upload.single('image'), async (req, res) => 
       is_active
     } = req.body;
 
-    const [result] = await pool.query<ResultSetHeader>(
+    const [result]: any = await pool.query(
       `UPDATE hero_slides
        SET title = ?, description = ?, button_text = ?, button_link = ?,
            text_color = ?, display_order = ?, is_active = ?
@@ -207,7 +206,7 @@ router.put('/:id', ...requireAdmin, upload.single('image'), async (req, res) => 
 // Delete slide (admin only)
 router.delete('/:id', ...requireAdmin, async (req, res) => {
   try {
-    const [result] = await pool.query<ResultSetHeader>(
+    const [result]: any = await pool.query(
       'DELETE FROM hero_slides WHERE id = ?',
       [req.params.id]
     );

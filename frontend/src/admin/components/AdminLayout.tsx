@@ -59,14 +59,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="h-24 flex items-center px-6 border-b border-gray-200 flex-shrink-0">
           <img
             src="images/logo.webp"
-            alt="Arte em Ponto"
+            alt="Recicloth"
             className="h-20 w-auto"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling?.classList.remove('hidden');
             }}
           />
-          <h1 className="text-xl font-bold text-gray-900 hidden">Arte em Ponto</h1>
+          <h1 className="text-xl font-bold text-gray-900 hidden">Recicloth</h1>
         </div>
 
         {/* Back to Website Link */}

@@ -1,5 +1,4 @@
 import pool from '../config/database';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 export interface OrderItem {
   id: number;
@@ -24,7 +23,7 @@ export interface OrderItemWithProduct extends OrderItem {
 
 class OrderItemModel {
   static async findById(id: number): Promise<OrderItem | null> {
-    const [rows] = await pool.execute<(OrderItem & RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       'SELECT * FROM order_items WHERE id = ?',
       [id]
     );
@@ -32,7 +31,7 @@ class OrderItemModel {
   }
 
   static async findByOrderId(orderId: number): Promise<OrderItemWithProduct[]> {
-    const [rows] = await pool.execute<RowDataPacket[]>(
+    const [rows]: any = await pool.execute(
       `SELECT
         oi.*,
         p.name as product_name,
@@ -47,7 +46,7 @@ class OrderItemModel {
   }
 
   static async findByProductId(productId: number): Promise<OrderItem[]> {
-    const [rows] = await pool.execute<(OrderItem & RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       'SELECT * FROM order_items WHERE product_id = ?',
       [productId]
     );
@@ -57,7 +56,7 @@ class OrderItemModel {
   static async create(itemData: OrderItemInput): Promise<number> {
     const { order_id, product_id, quantity, price } = itemData;
 
-    const [result] = await pool.execute<ResultSetHeader>(
+    const [result]: any = await pool.execute(
       'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
       [order_id, product_id, quantity, price]
     );
@@ -66,13 +65,12 @@ class OrderItemModel {
 
   static async createBulk(items: OrderItemInput[]): Promise<void> {
     if (items.length === 0) return;
-
-    const values = items.map(item => [item.order_id, item.product_id, item.quantity, item.price]);
-
-    await pool.query(
-      'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES ?',
-      [values]
-    );
+    for (const item of items) {
+      await pool.query(
+        'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
+        [item.order_id, item.product_id, item.quantity, item.price]
+      );
+    }
   }
 
   static async update(id: number, itemData: Partial<OrderItemInput>): Promise<void> {
@@ -110,7 +108,7 @@ class OrderItemModel {
   }
 
   static async getOrderTotal(orderId: number): Promise<number> {
-    const [rows] = await pool.execute<RowDataPacket[]>(
+    const [rows]: any = await pool.execute(
       'SELECT SUM(quantity * price) as total FROM order_items WHERE order_id = ?',
       [orderId]
     );
@@ -118,7 +116,7 @@ class OrderItemModel {
   }
 
   static async getProductSalesCount(productId: number): Promise<number> {
-    const [rows] = await pool.execute<RowDataPacket[]>(
+    const [rows]: any = await pool.execute(
       'SELECT SUM(quantity) as total FROM order_items WHERE product_id = ?',
       [productId]
     );
@@ -126,7 +124,7 @@ class OrderItemModel {
   }
 
   static async getBestSellingProducts(limit: number = 10): Promise<any[]> {
-    const [rows] = await pool.execute<RowDataPacket[]>(
+    const [rows]: any = await pool.execute(
       `SELECT
         p.id,
         p.name,

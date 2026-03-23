@@ -1,5 +1,4 @@
 import pool from '../config/database';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import bcrypt from 'bcrypt';
 
 export type UserRole = 'customer' | 'admin';
@@ -32,7 +31,7 @@ class UserModel {
   private static readonly SALT_ROUNDS = 10;
 
   static async findById(id: number): Promise<User | null> {
-    const [rows] = await pool.execute<(User & RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       'SELECT * FROM users WHERE id = ?',
       [id]
     );
@@ -40,7 +39,7 @@ class UserModel {
   }
 
   static async findByEmail(email: string): Promise<User | null> {
-    const [rows] = await pool.execute<(User & RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       'SELECT * FROM users WHERE email = ?',
       [email]
     );
@@ -58,7 +57,7 @@ class UserModel {
 
     query += ' ORDER BY created_at DESC';
 
-    const [rows] = await pool.execute<(SafeUser & RowDataPacket)[]>(query, params);
+    const [rows]: any = await pool.execute(query, params);
     return rows;
   }
 
@@ -68,7 +67,7 @@ class UserModel {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, this.SALT_ROUNDS);
 
-    const [result] = await pool.execute<ResultSetHeader>(
+    const [result]: any = await pool.execute(
       'INSERT INTO users (email, password, name, n_telemovel, role, status) VALUES (?, ?, ?, ?, ?, ?)',
       [email, hashedPassword, name, n_telemovel || null, role || 'customer', status || 'active']
     );
@@ -136,7 +135,7 @@ class UserModel {
       params.push(role);
     }
 
-    const [rows] = await pool.execute<RowDataPacket[]>(query, params);
+    const [rows]: any = await pool.execute(query, params);
     return rows[0].total;
   }
 

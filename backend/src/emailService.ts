@@ -56,96 +56,96 @@ interface EmailTranslations {
 const emailTranslations: EmailTranslations = {
   pt: {
     resetPassword: {
-      subject: 'Recuperação de Palavra-passe - Arte em Ponto',
+      subject: 'Recuperação de Palavra-passe - Recicloth',
       title: 'Recuperar Palavra-passe',
       subtitle: 'Não se preocupe, nós ajudamos!',
       greeting: 'Olá',
       message: 'Recebemos um pedido para redefinir a palavra-passe da sua conta na',
-      shopName: 'Arte em Ponto',
+      shopName: 'Recicloth',
       buttonText: 'Redefinir Palavra-passe',
       validFor: 'Este link é válido por',
       minutes: '15 minutos',
       securityTip: 'Nunca partilhe a sua palavra-passe. Se não solicitou esta recuperação, ignore este email.',
-      copyright: '© {year} Arte em Ponto - Todos os direitos reservados'
+      copyright: '© {year} Recicloth - Todos os direitos reservados'
     },
     passwordChanged: {
-      subject: 'Palavra-passe Alterada - Arte em Ponto',
+      subject: 'Palavra-passe Alterada - Recicloth',
       title: 'Senha Redefinida!',
       subtitle: 'A sua conta está segura',
       greeting: 'Olá',
       message: 'A sua palavra-passe da',
-      shopName: 'Arte em Ponto',
+      shopName: 'Recicloth',
       notYou: 'Se não realizou esta alteração, contacte-nos imediatamente.',
-      contactSupport: 'Suporte: arteemponto@exemplo.com',
-      copyright: '© {year} Arte em Ponto - Todos os direitos reservados'
+      contactSupport: 'Suporte: recicloth@exemplo.com',
+      copyright: '© {year} Recicloth - Todos os direitos reservados'
     },
     orderConfirmation: {
-      subject: 'Confirmação de Pedido #{orderNumber} - Arte em Ponto',
+      subject: 'Confirmação de Pedido #{orderNumber} - Recicloth',
       title: 'Pedido Confirmado!',
       subtitle: 'Obrigado pela sua compra',
       greeting: 'Olá',
       orderNumber: 'Pedido',
       total: 'Total',
       items: 'Artigos',
-      thankYou: 'Obrigado por comprar na Arte em Ponto!',
-      copyright: '© {year} Arte em Ponto - Todos os direitos reservados'
+      thankYou: 'Obrigado por comprar na Recicloth!',
+      copyright: '© {year} Recicloth - Todos os direitos reservados'
     },
     emailVerification: {
-      subject: 'Verificar Email - Arte em Ponto',
+      subject: 'Verificar Email - Recicloth',
       title: 'Verificar o seu Email',
-      subtitle: 'Bem-vindo à Arte em Ponto!',
+      subtitle: 'Bem-vindo à Recicloth!',
       greeting: 'Olá',
       message: 'Para ativar a sua conta, por favor clique no botão abaixo:',
       buttonText: 'Verificar Email',
       validFor: 'Este link é válido por 24 horas',
-      copyright: '© {year} Arte em Ponto - Todos os direitos reservados'
+      copyright: '© {year} Recicloth - Todos os direitos reservados'
     }
   },
   en: {
     resetPassword: {
-      subject: 'Password Recovery - Arte em Ponto',
+      subject: 'Password Recovery - Recicloth',
       title: 'Recover Password',
       subtitle: "Don't worry, we'll help you!",
       greeting: 'Hello',
       message: 'We received a request to reset your password for your account at',
-      shopName: 'Arte em Ponto',
+      shopName: 'Recicloth',
       buttonText: 'Reset Password',
       validFor: 'This link is valid for',
       minutes: '15 minutes',
       securityTip: 'Never share your password. If you did not request this recovery, ignore this email.',
-      copyright: '© {year} Arte em Ponto - All rights reserved'
+      copyright: '© {year} Recicloth - All rights reserved'
     },
     passwordChanged: {
-      subject: 'Password Changed - Arte em Ponto',
+      subject: 'Password Changed - Recicloth',
       title: 'Password Reset!',
       subtitle: 'Your account is secure',
       greeting: 'Hello',
       message: 'Your password for',
-      shopName: 'Arte em Ponto',
+      shopName: 'Recicloth',
       notYou: 'If you did not make this change, contact us immediately.',
-      contactSupport: 'Support: arteemponto@example.com',
-      copyright: '© {year} Arte em Ponto - All rights reserved'
+      contactSupport: 'Support: recicloth@example.com',
+      copyright: '© {year} Recicloth - All rights reserved'
     },
     orderConfirmation: {
-      subject: 'Order Confirmation #{orderNumber} - Arte em Ponto',
+      subject: 'Order Confirmation #{orderNumber} - Recicloth',
       title: 'Order Confirmed!',
       subtitle: 'Thank you for your purchase',
       greeting: 'Hello',
       orderNumber: 'Order',
       total: 'Total',
       items: 'Items',
-      thankYou: 'Thank you for shopping at Arte em Ponto!',
-      copyright: '© {year} Arte em Ponto - All rights reserved'
+      thankYou: 'Thank you for shopping at Recicloth!',
+      copyright: '© {year} Recicloth - All rights reserved'
     },
     emailVerification: {
-      subject: 'Verify Email - Arte em Ponto',
+      subject: 'Verify Email - Recicloth',
       title: 'Verify your Email',
-      subtitle: 'Welcome to Arte em Ponto!',
+      subtitle: 'Welcome to Recicloth!',
       greeting: 'Hello',
       message: 'To activate your account, please click the button below:',
       buttonText: 'Verify Email',
       validFor: 'This link is valid for 24 hours',
-      copyright: '© {year} Arte em Ponto - All rights reserved'
+      copyright: '© {year} Recicloth - All rights reserved'
     }
   }
 };
@@ -156,7 +156,7 @@ class EmailService {
 
   constructor() {
     this.resend = new Resend(process.env.RESEND_API_KEY);
-    const name = process.env.EMAIL_FROM_NAME || 'Arte em Ponto';
+    const name = process.env.EMAIL_FROM_NAME || 'Recicloth';
     const address = process.env.EMAIL_FROM || 'onboarding@resend.dev';
     this.from = `${name} <${address}>`;
     console.log('✅ Resend email service initialized — from:', this.from);

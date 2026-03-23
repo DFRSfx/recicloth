@@ -16,7 +16,7 @@ await esbuild.build({
     'bcrypt',
     'jsonwebtoken',
     'multer',
-    'mysql2',
+    'pg',
     'nodemailer',
     'passport',
     'passport-google-oauth20',

@@ -8,24 +8,24 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-2xl font-semibold mb-4">Arte em Ponto</h3>
+            <h3 className="text-2xl font-semibold mb-4">Recicloth</h3>
             <p className="text-primary-200 mb-6 max-w-md">
-              Criações únicas em crochê feitas com amor e dedicação.
-              Cada peça é especial e pensada para trazer conforto e beleza ao seu lar.
+              Moda que respeita o planeta.
+              Curadoria de peças recicladas, segunda-mão e upcycled com estilo e consciência.
             </p>
             <div className="flex space-x-4">
               <a
-                href="https://www.instagram.com/arteemponto.croche/"
+                href="https://www.instagram.com/recicloth.croche/"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Instagram da Arte em Ponto"
+                aria-label="Instagram da Recicloth"
                 className="p-2 bg-primary-700 rounded-full hover:bg-primary-600 transition-colors"
               >
                 <Instagram className="h-5 w-5" />
               </a>
               <a
-                href="mailto:arteemponto1972@gmail.com"
-                aria-label="Enviar email para Arte em Ponto"
+                href="mailto:recicloth1972@gmail.com"
+                aria-label="Enviar email para Recicloth"
                 className="p-2 bg-primary-700 rounded-full hover:bg-primary-600 transition-colors"
               >
                 <Mail className="h-5 w-5" />
@@ -57,6 +57,16 @@ const Footer: React.FC = () => {
                   Política de Privacidade
                 </a>
               </li>
+              <li>
+                <a href="/politica-devolucao" className="hover:text-white transition-colors">
+                  Política de Devolução
+                </a>
+              </li>
+              <li>
+                <a href="/termos-condicoes" className="hover:text-white transition-colors">
+                  Termos e Condições
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -70,14 +80,14 @@ const Footer: React.FC = () => {
               </li>
               <li className="flex items-center">
                 <Mail className="h-4 w-4 mr-2" />
-                <span>arteemponto1972@gmail.com</span>
+                <span>recicloth1972@gmail.com</span>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-primary-700 mt-8 pt-8 text-center text-primary-200">
-          <p>&copy; {new Date().getFullYear()} Arte em Ponto. Todos os direitos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} Recicloth. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

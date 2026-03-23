@@ -47,12 +47,12 @@ const Invoice: React.FC<Props> = ({ order }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <img
             src="/images/logo.webp"
-            alt="Arte em Ponto"
+            alt="Recicloth"
             style={{ height: 72, width: 'auto', objectFit: 'contain' }}
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
           <div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#7c3d1e', letterSpacing: '.3px' }}>Arte em Ponto</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#7c3d1e', letterSpacing: '.3px' }}>Recicloth</div>
             <div style={{ fontSize: 12.5, color: '#a07060', marginTop: 4, fontStyle: 'italic' }}>Artesanato em Crochê Feito à Mão</div>
           </div>
         </div>
@@ -152,7 +152,7 @@ const Invoice: React.FC<Props> = ({ order }) => {
 
       {/* Footer */}
       <div style={{ borderTop: '1px solid #ede0d4', padding: '20px 52px', background: '#fdf7f2', textAlign: 'center' }}>
-        <p style={{ fontSize: 12, color: '#a07060', lineHeight: 1.9 }}>Arte em Ponto · Artesanato em Crochê Feito à Mão</p>
+        <p style={{ fontSize: 12, color: '#a07060', lineHeight: 1.9 }}>Recicloth · Artesanato em Crochê Feito à Mão</p>
         <p style={{ fontSize: 11, color: '#c0a090', fontStyle: 'italic', marginTop: 4 }}>Este documento é meramente informativo e não substitui uma fatura fiscal oficial.</p>
       </div>
 

@@ -9,6 +9,7 @@ import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import GlobalConfirmModal from './components/GlobalConfirmModal';
 import MarketingConsent from './components/MarketingConsent';
+import AnalyticsTracker from './components/AnalyticsTracker';
 
 import Home from './pages/Home';
 import Shop from './pages/Shop';
@@ -22,6 +23,9 @@ import AdminApp from './admin/AdminApp';
 import VerifyEmail from './pages/VerifyEmail';
 import ResetPassword from './components/ResetPassword';
 import TrackOrder from './pages/TrackOrder';
+import PoliticaPrivacidade from './pages/PoliticaPrivacidade';
+import PoliticaDevolucao from './pages/PoliticaDevolucao';
+import TermosCondicoes from './pages/TermosCondicoes';
 
 // Lazy-load Stripe-dependent pages so stripe.js is not fetched on every page
 const Checkout = lazy(() => import('./pages/Checkout'));
@@ -38,6 +42,7 @@ function App() {
           <CartProvider>
             <Router>
               <ScrollToTop />
+              <AnalyticsTracker />
               <GlobalConfirmModal />
               <MarketingConsent />
 
@@ -78,6 +83,9 @@ function App() {
                         <Route path="/verificar-email" element={<VerifyEmail />} />
                         <Route path="/redefinir-senha" element={<ResetPassword />} />
                         <Route path="/track-order/:token" element={<TrackOrder />} />
+                        <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+                        <Route path="/politica-devolucao" element={<PoliticaDevolucao />} />
+                        <Route path="/termos-condicoes" element={<TermosCondicoes />} />
                         {/* <Route path="/sobre" element={<About />} /> */}
                       </Routes>
                     </main>

@@ -1,12 +1,12 @@
 import { Product } from '../types';
 
-const SITE_URL = 'https://arteemponto.pt';
+const SITE_URL = 'https://recicloth.pt';
 
 // Organization / OnlineStore Schema
 export const getOrganizationSchema = () => ({
   '@type': 'OnlineStore',
   '@id': `${SITE_URL}/#organization`,
-  name: 'Arte em Ponto',
+  name: 'Recicloth',
   url: SITE_URL,
   logo: {
     '@type': 'ImageObject',
@@ -18,8 +18,8 @@ export const getOrganizationSchema = () => ({
     'Loja online de produtos em croché artesanais feitos à mão em Portugal. ' +
     'Malas de croché feitas à mão, acessórios de croché artesanais para oferecer e ' +
     'decoração de sala em croché artesanal de qualidade premium.',
-  email: 'arteemponto1972@gmail.com',
-  sameAs: ['https://www.instagram.com/arteemponto.croche/'],
+  email: 'recicloth1972@gmail.com',
+  sameAs: ['https://www.instagram.com/recicloth.croche/'],
   hasMap: `${SITE_URL}/contacto`,
   currenciesAccepted: 'EUR',
   paymentAccepted: 'Cartão de crédito, Multibanco',
@@ -33,7 +33,7 @@ export const getOrganizationSchema = () => ({
 export const getWebSiteSchema = () => ({
   '@type': 'WebSite',
   '@id': `${SITE_URL}/#website`,
-  name: 'Arte em Ponto',
+  name: 'Recicloth',
   url: SITE_URL,
   inLanguage: 'pt-PT',
   potentialAction: {
@@ -51,10 +51,10 @@ export const getLocalBusinessSchema = () => ({
   '@context': 'https://schema.org',
   '@type': 'OnlineStore',
   '@id': `${SITE_URL}/#organization`,
-  name: 'Arte em Ponto',
+  name: 'Recicloth',
   url: SITE_URL,
   image: `${SITE_URL}/images/logo.webp`,
-  email: 'arteemponto1972@gmail.com',
+  email: 'recicloth1972@gmail.com',
   description:
     'Loja online de malas de croché feitas à mão em Portugal. ' +
     'Prendas artesanais para mulher, acessórios de croché artesanais para oferecer ' +
@@ -63,10 +63,10 @@ export const getLocalBusinessSchema = () => ({
     '@type': 'Country',
     name: 'Portugal',
   },
-  sameAs: ['https://www.instagram.com/arteemponto.croche/'],
+  sameAs: ['https://www.instagram.com/recicloth.croche/'],
   contactPoint: {
     '@type': 'ContactPoint',
-    email: 'arteemponto1972@gmail.com',
+    email: 'recicloth1972@gmail.com',
     contactType: 'customer service',
     areaServed: 'PT',
     availableLanguage: ['Portuguese'],
@@ -86,11 +86,11 @@ export const getProductSchema = (product: Product) => ({
   sku: product.id,
   brand: {
     '@type': 'Brand',
-    name: 'Arte em Ponto',
+    name: 'Recicloth',
   },
   manufacturer: {
     '@type': 'Organization',
-    name: 'Arte em Ponto',
+    name: 'Recicloth',
     url: SITE_URL,
   },
   offers: {
@@ -104,7 +104,7 @@ export const getProductSchema = (product: Product) => ({
     itemCondition: 'https://schema.org/NewCondition',
     seller: {
       '@type': 'Organization',
-      name: 'Arte em Ponto',
+      name: 'Recicloth',
     },
     shippingDetails: {
       '@type': 'OfferShippingDetails',
@@ -159,7 +159,7 @@ export const getFAQSchema = (faqs: { question: string; answer: string }[]) => ({
 export const getItemListSchema = (products: Product[]) => ({
   '@context': 'https://schema.org',
   '@type': 'ItemList',
-  name: 'Produtos de Croché Artesanais — Arte em Ponto',
+  name: 'Produtos de Croché Artesanais — Recicloth',
   description: 'Malas de croché feitas à mão, acessórios de croché artesanais para oferecer e decoração em croché artesanal produzidos em Portugal.',
   itemListElement: products.map((product, index) => ({
     '@type': 'ListItem',
@@ -174,19 +174,19 @@ export const getHomepageFAQs = () => [
   {
     question: 'Posso encomendar uma bolsa de croché personalizada em Portugal?',
     answer:
-      'Sim. Na Arte em Ponto aceitamos encomendas personalizadas de bolsas de croché feitas à mão em Portugal. ' +
+      'Sim. Na Recicloth aceitamos encomendas personalizadas de bolsas de croché feitas à mão em Portugal. ' +
       'Pode escolher cores, dimensões e estilo. Entre em contacto connosco através da página de contacto para discutir a sua encomenda.',
   },
   {
     question: 'Quanto tempo demora a criar uma peça de croché artesanal?',
     answer:
       'Cada peça de croché artesanal leva entre 8 a 15 horas de trabalho manual, dependendo da complexidade do padrão e das dimensões. ' +
-      'É este cuidado e dedicação que torna cada criação da Arte em Ponto verdadeiramente única.',
+      'É este cuidado e dedicação que torna cada criação da Recicloth verdadeiramente única.',
   },
   {
     question: 'Os produtos são feitos em Portugal?',
     answer:
-      'Sim, todos os produtos da Arte em Ponto são produzidos em Portugal com materiais de alta qualidade. ' +
+      'Sim, todos os produtos da Recicloth são produzidos em Portugal com materiais de alta qualidade. ' +
       'Ao comprar na nossa loja está a apoiar o artesanato português e a adquirir peças com autenticidade e origem garantida.',
   },
   {
@@ -200,6 +200,6 @@ export const getHomepageFAQs = () => [
     question: 'A decoração de sala em croché artesanal é resistente para uso diário?',
     answer:
       'Sim. Utilizamos fios de alta qualidade selecionados para durabilidade e beleza. ' +
-      'A decoração de sala em croché artesanal da Arte em Ponto é criada para durar anos, mantendo as cores e a forma com cuidados básicos de manutenção.',
+      'A decoração de sala em croché artesanal da Recicloth é criada para durar anos, mantendo as cores e a forma com cuidados básicos de manutenção.',
   },
 ];

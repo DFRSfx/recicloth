@@ -23,13 +23,13 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 const stripeAppearance: Appearance = {
   theme: 'flat',
   variables: {
-    colorPrimary: '#7D3C0F',
+    colorPrimary: '#2D6A4F',
     colorBackground: '#ffffff',
     colorText: '#1f2937',
     colorDanger: '#dc2626',
     colorTextSecondary: '#6b7280',
     colorTextPlaceholder: '#9ca3af',
-    fontFamily: '"Urbanist", "Open Sans", sans-serif',
+    fontFamily: '"Inter", sans-serif',
     fontSizeBase: '17px',
     borderRadius: '8px',
     spacingUnit: '5px',
@@ -43,8 +43,8 @@ const stripeAppearance: Appearance = {
       transition: 'border-color 0.15s, background-color 0.15s',
     },
     '.Input:focus': {
-      border: '1px solid #7D3C0F',
-      boxShadow: '0 0 0 3px rgba(125, 60, 15, 0.12)',
+      border: '1px solid #2D6A4F',
+      boxShadow: '0 0 0 3px rgba(45, 106, 79, 0.12)',
       backgroundColor: '#ffffff',
     },
     '.Input--invalid': {
@@ -64,7 +64,7 @@ const stripeAppearance: Appearance = {
 };
 
 const stripeFonts = [
-  { cssSrc: 'https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600&display=swap' },
+  { cssSrc: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap' },
 ];
 
 interface ShippingAddress {

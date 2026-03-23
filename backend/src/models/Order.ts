@@ -1,5 +1,4 @@
 import pool from '../config/database';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -55,7 +54,7 @@ export interface OrderFilters {
 
 class OrderModel {
   static async findById(id: number): Promise<Order | null> {
-    const [rows] = await pool.execute<(Order & RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       'SELECT * FROM orders WHERE id = ?',
       [id]
     );
@@ -66,7 +65,7 @@ class OrderModel {
     const order = await this.findById(id);
     if (!order) return null;
 
-    const [items] = await pool.execute<RowDataPacket[]>(
+    const [items]: any = await pool.execute(
       `SELECT oi.*, p.name as product_name, p.image as product_image
        FROM order_items oi
        LEFT JOIN products p ON oi.product_id = p.id
@@ -108,7 +107,7 @@ class OrderModel {
 
     query += ' ORDER BY created_at DESC';
 
-    const [rows] = await pool.execute<(Order & RowDataPacket)[]>(query, params);
+    const [rows]: any = await pool.execute(query, params);
     return rows;
   }
 
@@ -134,7 +133,7 @@ class OrderModel {
       payment_method
     } = orderData;
 
-    const [result] = await pool.execute<ResultSetHeader>(
+    const [result]: any = await pool.execute(
       `INSERT INTO orders (
         user_id, customer_name, customer_email, customer_phone,
         customer_address, customer_city, customer_postal_code,
@@ -200,7 +199,7 @@ class OrderModel {
       }
     }
 
-    const [rows] = await pool.execute<RowDataPacket[]>(query, params);
+    const [rows]: any = await pool.execute(query, params);
     return rows[0].total;
   }
 
@@ -219,12 +218,12 @@ class OrderModel {
       }
     }
 
-    const [rows] = await pool.execute<RowDataPacket[]>(query, params);
+    const [rows]: any = await pool.execute(query, params);
     return rows[0].revenue || 0;
   }
 
   static async getRecentOrders(limit: number = 10): Promise<Order[]> {
-    const [rows] = await pool.execute<(Order & RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       'SELECT * FROM orders ORDER BY created_at DESC LIMIT ?',
       [limit]
     );

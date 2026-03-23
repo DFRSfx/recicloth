@@ -1,5 +1,5 @@
 {
-  "name": "arte-em-ponto-store",
+  "name": "recicloth-store",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -19,6 +19,7 @@
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-ga4": "^2.1.0",
     "react-helmet-async": "^2.0.5",
     "react-phone-number-input": "^3.4.16",
     "react-router-dom": "^7.9.4",

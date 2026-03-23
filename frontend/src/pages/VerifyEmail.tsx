@@ -86,7 +86,7 @@ const VerifyEmail: React.FC = () => {
               </p>
               <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-primary-800">
-                  A sua conta está agora ativa e pode aceder a todas as funcionalidades da Arte em Ponto.
+                  A sua conta está agora ativa e pode aceder a todas as funcionalidades da Recicloth.
                 </p>
               </div>
               <button

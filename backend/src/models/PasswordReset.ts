@@ -1,5 +1,4 @@
 import pool from '../config/database';
-import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import crypto from 'crypto';
 
 export interface PasswordResetToken {
@@ -80,7 +79,7 @@ class PasswordResetModel {
   static async validateToken(token: string): Promise<TokenValidationResult | null> {
     const tokenHash = this.hashToken(token);
 
-    const [rows] = await pool.execute<(PasswordResetToken & RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       `SELECT prt.*, u.email, u.name as nome 
        FROM password_reset_tokens prt
        INNER JOIN users u ON prt.user_id = u.id
@@ -131,7 +130,7 @@ class PasswordResetModel {
    * Verifica rate limiting por IP e email
    */
   static async checkRateLimit(ipAddress: string, email: string): Promise<{ allowed: boolean; message?: string }> {
-    const [rows] = await pool.execute<(PasswordResetAttempt & RowDataPacket)[]>(
+    const [rows]: any = await pool.execute(
       'SELECT * FROM password_reset_attempts WHERE ip_address = ? AND email = ?',
       [ipAddress, email]
     );
@@ -208,7 +207,7 @@ class PasswordResetModel {
    */
   static async cleanupExpiredTokens(): Promise<void> {
     await pool.execute(
-      'DELETE FROM password_reset_tokens WHERE expires_at < NOW() OR (is_used = 1 AND created_at < DATE_SUB(NOW(), INTERVAL 7 DAY))'
+      "DELETE FROM password_reset_tokens WHERE expires_at < NOW() OR (is_used = TRUE AND created_at < NOW() - INTERVAL '7 days')"
     );
   }
 
@@ -217,7 +216,7 @@ class PasswordResetModel {
    */
   static async cleanupOldAttempts(): Promise<void> {
     await pool.execute(
-      'DELETE FROM password_reset_attempts WHERE updated_at < DATE_SUB(NOW(), INTERVAL 7 DAY)'
+      "DELETE FROM password_reset_attempts WHERE updated_at < NOW() - INTERVAL '7 days'"
     );
   }
 }

@@ -29,8 +29,8 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen">
       <SEO
-        title="Malas de Croché Feitas à Mão em Portugal"
-        description="Loja online de malas de croché feitas à mão em Portugal. Prendas artesanais para mulher, acessórios de croché artesanais para oferecer e decoração de sala em croché artesanal. Peças únicas com qualidade premium."
+        title="Recicloth"
+        description="Moda que respeita o planeta. Descubra roupa reciclada, upcycled e segunda-mão selecionada pela Recicloth."
         canonical="/"
         ogType="website"
         schema={schemas}
@@ -43,7 +43,7 @@ const Home: React.FC = () => {
       <section className="py-10 bg-white border-b border-gray-100">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-            Na <strong>Arte em Ponto</strong>, cada{' '}
+            Na <strong>Recicloth</strong>, cada{' '}
             <strong>mala de croché feita à mão em Portugal</strong> leva entre{' '}
             <strong>8 a 15 horas de trabalho artesanal</strong> — um detalhe que
             não encontra em produções em série. Criamos{' '}
