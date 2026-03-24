@@ -1,0 +1,19 @@
+{
+  "installCommand": "npm --prefix frontend install && npm --prefix backend install",
+  "buildCommand": "npm --prefix frontend run build",
+  "outputDirectory": "frontend/dist",
+  "framework": "vite",
+  "functions": {
+    "api/index.ts": {
+      "runtime": "nodejs20.x",
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    { "src": "^/api/(.*)$", "dest": "/api/index.ts" },
+    { "src": "^/produtos/(.*)$", "dest": "/api/index.ts" },
+    { "src": "^/hero-slides/(.*)$", "dest": "/api/index.ts" },
+    { "handle": "filesystem" },
+    { "src": "^/(.*)$", "dest": "/index.html" }
+  ]
+}

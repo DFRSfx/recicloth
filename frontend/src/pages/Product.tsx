@@ -122,7 +122,7 @@ const Product: React.FC = () => {
   const handleAddToCart = () => {
     if (!product.inStock || isAdded) return;
     
-    addItem(product, 1, selectedColor); 
+    addItem(product, selectedColor); 
     const previewImage = matchedImages[0] || product.images[0];
     setCartToast({ name: product.name, image: imgVariant(previewImage, 'sm'), type: 'added' });
     

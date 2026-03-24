@@ -1,4 +1,6 @@
-const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api`;
+const rawApiBase = import.meta.env.VITE_API_URL?.trim();
+const normalizedApiBase = rawApiBase ? rawApiBase.replace(/\/+$/, '') : '';
+const API_URL = normalizedApiBase ? `${normalizedApiBase}/api` : '/api';
 
 interface LoginCredentials {
   email: string;
