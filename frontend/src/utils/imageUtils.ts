@@ -28,8 +28,8 @@ export const getImageCacheKey = (): number => {
  * - Absolute URLs are returned as-is.
  * - Relative paths (e.g. /produtos/1/image-1-1.webp) are prefixed with the
  *   backend origin so they work even when the frontend is on a different domain.
- *   In dev, VITE_API_URL defaults to http://localhost:3001 (Vite also proxies /produtos).
- *   In production, set VITE_API_URL to the backend domain (e.g. https://arteemponto.pt).
+ *   In dev, VITE_API_URL can be http://localhost:3001.
+ *   In Vercel monodeploy, leave VITE_API_URL empty and this uses same-domain paths.
  */
 /**
  * Returns the URL for a specific size variant of a product image.
@@ -51,7 +51,7 @@ export const getAbsoluteImageUrl = (imageUrl: string): string => {
   // Already absolute
   if (imageUrl.startsWith('http')) return imageUrl;
 
-  // Prefix with backend origin so the path resolves correctly on any deployment
-  const backendOrigin = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-  return `${backendOrigin}${imageUrl}`;
+  // Use same domain when VITE_API_URL is empty (recommended for Vercel monodeploy).
+  const backendOrigin = import.meta.env.VITE_API_URL?.trim();
+  return backendOrigin ? `${backendOrigin}${imageUrl}` : imageUrl;
 };

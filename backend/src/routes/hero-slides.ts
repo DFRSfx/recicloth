@@ -2,7 +2,6 @@ import express from 'express';
 import pool from '../config/database.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { upload } from '../config/upload.js';
-import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -34,6 +33,7 @@ function getSlideUrls(id: number | string, updatedAt: Date | string) {
 }
 
 async function saveSlideImages(id: number | string, buffer: Buffer): Promise<void> {
+  const { default: sharp } = await import('sharp');
   fs.mkdirSync(heroSlidesDir, { recursive: true });
   const opts = { effort: 6, smartSubsample: true };
   await Promise.all(

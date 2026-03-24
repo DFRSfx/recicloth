@@ -1,5 +1,5 @@
 import multer from 'multer';
-import sharp, { ResizeOptions } from 'sharp';
+import type { ResizeOptions } from 'sharp';
 import { Request, Response, NextFunction } from 'express';
 
 // Store files in memory as buffer
@@ -32,6 +32,7 @@ export const processImages = async (req: Request, res: Response, next: NextFunct
   }
 
   try {
+    const { default: sharp } = await import('sharp');
     const files = req.files as Express.Multer.File[];
 
     // Process each image

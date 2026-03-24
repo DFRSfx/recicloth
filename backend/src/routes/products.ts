@@ -2,7 +2,6 @@ import express from 'express';
 import pool from '../config/database.js';
 import { requireAdmin, AuthRequest } from '../middleware/auth.js';
 import { upload } from '../config/upload.js';
-import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -34,6 +33,7 @@ const saveImageToDisk = async (
   index: number,
   colorName?: string
 ): Promise<string> => {
+  const { default: sharp } = await import('sharp');
   const dir = getProductDir(productId);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 

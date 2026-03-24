@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { API_URL } from '../utils/api';
+import { getAbsoluteImageUrl } from '../utils/imageUtils';
 
 interface SlideData {
   id: number;
@@ -29,9 +31,7 @@ const HeroSlider: React.FC = () => {
   useEffect(() => {
     const fetchSlides = async () => {
       try {
-        const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-        const API_BASE = `${SERVER_URL}/api`;
-        const response = await fetch(`${API_BASE}/hero-slides`);
+        const response = await fetch(`${API_URL}/hero-slides`);
         if (response.ok) {
           const data = await response.json();
           // Transform API data to component format
@@ -41,9 +41,9 @@ const HeroSlider: React.FC = () => {
             description: slide.description || '',
             buttonText: slide.button_text,
             buttonLink: slide.button_link,
-            backgroundImage:   `${SERVER_URL}${slide.background_image}`,
-            backgroundImageMd: `${SERVER_URL}${slide.background_image_md}`,
-            backgroundImageSm: `${SERVER_URL}${slide.background_image_sm}`,
+            backgroundImage: getAbsoluteImageUrl(slide.background_image),
+            backgroundImageMd: getAbsoluteImageUrl(slide.background_image_md),
+            backgroundImageSm: getAbsoluteImageUrl(slide.background_image_sm),
             textColor: slide.text_color || 'white'
           }));
 

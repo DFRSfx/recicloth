@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product } from '../types';
 import { useAuth } from './AuthContext';
+import { API_URL } from '../utils/api';
 
 // Generate or retrieve session ID (reuse same one from cart)
 const getSessionId = (): string => {
@@ -61,8 +62,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const loadFavoritesFromDB = async () => {
     try {
       setLoading(true);
-      const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api`;
-      const response = await fetch(`${API_BASE}/favorites`, {
+      const response = await fetch(`${API_URL}/favorites`, {
         headers: getHeaders(),
       });
 
@@ -96,8 +96,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       // If user just logged in, merge session favorites with user favorites
       if (isAuthenticated && token) {
-        const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api`;
-        await fetch(`${API_BASE}/favorites/merge`, {
+        await fetch(`${API_URL}/favorites/merge`, {
           method: 'POST',
           headers: getHeaders(),
           body: JSON.stringify({ sessionId }),
@@ -128,8 +127,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const addToFavorites = async (productId: string) => {
     try {
-      const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api`;
-      const response = await fetch(`${API_BASE}/favorites/add`, {
+      const response = await fetch(`${API_URL}/favorites/add`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
@@ -156,8 +154,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setFavorites(prev => prev.filter(item => item.product_id !== productId));
 
     try {
-      const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api`;
-      await fetch(`${API_BASE}/favorites/product/${productId}`, {
+      await fetch(`${API_URL}/favorites/product/${productId}`, {
         method: 'DELETE',
         headers: getHeaders(),
       });
@@ -173,8 +170,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setFavorites([]);
 
     try {
-      const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api`;
-      await fetch(`${API_BASE}/favorites`, {
+      await fetch(`${API_URL}/favorites`, {
         method: 'DELETE',
         headers: getHeaders(),
       });
