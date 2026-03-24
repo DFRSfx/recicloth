@@ -6,10 +6,7 @@
   "functions": {
     "api/index.ts": {
       "maxDuration": 30,
-      "includeFiles": [
-        "backend/public/**",
-        "backend/src/**"
-      ]
+      "includeFiles": "backend/public/**"
     }
   },
   "routes": [
