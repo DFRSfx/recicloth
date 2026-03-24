@@ -18,6 +18,7 @@ import cartRouter from './routes/cart.js';
 import favoritesRouter from './routes/favorites.js';
 import shippingAddressesRouter from './routes/shipping-addresses.js';
 import paymentRouter from './routes/payment.js';
+import pool from './config/database.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -88,6 +89,32 @@ app.use(
 // Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// DB health check (temporary diagnostics endpoint)
+app.get('/api/health-db', async (_req, res) => {
+  try {
+    const [rows]: any = await pool.query('SELECT 1 as ok');
+    res.json({
+      status: 'ok',
+      db: rows?.[0]?.ok === 1 ? 'connected' : 'unknown',
+      host: process.env.DB_HOST || null,
+      port: process.env.DB_PORT || null,
+      ssl: process.env.DB_SSL || null,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      status: 'error',
+      db: 'disconnected',
+      message: error?.message || 'Unknown database error',
+      code: error?.code || null,
+      host: process.env.DB_HOST || null,
+      port: process.env.DB_PORT || null,
+      ssl: process.env.DB_SSL || null,
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // API Routes
