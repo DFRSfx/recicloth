@@ -5,8 +5,8 @@
   "framework": "vite",
   "functions": {
     "api/index.ts": {
-      "runtime": "nodejs20.x",
-      "maxDuration": 30
+      "maxDuration": 30,
+      "includeFiles": "backend/public/**"
     }
   },
   "routes": [
