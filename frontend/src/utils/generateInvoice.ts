@@ -27,7 +27,6 @@ const paymentLabel = (method: string): string => {
     case 'multibanco': return 'Multibanco';
     case 'stripe':
     case 'card': return 'Cartão de Crédito';
-    case 'eupago': return 'EuPago';
     default: return method ?? '—';
   }
 };
@@ -41,7 +40,7 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
   });
   const year = new Date(order.created_at).getFullYear();
   const invoiceNumber = `${year}-${String(order.id).padStart(4, '0')}`;
-  const logoUrl = `${window.location.origin}/images/logo.webp`;
+  const logoUrl = `${window.location.origin}/images/logo.png`;
 
   const itemsHtml = order.order_items.map(item => `
     <tr>

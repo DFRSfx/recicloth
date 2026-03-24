@@ -13,7 +13,7 @@ export interface BackendProduct {
   category_name?: string;
   category_slug?: string;
   images?: string[]; // Array of image file paths (e.g. ["/public/produtos/1/image-1-1.webp"])
-  colors?: string[] | string; // JSON field, array of color names
+  colors?: { name: string; hex: string }[] | string; // JSON field
   stock: number | string; // May come as string
   featured: boolean | number; // MySQL BOOLEAN (TINYINT) comes as 0/1
   created_at: string;
@@ -66,18 +66,40 @@ export function adaptProductToFrontend(backendProduct: BackendProduct): Frontend
   const isNew = daysDifference <= 7;
 
   // Parse colors if it's a JSON string
-  let colorsArray: string[] = [];
+  let colorsArray: { name: string; hex: string }[] = [];
   if (backendProduct.colors) {
     if (typeof backendProduct.colors === 'string') {
       try {
         const parsed = JSON.parse(backendProduct.colors);
-        colorsArray = Array.isArray(parsed) ? parsed : [];
+        colorsArray = Array.isArray(parsed)
+          ? parsed
+              .map((item: any) => {
+                if (typeof item === 'string') {
+                  return { name: item, hex: '' };
+                }
+                if (item && typeof item.name === 'string') {
+                  return { name: item.name, hex: typeof item.hex === 'string' ? item.hex : '' };
+                }
+                return null;
+              })
+              .filter((item): item is { name: string; hex: string } => !!item)
+          : [];
       } catch (e) {
         console.warn('Failed to parse colors JSON:', e);
         colorsArray = [];
       }
     } else if (Array.isArray(backendProduct.colors)) {
-      colorsArray = backendProduct.colors;
+      colorsArray = backendProduct.colors
+        .map((item: any) => {
+          if (typeof item === 'string') {
+            return { name: item, hex: '' };
+          }
+          if (item && typeof item.name === 'string') {
+            return { name: item.name, hex: typeof item.hex === 'string' ? item.hex : '' };
+          }
+          return null;
+        })
+        .filter((item): item is { name: string; hex: string } => !!item);
     }
   }
 

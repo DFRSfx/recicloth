@@ -48,7 +48,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4" role="status">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600" aria-hidden="true"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" aria-hidden="true"></div>
         <span className="sr-only">A carregar estatísticas do dashboard...</span>
       </div>
     );
@@ -58,7 +58,7 @@ export default function Dashboard() {
     <main className="space-y-6 sm:space-y-8 pb-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-[#1A1A1A]">Dashboard</h1>
         <p className="text-sm sm:text-base text-gray-600 mt-1">Bem-vindo à sua visão geral da loja</p>
       </div>
 
@@ -66,11 +66,11 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 xl:gap-6">
         
         {/* Cartão de Receita - Ocupa 2 colunas em mobile */}
-        <div className="col-span-2 lg:col-span-1 bg-white p-4 sm:p-5 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+        <div className="col-span-2 lg:col-span-1 bg-white p-4 sm:p-5 rounded-xl border border-secondary-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-gray-600 truncate">Receita Total</p>
-              <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 truncate">
+              <p className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mt-1 truncate">
                 €{stats?.totalRevenue || '0.00'}
               </p>
             </div>
@@ -81,11 +81,11 @@ export default function Dashboard() {
         </div>
 
         {/* Cartões Restantes - Agora alinhados horizontalmente (Texto Esq. / Ícone Dir.) */}
-        <div className="bg-white p-4 sm:p-5 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-secondary-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-gray-600 truncate">Encomendas</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 truncate">
+              <p className="text-xl sm:text-2xl font-bold text-[#1A1A1A] mt-1 truncate">
                 {stats?.totalOrders || 0}
               </p>
             </div>
@@ -95,11 +95,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-secondary-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-gray-600 truncate">Produtos</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 truncate">
+              <p className="text-xl sm:text-2xl font-bold text-[#1A1A1A] mt-1 truncate">
                 {stats?.totalProducts || 0}
               </p>
             </div>
@@ -109,11 +109,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-secondary-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-gray-600 truncate">Pendentes</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 truncate">
+              <p className="text-xl sm:text-2xl font-bold text-[#1A1A1A] mt-1 truncate">
                 {stats?.pendingOrders || 0}
               </p>
             </div>
@@ -123,11 +123,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-4 sm:p-5 rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+        <div className="bg-white p-4 sm:p-5 rounded-xl border border-secondary-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-gray-600 truncate">Utilizadores</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1 truncate">
+              <p className="text-xl sm:text-2xl font-bold text-[#1A1A1A] mt-1 truncate">
                 {stats?.totalUsers || 0}
               </p>
             </div>
@@ -142,9 +142,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Encomendas Recentes */}
-        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-200 bg-gray-50/50">
-            <h2 className="font-semibold text-gray-900 text-sm sm:text-base">Encomendas Recentes</h2>
+        <section className="bg-white rounded-xl border border-secondary-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-secondary-200 bg-tertiary-100/50">
+            <h2 className="font-semibold text-[#1A1A1A] text-sm sm:text-base">Encomendas Recentes</h2>
           </div>
           <div className="p-4 sm:p-5">
             {stats?.recentOrders && stats.recentOrders.length > 0 ? (
@@ -154,15 +154,15 @@ export default function Dashboard() {
                     key={order.id}
                     to={`/admin/encomendas/${order.id}`}
                     aria-label={`Ver detalhes da encomenda número ${order.id} de ${order.customer_name}`}
-                    className="block p-3 sm:p-4 border border-gray-100 rounded-xl hover:border-amber-300 hover:bg-amber-50/50 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="block p-3 sm:p-4 border border-gray-100 rounded-xl hover:border-primary-300 hover:bg-primary-50/50 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <div className="flex items-center justify-between gap-2 sm:gap-4">
                       <div className="min-w-0">
-                        <p className="font-medium text-gray-900 text-sm sm:text-base truncate">Encomenda #{order.id}</p>
+                        <p className="font-medium text-[#1A1A1A] text-sm sm:text-base truncate">Encomenda #{order.id}</p>
                         <p className="text-xs sm:text-sm text-gray-500 truncate mt-0.5">{order.customer_name}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                        <p className="font-semibold text-gray-900 text-sm sm:text-base">€{Number(order.total).toFixed(2)}</p>
+                        <p className="font-semibold text-[#1A1A1A] text-sm sm:text-base">€{Number(order.total).toFixed(2)}</p>
                         <span className={`text-[10px] sm:text-xs px-2.5 py-1 rounded-full whitespace-nowrap font-medium tracking-wide ${
                           order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                           order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
@@ -184,9 +184,9 @@ export default function Dashboard() {
         </section>
 
         {/* Alertas de Stock */}
-        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-200 bg-gray-50/50">
-            <h2 className="font-semibold text-gray-900 text-sm sm:text-base">Alerta de Stock Baixo</h2>
+        <section className="bg-white rounded-xl border border-secondary-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-secondary-200 bg-tertiary-100/50">
+            <h2 className="font-semibold text-[#1A1A1A] text-sm sm:text-base">Alerta de Stock Baixo</h2>
           </div>
           <div className="p-4 sm:p-5">
             {stats?.lowStockProducts && stats.lowStockProducts.length > 0 ? (
@@ -205,7 +205,7 @@ export default function Dashboard() {
                         className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0 border border-gray-100"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{product.name}</p>
+                        <p className="font-medium text-[#1A1A1A] text-sm sm:text-base truncate">{product.name}</p>
                         <p className="text-xs sm:text-sm text-gray-500 truncate mt-0.5">{product.category}</p>
                       </div>
                       <div className="text-right flex-shrink-0">

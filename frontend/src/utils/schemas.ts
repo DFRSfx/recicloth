@@ -1,6 +1,6 @@
 import { Product } from '../types';
 
-const SITE_URL = 'https://recicloth.pt';
+const SITE_URL = 'https://recicloth.com';
 
 // Organization / OnlineStore Schema
 export const getOrganizationSchema = () => ({
@@ -10,7 +10,7 @@ export const getOrganizationSchema = () => ({
   url: SITE_URL,
   logo: {
     '@type': 'ImageObject',
-    url: `${SITE_URL}/images/logo.webp`,
+    url: `${SITE_URL}/images/logo.png`,
     width: 1472,
     height: 704,
   },
@@ -53,7 +53,7 @@ export const getLocalBusinessSchema = () => ({
   '@id': `${SITE_URL}/#organization`,
   name: 'Recicloth',
   url: SITE_URL,
-  image: `${SITE_URL}/images/logo.webp`,
+  image: `${SITE_URL}/images/logo.png`,
   email: 'recicloth1972@gmail.com',
   description:
     'Loja online de malas de croché feitas à mão em Portugal. ' +

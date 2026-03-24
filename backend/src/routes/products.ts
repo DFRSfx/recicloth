@@ -17,11 +17,30 @@ const router = express.Router();
 const getProductDir = (productId: number): string =>
   path.join(__dirname, '../../public/produtos', String(productId));
 
-const saveImageToDisk = async (productId: number, buffer: Buffer, index: number): Promise<string> => {
+const toColorSlug = (value?: string): string => {
+  if (!value) return '';
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+};
+
+const saveImageToDisk = async (
+  productId: number,
+  buffer: Buffer,
+  index: number,
+  colorName?: string
+): Promise<string> => {
   const dir = getProductDir(productId);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-  const base = `image-${index}-${productId}`;
+  const colorSlug = toColorSlug(colorName);
+  const base = colorSlug
+    ? `image-${index}-${productId}-${colorSlug}`
+    : `image-${index}-${productId}`;
   const opts = { effort: 6, smartSubsample: true };
 
   // lg — product detail page (max 1200 px, quality 85)
@@ -48,7 +67,7 @@ const saveImageToDisk = async (productId: number, buffer: Buffer, index: number)
 const getNextImageIndex = (productId: number): number => {
   const dir = getProductDir(productId);
   if (!fs.existsSync(dir)) return 1;
-  const files = fs.readdirSync(dir).filter(f => /^image-\d+-\d+\.webp$/.test(f));
+  const files = fs.readdirSync(dir).filter(f => /^image-\d+-\d+(?:-[a-z0-9-]+)?\.webp$/.test(f));
   if (files.length === 0) return 1;
   const indices = files.map(f => parseInt(f.split('-')[1]));
   return Math.max(...indices) + 1;
@@ -118,7 +137,7 @@ router.post(
   upload.array('images', 10),
   async (req: AuthRequest, res) => {
     try {
-      const { name, description, price, category, stock, featured, colors } = req.body;
+      const { name, description, price, category, stock, stockMode, featured, colors, imageColors, sizeStock } = req.body;
       const files = req.files as Express.Multer.File[];
 
       if (!name || !description || !price || !category) {
@@ -140,17 +159,49 @@ router.post(
         }
       }
 
+      let imageColorsArray: string[] = [];
+      if (imageColors) {
+        try {
+          const parsed = typeof imageColors === 'string' ? JSON.parse(imageColors) : imageColors;
+          imageColorsArray = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          console.error('Error parsing imageColors:', e);
+        }
+      }
+
+      let sizeStockArray: Array<{ size: string; stock: number }> = [];
+      if (sizeStock) {
+        try {
+          const parsed = typeof sizeStock === 'string' ? JSON.parse(sizeStock) : sizeStock;
+          sizeStockArray = Array.isArray(parsed)
+            ? parsed
+                .map((item: any) => ({
+                  size: String(item?.size || '').toUpperCase(),
+                  stock: Math.max(0, parseInt(String(item?.stock ?? 0), 10) || 0),
+                }))
+                .filter((item) => item.size)
+            : [];
+        } catch (e) {
+          console.error('Error parsing sizeStock:', e);
+        }
+      }
+      const normalizedStock =
+        sizeStockArray.length > 0
+          ? sizeStockArray.reduce((sum, item) => sum + item.stock, 0)
+          : Number(stock) || 0;
+      const normalizedStockMode = stockMode === 'apparel' || stockMode === 'shoes' ? stockMode : 'unit';
+
       // Insert product first to obtain its ID
       const [result]: any = await pool.query(
-        'INSERT INTO products (name, description, price, category_id, stock, featured, colors) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [name, description, price, category, stock || 0, featured === 'true', JSON.stringify(colorsArray)]
+        'INSERT INTO products (name, description, price, category_id, stock, stock_mode, featured, colors, size_stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [name, description, price, category, normalizedStock, normalizedStockMode, featured === 'true', JSON.stringify(colorsArray), JSON.stringify(sizeStockArray)]
       );
       const productId = result.insertId;
 
       // Save each image to disk (generates lg / md / sm variants)
       const imagePaths: string[] = [];
       for (let i = 0; i < files.length; i++) {
-        imagePaths.push(await saveImageToDisk(productId, files[i].buffer, i + 1));
+        imagePaths.push(await saveImageToDisk(productId, files[i].buffer, i + 1, imageColorsArray[i]));
       }
 
       // Store paths in products table
@@ -184,7 +235,7 @@ router.put(
     try {
       console.log('🔄 UPDATE Product ID:', req.params.id);
 
-      const { name, description, price, category, stock, featured, existingImages, colors } = req.body;
+      const { name, description, price, category, stock, stockMode, featured, existingImages, colors, imageColors, sizeStock } = req.body;
       const files = req.files as Express.Multer.File[];
       const productId = parseInt(req.params.id);
 
@@ -196,8 +247,8 @@ router.put(
       if (description !== undefined) { updates.push('description = ?'); values.push(description); }
       if (price !== undefined)       { updates.push('price = ?');       values.push(price); }
       if (category !== undefined)    { updates.push('category_id = ?'); values.push(category); }
-      if (stock !== undefined)       { updates.push('stock = ?');       values.push(stock); }
       if (featured !== undefined)    { updates.push('featured = ?');    values.push(featured === 'true'); }
+      if (stockMode !== undefined)   { updates.push('stock_mode = ?');  values.push(stockMode === 'apparel' || stockMode === 'shoes' ? stockMode : 'unit'); }
       if (colors !== undefined) {
         try {
           const colorsArray = typeof colors === 'string' ? JSON.parse(colors) : colors;
@@ -206,6 +257,28 @@ router.put(
         } catch (e) {
           console.error('Error parsing colors:', e);
         }
+      }
+      if (sizeStock !== undefined) {
+        try {
+          const parsed = typeof sizeStock === 'string' ? JSON.parse(sizeStock) : sizeStock;
+          const sizeStockArray = Array.isArray(parsed)
+            ? parsed
+                .map((item: any) => ({
+                  size: String(item?.size || '').toUpperCase(),
+                  stock: Math.max(0, parseInt(String(item?.stock ?? 0), 10) || 0),
+                }))
+                .filter((item) => item.size)
+            : [];
+          updates.push('size_stock = ?');
+          values.push(JSON.stringify(sizeStockArray));
+          updates.push('stock = ?');
+          values.push(sizeStockArray.reduce((sum, item) => sum + item.stock, 0));
+        } catch (e) {
+          console.error('Error parsing sizeStock:', e);
+        }
+      } else if (stock !== undefined) {
+        updates.push('stock = ?');
+        values.push(stock);
       }
 
       if (updates.length > 0) {
@@ -230,6 +303,16 @@ router.put(
         }
       }
 
+      let imageColorsArray: string[] = [];
+      if (imageColors) {
+        try {
+          const parsed = typeof imageColors === 'string' ? JSON.parse(imageColors) : imageColors;
+          imageColorsArray = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          console.error('Error parsing imageColors:', e);
+        }
+      }
+
       // Delete files that were removed by the admin (including md/sm variants)
       const dir = getProductDir(productId);
       for (const currentPath of currentImages) {
@@ -249,8 +332,9 @@ router.put(
       const newPaths: string[] = [];
       if (files && files.length > 0) {
         let nextIndex = getNextImageIndex(productId);
-        for (const file of files) {
-          newPaths.push(await saveImageToDisk(productId, file.buffer, nextIndex));
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          newPaths.push(await saveImageToDisk(productId, file.buffer, nextIndex, imageColorsArray[i]));
           nextIndex++;
         }
       }

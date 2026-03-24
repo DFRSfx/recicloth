@@ -316,7 +316,7 @@ const Navbar: React.FC = () => {
           <Link to="/" className="flex items-center">
             <div className="flex-shrink-0">
               <img
-                src="/images/recicloth-2.png"
+                src="/images/logo.png"
                 alt="Recicloth"
                 className="h-20 w-auto"
                 width="1472" /* Tamanho original da imagem 1472 */

@@ -318,7 +318,7 @@ export default function HeroSlidesList() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     );
   }
@@ -344,7 +344,7 @@ export default function HeroSlidesList() {
         <h1 className="text-3xl font-bold text-gray-800">Hero Slides</h1>
         <button
           onClick={() => { setShowAddForm(!showAddForm); setAddFieldErrors({}); }}
-          className="bg-amber-600 text-white px-4 py-3 rounded-lg hover:bg-amber-700 active:bg-amber-800 transition-colors flex items-center touch-manipulation min-h-[44px]"
+          className="bg-primary-600 text-white px-4 py-3 rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-colors flex items-center touch-manipulation min-h-[44px]"
         >
           {showAddForm ? <X size={20} className="mr-2" /> : <Plus size={20} className="mr-2" />}
           {showAddForm ? 'Cancelar' : 'Criar Slide'}
@@ -364,7 +364,7 @@ export default function HeroSlidesList() {
                   type="text"
                   value={formData.title}
                   onChange={(e) => { setFormData({ ...formData, title: e.target.value }); clearAddError('title'); }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none ${addFieldErrors.title ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.title ? 'border-red-500' : 'border-gray-300'}`}
                 />
                 {addFieldErrors.title && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.title}</p>}
               </div>
@@ -375,7 +375,7 @@ export default function HeroSlidesList() {
                   type="text"
                   value={formData.button_text}
                   onChange={(e) => { setFormData({ ...formData, button_text: e.target.value }); clearAddError('button_text'); }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none ${addFieldErrors.button_text ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.button_text ? 'border-red-500' : 'border-gray-300'}`}
                 />
                 {addFieldErrors.button_text && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.button_text}</p>}
               </div>
@@ -387,7 +387,7 @@ export default function HeroSlidesList() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
               />
             </div>
 
@@ -401,7 +401,7 @@ export default function HeroSlidesList() {
                   onClick={() => handleLinkTypeChange('page', '/loja')}
                   className={`px-4 py-3 rounded-lg border-2 transition-all ${
                     formData.button_link_type === 'page'
-                      ? 'border-amber-600 bg-amber-50 text-amber-900 font-medium'
+                      ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
                 >
@@ -412,7 +412,7 @@ export default function HeroSlidesList() {
                   onClick={() => handleLinkTypeChange('category', '')}
                   className={`px-4 py-3 rounded-lg border-2 transition-all ${
                     formData.button_link_type === 'category'
-                      ? 'border-amber-600 bg-amber-50 text-amber-900 font-medium'
+                      ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
                 >
@@ -423,7 +423,7 @@ export default function HeroSlidesList() {
                   onClick={() => handleLinkTypeChange('custom', '')}
                   className={`px-4 py-3 rounded-lg border-2 transition-all ${
                     formData.button_link_type === 'custom'
-                      ? 'border-amber-600 bg-amber-50 text-amber-900 font-medium'
+                      ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
                 >
@@ -462,7 +462,7 @@ export default function HeroSlidesList() {
                   value={formData.button_link}
                   onChange={(e) => setFormData({ ...formData, button_link: e.target.value })}
                   placeholder="Ex: /sobre, /contacto, ou URL externa"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                 />
               )}
             </div>
@@ -489,7 +489,7 @@ export default function HeroSlidesList() {
                 type="file"
                 accept="image/*"
                 onChange={(e) => { handleImageChange(e); clearAddError('image'); }}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none ${addFieldErrors.image ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.image ? 'border-red-500' : 'border-gray-300'}`}
               />
               {addFieldErrors.image && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.image}</p>}
               {imagePreview && (
@@ -506,7 +506,7 @@ export default function HeroSlidesList() {
                   type="number"
                   value={formData.display_order}
                   onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                 />
               </div>
               <div className="flex items-center pt-7">
@@ -515,7 +515,7 @@ export default function HeroSlidesList() {
                     type="checkbox"
                     checked={formData.is_active}
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="w-5 h-5 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                    className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   />
                   <span className="ml-2 text-gray-700">Slide Ativo</span>
                 </label>
@@ -524,7 +524,7 @@ export default function HeroSlidesList() {
 
             <button
               type="submit"
-              className="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 active:bg-amber-800 transition-colors touch-manipulation min-h-[44px]"
+              className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-colors touch-manipulation min-h-[44px]"
             >
               Criar Slide
             </button>
@@ -550,7 +550,7 @@ export default function HeroSlidesList() {
               <div className="relative z-10 h-full flex items-center p-6">
                 <div>
                   <h3 className={`text-2xl font-bold mb-2 ${
-                    slide.text_color === 'white' ? 'text-white' : 'text-gray-900'
+                    slide.text_color === 'white' ? 'text-white' : 'text-[#1A1A1A]'
                   }`}>
                     {slide.title}
                   </h3>
@@ -559,7 +559,7 @@ export default function HeroSlidesList() {
                   }`}>
                     {slide.description}
                   </p>
-                  <span className="inline-block px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg">
+                  <span className="inline-block px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg">
                     {slide.button_text}
                   </span>
                 </div>
@@ -572,7 +572,7 @@ export default function HeroSlidesList() {
                   className={`px-3 py-1 rounded-full text-xs font-medium shadow-lg ${
                     slide.is_active
                       ? 'bg-green-500 text-white'
-                      : 'bg-gray-500 text-white'
+                      : 'bg-tertiary-1000 text-white'
                   }`}
                 >
                   {slide.is_active ? <Eye size={14} className="inline mr-1" /> : <EyeOff size={14} className="inline mr-1" />}
@@ -589,7 +589,7 @@ export default function HeroSlidesList() {
             </div>
 
             {/* Info & Actions */}
-            <div className="p-4 bg-gray-50">
+            <div className="p-4 bg-tertiary-100">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-sm text-gray-600">
                   <span className="font-medium">Link:</span> {slide.button_link}
@@ -641,7 +641,7 @@ export default function HeroSlidesList() {
           <div className="fixed inset-4 md:inset-x-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl z-50 overflow-y-auto max-h-[90vh]">
             <div className="bg-white rounded-xl shadow-2xl p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Editar Slide</h2>
+                <h2 className="text-xl font-bold text-[#1A1A1A]">Editar Slide</h2>
                 <button
                   onClick={() => {
                     setEditingId(null);
@@ -667,7 +667,7 @@ export default function HeroSlidesList() {
                           type="text"
                           value={slide.title}
                           onChange={(e) => updateSlide(editingId, 'title', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-base"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
                         />
                       </div>
 
@@ -677,7 +677,7 @@ export default function HeroSlidesList() {
                           value={slide.description}
                           onChange={(e) => updateSlide(editingId, 'description', e.target.value)}
                           rows={3}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-base"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
                         />
                       </div>
 
@@ -687,7 +687,7 @@ export default function HeroSlidesList() {
                           type="text"
                           value={slide.button_text}
                           onChange={(e) => updateSlide(editingId, 'button_text', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-base"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
                         />
                       </div>
 
@@ -701,7 +701,7 @@ export default function HeroSlidesList() {
                             onClick={() => handleEditLinkTypeChange(editingId, 'page', '/loja')}
                             className={`px-4 py-3 rounded-lg border-2 transition-all text-base ${
                               detectLinkType(slide.button_link) === 'page'
-                                ? 'border-amber-600 bg-amber-50 text-amber-900 font-medium'
+                                ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
                                 : 'border-gray-300 hover:border-gray-400'
                             }`}
                           >
@@ -712,7 +712,7 @@ export default function HeroSlidesList() {
                             onClick={() => handleEditLinkTypeChange(editingId, 'category', '')}
                             className={`px-4 py-3 rounded-lg border-2 transition-all text-base ${
                               detectLinkType(slide.button_link) === 'category'
-                                ? 'border-amber-600 bg-amber-50 text-amber-900 font-medium'
+                                ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
                                 : 'border-gray-300 hover:border-gray-400'
                             }`}
                           >
@@ -723,7 +723,7 @@ export default function HeroSlidesList() {
                             onClick={() => handleEditLinkTypeChange(editingId, 'custom', '')}
                             className={`px-4 py-3 rounded-lg border-2 transition-all text-base ${
                               detectLinkType(slide.button_link) === 'custom'
-                                ? 'border-amber-600 bg-amber-50 text-amber-900 font-medium'
+                                ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
                                 : 'border-gray-300 hover:border-gray-400'
                             }`}
                           >
@@ -762,7 +762,7 @@ export default function HeroSlidesList() {
                             value={slide.button_link}
                             onChange={(e) => updateSlide(editingId, 'button_link', e.target.value)}
                             placeholder="Ex: /sobre, /contacto, ou URL externa"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-base"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
                           />
                         )}
                       </div>
@@ -773,7 +773,7 @@ export default function HeroSlidesList() {
                           type="file"
                           accept="image/*"
                           onChange={handleImageChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-base"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
                         />
                         {/* Show current image or preview */}
                         <div className="mt-3">
@@ -805,7 +805,7 @@ export default function HeroSlidesList() {
                             type="number"
                             value={slide.display_order}
                             onChange={(e) => updateSlide(editingId, 'display_order', parseInt(e.target.value))}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-base"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
                           />
                         </div>
 
@@ -815,7 +815,7 @@ export default function HeroSlidesList() {
                               type="checkbox"
                               checked={slide.is_active}
                               onChange={(e) => updateSlide(editingId, 'is_active', e.target.checked)}
-                              className="w-5 h-5 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                              className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                             />
                             <span className="ml-2 text-gray-700">Ativo</span>
                           </label>
@@ -825,7 +825,7 @@ export default function HeroSlidesList() {
                       <div className="flex gap-3 pt-4">
                         <button
                           onClick={() => handleUpdate(editingId)}
-                          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 active:bg-amber-800 transition-colors touch-manipulation min-h-[48px] font-medium"
+                          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-colors touch-manipulation min-h-[48px] font-medium"
                         >
                           <Save size={20} />
                           <span>Guardar</span>
@@ -835,7 +835,7 @@ export default function HeroSlidesList() {
                             setEditingId(null);
                             loadSlides();
                           }}
-                          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors touch-manipulation min-h-[48px] font-medium"
+                          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-tertiary-100 active:bg-gray-100 transition-colors touch-manipulation min-h-[48px] font-medium"
                         >
                           <X size={20} />
                           <span>Cancelar</span>
@@ -866,7 +866,7 @@ export default function HeroSlidesList() {
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                   <Trash2 className="text-red-600" size={24} />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 text-center mb-2">Eliminar Slide</h2>
+                <h2 className="text-xl font-bold text-[#1A1A1A] text-center mb-2">Eliminar Slide</h2>
                 <p className="text-gray-600 text-center">
                   Tem a certeza que deseja eliminar o slide <span className="font-semibold">"{deleteConfirm.title}"</span>?
                 </p>
@@ -878,7 +878,7 @@ export default function HeroSlidesList() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors touch-manipulation min-h-[48px] font-medium"
+                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-tertiary-100 active:bg-gray-100 transition-colors touch-manipulation min-h-[48px] font-medium"
                 >
                   Cancelar
                 </button>

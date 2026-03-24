@@ -1,3 +1,8 @@
+export interface ProductColor {
+  name: string;
+  hex: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -5,7 +10,7 @@ export interface Product {
   price: number;
   images: string[];
   category: string;
-  colors: string[];
+  colors: ProductColor[];
   inStock: boolean;
   stock?: number; // Stock quantity (for Favorites page)
   featured: boolean;

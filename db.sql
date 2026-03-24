@@ -38,6 +38,8 @@ CREATE TABLE IF NOT EXISTS products (
   price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
   category_id BIGINT NOT NULL REFERENCES categories(id) ON UPDATE CASCADE,
   stock INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
+  stock_mode VARCHAR(20) NOT NULL DEFAULT 'unit' CHECK (stock_mode IN ('unit', 'apparel', 'shoes')),
+  size_stock JSONB,
   featured BOOLEAN NOT NULL DEFAULT FALSE,
   colors JSONB,
   images JSONB,

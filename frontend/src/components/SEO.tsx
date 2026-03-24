@@ -16,13 +16,13 @@ const SEO: React.FC<SEOProps> = ({
   description,
   canonical,
   ogType = 'website',
-  ogImage = '/images/logo.webp',
+  ogImage = '/images/logo.png',
   schema,
   noindex = false,
 }) => {
   const siteName = 'Recicloth';
   const fullTitle = `${title} | ${siteName}`;
-  const siteUrl = 'https://recicloth.pt';
+  const siteUrl = 'https://recicloth.com';
   const canonicalUrl = canonical ? `${siteUrl}${canonical}` : siteUrl;
   const resolvedOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
 

@@ -15,13 +15,13 @@ export default function AdminApp() {
   // Check if user is authenticated and is admin
   if (!isAuthenticated || user?.role !== 'admin') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-tertiary-100">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Acesso Negado</h1>
+          <h1 className="text-2xl font-bold text-[#1A1A1A] mb-2">Acesso Negado</h1>
           <p className="text-gray-600 mb-4">Necessita de privilégios de administrador para aceder a esta área.</p>
           <a
             href="/"
-            className="inline-block bg-amber-600 text-white px-6 py-2 rounded-lg hover:bg-amber-700"
+            className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
           >
             Voltar à Página Inicial
           </a>

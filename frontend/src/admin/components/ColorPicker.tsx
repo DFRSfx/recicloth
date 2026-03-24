@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Plus, Check } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 
-interface ColorOption {
+export interface ColorOption {
   name: string;
   hex: string;
 }
@@ -73,12 +73,13 @@ const PRESET_COLORS: ColorOption[] = [
 ];
 
 interface ColorPickerProps {
-  selectedColors: string[];
-  onColorsChange: (colors: string[]) => void;
+  selectedColors: ColorOption[];
+  onColorsChange: (colors: ColorOption[]) => void;
 }
 
 export default function ColorPicker({ selectedColors, onColorsChange }: ColorPickerProps) {
-  const [inputValue, setInputValue] = useState('');
+  const [nameValue, setNameValue] = useState('');
+  const [hexValue, setHexValue] = useState('#2D6A4F');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredColors, setFilteredColors] = useState<ColorOption[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -86,10 +87,10 @@ export default function ColorPicker({ selectedColors, onColorsChange }: ColorPic
 
   // Filter colors based on input
   useEffect(() => {
-    if (inputValue.trim()) {
+    if (nameValue.trim()) {
       const filtered = PRESET_COLORS.filter(color =>
-        color.name.toLowerCase().includes(inputValue.toLowerCase()) &&
-        !selectedColors.includes(color.name)
+        color.name.toLowerCase().includes(nameValue.toLowerCase()) &&
+        !selectedColors.some(c => c.name.toLowerCase() === color.name.toLowerCase())
       );
       setFilteredColors(filtered);
       setShowSuggestions(filtered.length > 0);
@@ -97,7 +98,16 @@ export default function ColorPicker({ selectedColors, onColorsChange }: ColorPic
       setFilteredColors([]);
       setShowSuggestions(false);
     }
-  }, [inputValue, selectedColors]);
+  }, [nameValue, selectedColors]);
+
+  useEffect(() => {
+    const exactMatch = PRESET_COLORS.find(
+      (color) => color.name.toLowerCase() === nameValue.trim().toLowerCase()
+    );
+    if (exactMatch) {
+      setHexValue(exactMatch.hex);
+    }
+  }, [nameValue]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -116,31 +126,40 @@ export default function ColorPicker({ selectedColors, onColorsChange }: ColorPic
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const addColor = (colorName: string) => {
-    if (colorName.trim() && !selectedColors.includes(colorName.trim())) {
-      onColorsChange([...selectedColors, colorName.trim()]);
-      setInputValue('');
-      setShowSuggestions(false);
-    }
+  const isValidHex = (hex: string) => /^#([A-Fa-f0-9]{6})$/.test(hex);
+
+  const normalizeHex = (hex: string) => {
+    if (!hex) return '';
+    return hex.startsWith('#') ? hex.toUpperCase() : `#${hex.toUpperCase()}`;
   };
 
-  const removeColor = (colorToRemove: string) => {
-    onColorsChange(selectedColors.filter(c => c !== colorToRemove));
+  const addColor = () => {
+    const trimmedName = nameValue.trim();
+    const normalizedHex = normalizeHex(hexValue.trim());
+
+    if (!trimmedName || !isValidHex(normalizedHex)) return;
+    if (selectedColors.some(c => c.name.toLowerCase() === trimmedName.toLowerCase())) return;
+
+    onColorsChange([...selectedColors, { name: trimmedName, hex: normalizedHex }]);
+    setNameValue('');
+    setHexValue('#2D6A4F');
+    setShowSuggestions(false);
+  };
+
+  const removeColor = (colorToRemove: ColorOption) => {
+    onColorsChange(selectedColors.filter(c => c.name !== colorToRemove.name));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (filteredColors.length > 0) {
-        addColor(filteredColors[0].name);
-      } else if (inputValue.trim()) {
-        addColor(inputValue);
+        setNameValue(filteredColors[0].name);
+        setHexValue(filteredColors[0].hex);
+      } else if (nameValue.trim()) {
+        addColor();
       }
     }
-  };
-
-  const getColorHex = (colorName: string): string | undefined => {
-    return PRESET_COLORS.find(c => c.name === colorName)?.hex;
   };
 
   return (
@@ -151,16 +170,30 @@ export default function ColorPicker({ selectedColors, onColorsChange }: ColorPic
           <input
             ref={inputRef}
             type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            value={nameValue}
+            onChange={(e) => setNameValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            onFocus={() => inputValue && setShowSuggestions(filteredColors.length > 0)}
+            onFocus={() => nameValue && setShowSuggestions(filteredColors.length > 0)}
             placeholder="Digite a cor (ex: Azul, Vermelho, Rosa...)"
             className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
           />
+          <input
+            type="color"
+            value={isValidHex(normalizeHex(hexValue)) ? normalizeHex(hexValue) : '#2D6A4F'}
+            onChange={(e) => setHexValue(e.target.value.toUpperCase())}
+            className="w-14 h-[44px] p-1 border border-gray-300 rounded-lg cursor-pointer bg-white"
+            aria-label="Selecionar cor hexadecimal"
+          />
+          <input
+            type="text"
+            value={hexValue}
+            onChange={(e) => setHexValue(e.target.value)}
+            placeholder="#RRGGBB"
+            className="w-28 px-2 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+          />
           <button
             type="button"
-            onClick={() => inputValue.trim() && addColor(inputValue)}
+            onClick={addColor}
             className="px-3 sm:px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-colors flex items-center gap-1 sm:gap-2 touch-manipulation min-h-[44px] flex-shrink-0 whitespace-nowrap"
             aria-label="Adicionar cor"
           >
@@ -173,20 +206,24 @@ export default function ColorPicker({ selectedColors, onColorsChange }: ColorPic
         {showSuggestions && (
           <div
             ref={dropdownRef}
-            className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+            className="absolute z-10 w-full mt-1 bg-white border border-secondary-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
           >
             {filteredColors.map((color, index) => (
               <button
                 key={index}
                 type="button"
-                onClick={() => addColor(color.name)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 active:bg-gray-100 flex items-center gap-3 transition-colors touch-manipulation min-h-[44px]"
+                onClick={() => {
+                  setNameValue(color.name);
+                  setHexValue(color.hex);
+                  setShowSuggestions(false);
+                }}
+                className="w-full px-4 py-3 text-left hover:bg-tertiary-100 active:bg-gray-100 flex items-center gap-3 transition-colors touch-manipulation min-h-[44px]"
               >
                 <div
                   className="w-6 h-6 rounded border border-gray-300 flex-shrink-0"
                   style={{ backgroundColor: color.hex }}
                 />
-                <span className="text-gray-900">{color.name}</span>
+                <span className="text-[#1A1A1A]">{color.name}</span>
                 <span className="text-gray-400 text-xs ml-auto">{color.hex}</span>
               </button>
             ))}
@@ -198,19 +235,16 @@ export default function ColorPicker({ selectedColors, onColorsChange }: ColorPic
       {selectedColors.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {selectedColors.map((color, index) => {
-            const hex = getColorHex(color);
             return (
               <span
                 key={index}
                 className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-100 text-primary-700 rounded-full text-sm border border-primary-200"
               >
-                {hex && (
-                  <div
-                    className="w-4 h-4 rounded-full border border-gray-300"
-                    style={{ backgroundColor: hex }}
-                  />
-                )}
-                <span>{color}</span>
+                <div
+                  className="w-4 h-4 rounded-full border border-gray-300"
+                  style={{ backgroundColor: color.hex }}
+                />
+                <span>{color.name} ({color.hex})</span>
                 <button
                   type="button"
                   onClick={() => removeColor(color)}
@@ -225,41 +259,6 @@ export default function ColorPicker({ selectedColors, onColorsChange }: ColorPic
         </div>
       )}
 
-      {/* Popular colors quick select */}
-      <div className="pt-2">
-        <p className="text-xs text-gray-500 mb-2">Cores Populares:</p>
-        <div className="flex flex-wrap gap-2">
-          {PRESET_COLORS.slice(0, 12).map((color, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => addColor(color.name)}
-              disabled={selectedColors.includes(color.name)}
-              className={`group relative p-2 rounded-lg border-2 transition-all touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center ${
-                selectedColors.includes(color.name)
-                  ? 'border-green-500 opacity-50 cursor-not-allowed'
-                  : 'border-gray-300 hover:border-primary-500 active:border-primary-600 active:scale-95'
-              }`}
-              title={color.name}
-              aria-label={`Selecionar cor ${color.name}`}
-            >
-              <div
-                className="w-8 h-8 rounded"
-                style={{ backgroundColor: color.hex }}
-              />
-              {selectedColors.includes(color.name) && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
-                  <Check size={16} className="text-white" />
-                </div>
-              )}
-              {/* Tooltip - visible on mobile tap, hover on desktop */}
-              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                {color.name}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

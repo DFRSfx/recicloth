@@ -74,7 +74,7 @@ export default function OrdersList() {
       case 'shipped':    return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'delivered':  return 'bg-green-100 text-green-800 border-green-200';
       case 'cancelled':  return 'bg-red-100 text-red-800 border-red-200';
-      default:           return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:           return 'bg-gray-100 text-gray-800 border-secondary-200';
     }
   };
 
@@ -92,7 +92,7 @@ export default function OrdersList() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4" role="status">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600" aria-hidden="true"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" aria-hidden="true"></div>
         <span className="sr-only">A carregar lista de encomendas...</span>
       </div>
     );
@@ -102,15 +102,15 @@ export default function OrdersList() {
     <main className="space-y-6 sm:space-y-8 pb-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Encomendas</h1>
+        <h1 className="text-2xl font-bold text-[#1A1A1A]">Encomendas</h1>
         <p className="text-sm sm:text-base text-gray-600 mt-1">Gira as encomendas da sua loja</p>
       </div>
 
       {/* Caixa Combinada (Filtros + Lista/Tabela) */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-secondary-200 overflow-hidden">
         
         {/* Filtros */}
-        <div className="p-4 border-b border-gray-200 bg-gray-50/50">
+        <div className="p-4 border-b border-secondary-200 bg-tertiary-100/50">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="relative flex-1">
               <label htmlFor="search-orders" className="sr-only">Pesquisar encomendas</label>
@@ -121,7 +121,7 @@ export default function OrdersList() {
                 placeholder="Pesquisar por nome, email ou nº..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-shadow"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow"
               />
             </div>
             <div className="w-full sm:w-48">
@@ -148,11 +148,11 @@ export default function OrdersList() {
           {filteredOrders.map((order) => {
             const { date, time } = formatDate(order.created_at);
             return (
-              <div key={order.id} className="p-4 hover:bg-gray-50/50 transition-colors">
+              <div key={order.id} className="p-4 hover:bg-tertiary-100/50 transition-colors">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <span className="text-sm font-bold text-gray-900">#{order.id}</span>
-                    <h3 className="text-base font-medium text-gray-900 mt-1">{order.customer_name}</h3>
+                    <span className="text-sm font-bold text-[#1A1A1A]">#{order.id}</span>
+                    <h3 className="text-base font-medium text-[#1A1A1A] mt-1">{order.customer_name}</h3>
                   </div>
                   <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${getStatusColor(order.status)}`}>
                     {getStatusLabel(order.status)}
@@ -171,12 +171,12 @@ export default function OrdersList() {
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-2">
-                  <div className="text-lg font-bold text-gray-900">
+                  <div className="text-lg font-bold text-[#1A1A1A]">
                     €{Number(order.total).toFixed(2)}
                   </div>
                   <Link
                     to={`/admin/encomendas/${order.id}`}
-                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
+                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors"
                   >
                     <Eye size={16} className="mr-2" />
                     Ver Detalhes
@@ -192,7 +192,7 @@ export default function OrdersList() {
           {/* Removido o min-w forçado para a tabela respirar no tablet */}
           <table className="w-full text-left border-collapse"> 
             <thead>
-              <tr className="bg-white border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wider">
+              <tr className="bg-white border-b border-secondary-200 text-xs text-gray-500 uppercase tracking-wider">
                 <th scope="col" className="px-4 py-4 font-medium whitespace-nowrap">Nº</th>
                 <th scope="col" className="px-4 py-4 font-medium">Cliente</th>
                 <th scope="col" className="px-4 py-4 font-medium">Data</th>
@@ -206,13 +206,13 @@ export default function OrdersList() {
               {filteredOrders.map((order) => {
                 const { date, time } = formatDate(order.created_at);
                 return (
-                  <tr key={order.id} className="hover:bg-gray-50/80 transition-colors group">
-                    <td className="px-4 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap">
+                  <tr key={order.id} className="hover:bg-tertiary-100/80 transition-colors group">
+                    <td className="px-4 py-4 text-sm font-semibold text-[#1A1A1A] whitespace-nowrap">
                       #{order.id}
                     </td>
                     <td className="px-4 py-4 min-w-[160px] lg:min-w-[200px]">
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900 truncate">{order.customer_name}</span>
+                        <span className="text-sm font-medium text-[#1A1A1A] truncate">{order.customer_name}</span>
                         <span className="text-xs text-gray-500 truncate">{order.customer_email}</span>
                       </div>
                     </td>
@@ -222,7 +222,7 @@ export default function OrdersList() {
                         <span className="text-xs text-gray-500">{time}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-sm font-bold text-gray-900 text-right whitespace-nowrap">
+                    <td className="px-4 py-4 text-sm font-bold text-[#1A1A1A] text-right whitespace-nowrap">
                       €{Number(order.total).toFixed(2)}
                     </td>
                     <td className="px-4 py-4 text-center whitespace-nowrap">
@@ -237,7 +237,7 @@ export default function OrdersList() {
                       <div className="flex items-center justify-end">
                         <Link
                           to={`/admin/encomendas/${order.id}`}
-                          className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
                           aria-label={`Ver detalhes da encomenda número ${order.id} de ${order.customer_name}`}
                         >
                           <Eye size={20} aria-hidden="true" />

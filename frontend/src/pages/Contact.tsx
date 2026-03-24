@@ -237,7 +237,7 @@ const Contact: React.FC = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         className={inputClass('email')}
-                        placeholder="email@exemplo.pt"
+                        placeholder="email@exemplo.com"
                       />
                       {errors.email && (
                         <p className="mt-1 text-xs text-red-500">{errors.email}</p>

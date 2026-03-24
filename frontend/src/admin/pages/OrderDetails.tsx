@@ -84,7 +84,7 @@ export default function OrderDetails() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     );
   }
@@ -140,10 +140,10 @@ export default function OrderDetails() {
                 </div>
               ))}
             </div>
-            <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="mt-6 pt-6 border-t border-secondary-200">
               <div className="flex items-center justify-between text-lg font-bold">
                 <span className="text-gray-800">Total</span>
-                <span className="text-amber-600">€{Number(order.total).toFixed(2)}</span>
+                <span className="text-primary-600">€{Number(order.total).toFixed(2)}</span>
               </div>
             </div>
           </div>
