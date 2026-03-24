@@ -89,7 +89,11 @@ const pool = {
   },
 
   async execute<T = any>(sql: string, params: any[] = []) {
-    return this.query<T>(sql, params);
+    const result = await pgPool.query(adaptSql(sql), params);
+    if (result.command === 'SELECT') {
+      return [result.rows as T[]] as const;
+    }
+    return [{ affectedRows: result.rowCount, insertId: (result.rows as any[])?.[0]?.id, rows: result.rows }] as const;
   },
 
   async getConnection() {

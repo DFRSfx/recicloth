@@ -62,9 +62,10 @@ interface HeroSlide {
 // Get all active slides (public)
 router.get('/', async (req, res) => {
   try {
-    const [slides] = await pool.query<HeroSlide[]>(
+    const [slidesResult] = await pool.query<HeroSlide>(
       'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides WHERE is_active = TRUE ORDER BY display_order ASC'
     );
+    const slides = Array.isArray(slidesResult) ? slidesResult : (slidesResult.rows as HeroSlide[]);
 
     const slidesWithImages = slides.map(slide => ({
       ...slide,
@@ -81,9 +82,10 @@ router.get('/', async (req, res) => {
 // Get all slides including inactive (admin only)
 router.get('/all', ...requireAdmin, async (req, res) => {
   try {
-    const [slides] = await pool.query<HeroSlide[]>(
+    const [slidesResult] = await pool.query<HeroSlide>(
       'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides ORDER BY display_order ASC'
     );
+    const slides = Array.isArray(slidesResult) ? slidesResult : (slidesResult.rows as HeroSlide[]);
 
     const slidesWithImages = slides.map(slide => ({
       ...slide,
@@ -100,10 +102,11 @@ router.get('/all', ...requireAdmin, async (req, res) => {
 // Get single slide
 router.get('/:id', async (req, res) => {
   try {
-    const [slides] = await pool.query<HeroSlide[]>(
+    const [slidesResult] = await pool.query<HeroSlide>(
       'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides WHERE id = ?',
       [req.params.id]
     );
+    const slides = Array.isArray(slidesResult) ? slidesResult : (slidesResult.rows as HeroSlide[]);
 
     if (slides.length === 0) {
       return res.status(404).json({ error: 'Slide not found' });
@@ -145,10 +148,11 @@ router.post('/', ...requireAdmin, upload.single('image'), async (req, res) => {
     // Save all size variants to disk
     await saveSlideImages(id, req.file.buffer);
 
-    const [newSlide] = await pool.query<HeroSlide[]>(
+    const [newSlideResult] = await pool.query<HeroSlide>(
       'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides WHERE id = ?',
       [id]
     );
+    const newSlide = Array.isArray(newSlideResult) ? newSlideResult : (newSlideResult.rows as HeroSlide[]);
 
     res.status(201).json({ ...newSlide[0], ...getSlideUrls(id, newSlide[0].updated_at) });
   } catch (error) {
@@ -188,10 +192,13 @@ router.put('/:id', ...requireAdmin, upload.single('image'), async (req, res) => 
       await saveSlideImages(req.params.id, req.file.buffer);
     }
 
-    const [updatedSlide] = await pool.query<HeroSlide[]>(
+    const [updatedSlideResult] = await pool.query<HeroSlide>(
       'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides WHERE id = ?',
       [req.params.id]
     );
+    const updatedSlide = Array.isArray(updatedSlideResult)
+      ? updatedSlideResult
+      : (updatedSlideResult.rows as HeroSlide[]);
 
     res.json({
       ...updatedSlide[0],

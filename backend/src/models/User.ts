@@ -1,4 +1,4 @@
-import pool from '../config/database';
+import pool from '../config/database.js';
 import bcrypt from 'bcrypt';
 
 export type UserRole = 'customer' | 'admin';

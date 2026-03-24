@@ -1,4 +1,4 @@
-import pool from '../config/database';
+import pool from '../config/database.js';
 import crypto from 'crypto';
 
 export interface PasswordResetToken {

@@ -1,4 +1,4 @@
-import pool from '../config/database';
+import pool from '../config/database.js';
 
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
