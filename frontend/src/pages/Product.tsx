@@ -262,7 +262,7 @@ const Product: React.FC = () => {
           
           <div className="block lg:hidden mb-6">
             <Link to={`/loja?categoria=${product.category}`} className="flex items-center text-sm font-bold text-gray-900 mb-4">
-              <ChevronLeft size={16} className="mr-1" strokeWidth={2.5} /> See {product.category}
+              <ChevronLeft size={16} className="mr-1" strokeWidth={2.5} /> Ver {product.category}
             </Link>
             <h1 className="text-2xl font-bold tracking-tight mb-2">{product.name}</h1>
             <div className="flex items-center gap-2 mb-2 text-sm">
@@ -288,7 +288,7 @@ const Product: React.FC = () => {
           {product.colors.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center gap-1.5 mb-3">
-                <span className="font-medium text-sm text-gray-900">Color</span>
+                <span className="font-medium text-sm text-gray-900">Cor</span>
                 <span className="text-sm font-bold text-gray-900">{selectedColor}</span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -299,7 +299,7 @@ const Product: React.FC = () => {
                     className={`relative w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                       selectedColor === color.name ? 'ring-2 ring-black ring-offset-2' : 'ring-1 ring-gray-300 hover:ring-gray-400'
                     }`}
-                    aria-label={`Select color ${color.name}`}
+                    aria-label={`Selecionar cor ${color.name}`}
                   >
                     <span className="w-7 h-7 rounded-full border border-black/10 shadow-inner" style={{ backgroundColor: color.hex || getColorCode(color.name) }} />
                   </button>
@@ -320,13 +320,13 @@ const Product: React.FC = () => {
                   : 'bg-black text-white hover:bg-gray-900 shadow-[0_4px_14px_rgba(0,0,0,0.15)]'
               }`}
             >
-              {!product.inStock ? 'Esgotado' : isAdded ? <><Check size={18} strokeWidth={3} /> Adicionado</> : 'Add to Bag'}
+              {!product.inStock ? 'Esgotado' : isAdded ? <><Check size={18} strokeWidth={3} /> Adicionado</> : 'Adicionar ao Carrinho'}
             </button>
 
             <button 
               onClick={handleToggleFavorite}
               className="h-14 w-14 flex items-center justify-center border border-gray-300 hover:border-black rounded-sm transition-colors"
-              aria-label="Wishlist"
+              aria-label="Lista de Desejos"
             >
               <Heart className={`w-5 h-5 transition-colors ${isFavorite ? 'fill-black text-black' : 'text-gray-900'}`} strokeWidth={2} />
             </button>
@@ -356,7 +356,7 @@ const Product: React.FC = () => {
                 {expandedSections.shipping ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
               </button>
               <div className={`overflow-hidden transition-all duration-300 ${expandedSections.shipping ? 'max-h-96 pb-6' : 'max-h-0'}`}>
-                <p className="text-gray-700 text-sm leading-relaxed">Entregas em Portugal Continental em 2-3 dias úteis. Aceitamos devoluções num prazo de 30 dias após a receção da encomenda.</p>
+                <p className="text-gray-700 text-sm leading-relaxed">Entregas em Portugal Continental em 2-3 dias úteis. Aceitamos devoluções num prazo de 14 dias após a receção da encomenda.</p>
               </div>
             </div>
 
@@ -374,7 +374,7 @@ const Product: React.FC = () => {
       {relatedProducts.length > 0 && (
         <div className="max-w-[1440px] mx-auto px-4 lg:px-8 mt-24">
           <div className="border-t border-gray-200 pt-16">
-            <h2 className="text-2xl font-bold tracking-tight mb-8">You may also like</h2>
+            <h2 className="text-2xl font-bold tracking-tight mb-8">Também pode gostar</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10">
               {relatedProducts.map((prod) => (
                 <ProductCard key={prod.id} product={prod} hideActions={true} />

@@ -12,7 +12,7 @@ const About: React.FC = () => {
               Sobre a Recicloth
             </h1>
             <p className="text-xl text-primary-100 max-w-3xl mx-auto">
-              Onde cada ponto conta uma história e cada peça é feita com amor e dedicação
+              Moda que respeita o planeta — roupa reciclada, upcycled e de segunda mão selecionada com critério
             </p>
           </div>
         </div>
@@ -29,33 +29,35 @@ const About: React.FC = () => {
               </h2>
               <div className="space-y-4 text-gray-600 leading-relaxed">
                 <p>
-                  A <span className="font-semibold text-primary-600">Recicloth</span> nasceu da paixão pelo crochê
-                  e do desejo de criar peças únicas que trazem conforto, beleza e alegria para o seu lar.
+                  A <span className="font-semibold text-primary-600">Recicloth</span> nasceu da convicção de que
+                  a moda pode ser bonita <em>e</em> responsável. Cada peça que vendemos — reciclada, upcycled
+                  ou de segunda mão — é uma alternativa concreta ao consumo descartável.
                 </p>
                 <p>
-                  Cada criação é cuidadosamente elaborada à mão, com atenção aos mínimos detalhes.
-                  Utilizamos apenas materiais de alta qualidade, selecionados com carinho para garantir
-                  que cada peça seja durável e especial.
+                  A indústria têxtil é uma das mais poluentes do mundo. Ao escolher roupa em segunda
+                  circuito, cada cliente da Recicloth contribui diretamente para reduzir o desperdício
+                  de água, energia e matérias-primas associado à produção de peças novas.
                 </p>
                 <p>
-                  O que começou como um hobby transformou-se numa verdadeira arte. Hoje, partilhamos
-                  o nosso trabalho com pessoas que valorizam o autêntico e o feito com amor.
+                  O que começou como um projeto pessoal transformou-se numa loja dedicada a curar
+                  os melhores artigos de moda sustentável — selecionados, verificados e apresentados
+                  para quem valoriza o estilo sem comprometer o planeta.
                 </p>
                 <p>
-                  Mais do que produtos, criamos memórias. Cada amigurumi, cada peça para o lar,
-                  cada acessório carrega consigo horas de dedicação e um pedacinho do nosso coração.
+                  Mais do que vender roupa, queremos mudar hábitos. Cada compra na Recicloth é um voto
+                  por um sistema de moda mais justo, circular e consciente.
                 </p>
               </div>
             </div>
             <div className="relative">
               <img
-                src="https://images.pexels.com/photos/5704720/pexels-photo-5704720.jpeg?auto=compress&cs=tinysrgb&w=800"
-                alt="Trabalho em crochê"
+                src="https://images.pexels.com/photos/5632371/pexels-photo-5632371.jpeg?auto=compress&cs=tinysrgb&w=800"
+                alt="Roupa reciclada selecionada pela Recicloth"
                 className="rounded-lg shadow-xl"
               />
               <div className="absolute -bottom-6 -left-6 bg-primary-600 text-white p-6 rounded-lg shadow-lg max-w-xs">
                 <p className="text-sm font-medium">
-                  "Cada ponto é uma expressão de amor e criatividade"
+                  "Cada peça escolhida é uma peça de roupa que não vai para o lixo"
                 </p>
               </div>
             </div>
@@ -69,7 +71,7 @@ const About: React.FC = () => {
               Os Nossos Valores
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Princípios que guiam cada criação e cada ponto que damos
+              Princípios que guiam cada escolha e cada peça que disponibilizamos
             </p>
           </div>
 
@@ -80,10 +82,10 @@ const About: React.FC = () => {
                 <Heart className="h-8 w-8 text-primary-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Feito com Amor
+                Sustentabilidade
               </h3>
               <p className="text-gray-600">
-                Cada peça é criada com paixão e dedicação, tornando-a verdadeiramente única e especial.
+                Cada peça que vendemos é uma alternativa ao consumo novo, reduzindo o impacto ambiental da moda.
               </p>
             </div>
 
@@ -93,10 +95,10 @@ const About: React.FC = () => {
                 <Award className="h-8 w-8 text-primary-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Qualidade Premium
+                Seleção Rigorosa
               </h3>
               <p className="text-gray-600">
-                Utilizamos apenas materiais selecionados e técnicas apuradas para garantir durabilidade.
+                Cada artigo é inspecionado individualmente para garantir qualidade, estado e autenticidade.
               </p>
             </div>
 
@@ -106,10 +108,10 @@ const About: React.FC = () => {
                 <Sparkles className="h-8 w-8 text-primary-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Criatividade
+                Moda Circular
               </h3>
               <p className="text-gray-600">
-                Cada design é pensado ao pormenor, combinando tradição com toques modernos e originais.
+                Acreditamos numa moda sem fim de linha — onde cada peça tem sempre mais uma vida para dar.
               </p>
             </div>
 
@@ -119,10 +121,10 @@ const About: React.FC = () => {
                 <Users className="h-8 w-8 text-primary-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Proximidade
+                Transparência
               </h3>
               <p className="text-gray-600">
-                Valorizamos cada cliente e mantemos um relacionamento próximo e personalizado.
+                Descrevemos o estado real de cada peça com honestidade, para que saiba exatamente o que recebe.
               </p>
             </div>
           </div>
@@ -140,40 +142,40 @@ const About: React.FC = () => {
                   <div className="flex items-start gap-4">
                     <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 flex-shrink-0"></div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">Amigurumis Personalizados</h3>
+                      <h3 className="font-semibold text-gray-900 mb-1">Roupa Reciclada</h3>
                       <p className="text-gray-600">
-                        Criamos adoráveis bonecos de crochê, desde animais a personagens, perfeitos para
-                        decoração ou presentes especiais.
+                        Peças de vestuário para homem e mulher selecionadas de fontes sustentáveis,
+                        limpas e prontas a usar.
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 flex-shrink-0"></div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">Decoração para o Lar</h3>
+                      <h3 className="font-semibold text-gray-900 mb-1">Peças Upcycled</h3>
                       <p className="text-gray-600">
-                        Peças que transformam ambientes: mantas, almofadas, tapetes e muito mais,
-                        sempre com um toque único.
+                        Artigos transformados e melhorados a partir de materiais reutilizados,
+                        com design contemporâneo e original.
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 flex-shrink-0"></div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">Acessórios de Moda</h3>
+                      <h3 className="font-semibold text-gray-900 mb-1">Acessórios Sustentáveis</h3>
                       <p className="text-gray-600">
-                        Bolsas, carteiras, chapéus e outros acessórios que combinam estilo e funcionalidade
-                        com o charme do trabalho.
+                        Malas, cintos, chapéus e outros acessórios de segunda mão que complementam
+                        qualquer look de forma consciente.
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
                     <div className="w-2 h-2 bg-primary-600 rounded-full mt-2 flex-shrink-0"></div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">Encomendas Personalizadas</h3>
+                      <h3 className="font-semibold text-gray-900 mb-1">Segunda Mão com Garantia</h3>
                       <p className="text-gray-600">
-                        Tem uma ideia especial? Trabalhamos consigo para criar a peça perfeita,
-                        adaptada às suas necessidades e preferências.
+                        Todos os artigos passam por verificação de estado, higienização e descrição
+                        honesta antes de chegarem até si.
                       </p>
                     </div>
                   </div>
@@ -181,8 +183,8 @@ const About: React.FC = () => {
               </div>
               <div className="relative h-full min-h-[400px]">
                 <img
-                  src="https://images.pexels.com/photos/6045071/pexels-photo-6045071.jpeg?auto=compress&cs=tinysrgb&w=800"
-                  alt="Produtos de crochê"
+                  src="https://images.pexels.com/photos/5709661/pexels-photo-5709661.jpeg?auto=compress&cs=tinysrgb&w=800"
+                  alt="Roupa sustentável Recicloth"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </div>
@@ -193,10 +195,10 @@ const About: React.FC = () => {
         {/* Call to Action */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-12 text-center text-white">
           <h2 className="text-3xl font-bold mb-4">
-            Vamos Criar Algo Especial Juntos?
+            Vista-se de Forma Consciente
           </h2>
           <p className="text-xl text-primary-100 mb-8 max-w-2xl mx-auto">
-            Explore a nossa coleção ou entre em contacto para uma encomenda personalizada
+            Explore a nossa coleção de roupa sustentável ou fale connosco para qualquer dúvida
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a

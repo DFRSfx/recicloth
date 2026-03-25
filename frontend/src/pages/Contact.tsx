@@ -9,7 +9,7 @@ import { getLocalBusinessSchema, getFAQSchema } from '../utils/schemas';
 const subjectOptions = [
   { value: 'produto', label: 'Dúvida sobre produto', icon: ShoppingBag },
   { value: 'pedido', label: 'Estado do pedido', icon: Package },
-  { value: 'personalizado', label: 'Pedido personalizado', icon: Sparkles },
+  { value: 'tamanhos', label: 'Informação sobre tamanhos', icon: Sparkles },
   { value: 'geral', label: 'Informação geral', icon: MessageCircle },
   { value: 'outro', label: 'Outro', icon: FileText },
 ];
@@ -95,16 +95,16 @@ const Contact: React.FC = () => {
   // SEO setup with FAQ schema
   const faqs = [
     {
-      question: 'Quanto tempo demora um pedido personalizado?',
-      answer: 'Os pedidos personalizados levam entre 2 a 4 semanas, dependendo da complexidade do projeto.',
+      question: 'As peças são realmente recicladas?',
+      answer: 'Sim! Todas as nossas peças são recicladas, de segunda mão ou upcycled. Cada item é cuidadosamente selecionado e verificado para garantir qualidade e autenticidade.',
     },
     {
-      question: 'Fazem entregas em todo o país?',
-      answer: 'Sim! Fazemos entregas em todo Portugal continental e ilhas.',
+      question: 'Fazem entregas em toda a União Europeia?',
+      answer: 'Sim! Fazemos entregas em todos os países da União Europeia. Envios para Portugal continental e ilhas têm custos reduzidos.',
     },
     {
-      question: 'Que materiais utilizam?',
-      answer: 'Utilizamos apenas linhas de alta qualidade, preferencialmente 100% algodão, adequadas para cada tipo de produto.',
+      question: 'Qual é a política de devolução?',
+      answer: 'Tem 14 dias para devolver qualquer artigo. As peças devem estar nas mesmas condições em que foram recebidas. Consulte a nossa política de devolução para mais detalhes.',
     },
   ];
 
@@ -117,7 +117,7 @@ const Contact: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <SEO
         title="Contacto"
-        description="Entre em contacto com Recicloth. Estamos disponíveis para esclarecer dúvidas, fazer encomendas personalizadas e ajudar com qualquer questão sobre os nossos produtos em crochê."
+        description="Entre em contacto com a Recicloth. Estamos disponíveis para esclarecer dúvidas sobre moda sustentável, roupas recicladas e entregas. Apoio personalizado para cada cliente."
         canonical="/contacto"
         ogType="website"
         schema={schemas}
@@ -127,7 +127,7 @@ const Contact: React.FC = () => {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Entre em Contacto</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Tem alguma dúvida sobre os nossos produtos ou gostaria de fazer um pedido personalizado?
+            Tem dúvidas sobre as nossas peças de roupa reciclada ou precisa de ajuda com o seu pedido?
             Estamos aqui para ajudar!
           </p>
         </div>
@@ -179,7 +179,7 @@ const Contact: React.FC = () => {
                     >
                       @recicloth.croche
                     </a>
-                    <p className="text-sm text-gray-400 mt-1">Veja o nosso processo criativo</p>
+                    <p className="text-sm text-gray-400 mt-1">Veja as nossas peças únicas</p>
                   </div>
                 </div>
               </div>

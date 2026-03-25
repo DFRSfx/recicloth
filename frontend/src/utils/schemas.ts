@@ -15,9 +15,9 @@ export const getOrganizationSchema = () => ({
     height: 704,
   },
   description:
-    'Loja online de produtos em croché artesanais feitos à mão em Portugal. ' +
-    'Malas de croché feitas à mão, acessórios de croché artesanais para oferecer e ' +
-    'decoração de sala em croché artesanal de qualidade premium.',
+    'Loja online de roupa reciclada, upcycled e de segunda mão. ' +
+    'Moda sustentável para homem e mulher, acessórios sustentáveis e peças únicas ' +
+    'selecionadas com critério ambiental — entregue em toda a União Europeia.',
   email: 'recicloth1972@gmail.com',
   sameAs: ['https://www.instagram.com/recicloth.croche/'],
   hasMap: `${SITE_URL}/contacto`,
@@ -56,9 +56,9 @@ export const getLocalBusinessSchema = () => ({
   image: `${SITE_URL}/images/logo.png`,
   email: 'recicloth1972@gmail.com',
   description:
-    'Loja online de malas de croché feitas à mão em Portugal. ' +
-    'Prendas artesanais para mulher, acessórios de croché artesanais para oferecer ' +
-    'e decoração de sala em croché artesanal de qualidade premium.',
+    'Loja online de roupa reciclada e moda sustentável. ' +
+    'Peças de segunda mão, upcycled e recicladas para homem e mulher, ' +
+    'selecionadas com critério e entregues em toda a União Europeia.',
   areaServed: {
     '@type': 'Country',
     name: 'Portugal',
@@ -118,7 +118,7 @@ export const getProductSchema = (product: Product) => ({
   additionalProperty: [
     {
       '@type': 'PropertyValue',
-      name: 'Feito à Mão',
+      name: 'Sustentável',
       value: 'Sim',
     },
     {
@@ -159,8 +159,8 @@ export const getFAQSchema = (faqs: { question: string; answer: string }[]) => ({
 export const getItemListSchema = (products: Product[]) => ({
   '@context': 'https://schema.org',
   '@type': 'ItemList',
-  name: 'Produtos de Croché Artesanais — Recicloth',
-  description: 'Malas de croché feitas à mão, acessórios de croché artesanais para oferecer e decoração em croché artesanal produzidos em Portugal.',
+  name: 'Roupa Reciclada e Moda Sustentável — Recicloth',
+  description: 'Roupa reciclada, upcycled e de segunda mão para homem e mulher. Acessórios sustentáveis selecionados com critério ambiental.',
   itemListElement: products.map((product, index) => ({
     '@type': 'ListItem',
     position: index + 1,
@@ -172,34 +172,37 @@ export const getItemListSchema = (products: Product[]) => ({
 // Homepage FAQ content — answers target long-tail search queries
 export const getHomepageFAQs = () => [
   {
-    question: 'Posso encomendar uma bolsa de croché personalizada em Portugal?',
+    question: 'O que é roupa reciclada e como é diferente de roupa de segunda mão?',
     answer:
-      'Sim. Na Recicloth aceitamos encomendas personalizadas de bolsas de croché feitas à mão em Portugal. ' +
-      'Pode escolher cores, dimensões e estilo. Entre em contacto connosco através da página de contacto para discutir a sua encomenda.',
+      'Roupa reciclada refere-se a peças feitas a partir de materiais reutilizados ou transformados. ' +
+      'Roupa de segunda mão é vestuário usado que é revendido no seu estado original. ' +
+      'Na Recicloth encontra ambos os tipos, além de peças upcycled — artigos transformados criativamente para lhes dar uma nova função ou estética.',
   },
   {
-    question: 'Quanto tempo demora a criar uma peça de croché artesanal?',
+    question: 'Como garantem a qualidade das peças de roupa reciclada?',
     answer:
-      'Cada peça de croché artesanal leva entre 8 a 15 horas de trabalho manual, dependendo da complexidade do padrão e das dimensões. ' +
-      'É este cuidado e dedicação que torna cada criação da Recicloth verdadeiramente única.',
+      'Cada artigo da Recicloth é inspecionado individualmente antes de ser listado. ' +
+      'Verificamos o estado geral, a ausência de danos significativos e a higiene da peça. ' +
+      'O estado é sempre descrito honestamente na ficha do produto — "Bom estado", "Como novo", etc.',
   },
   {
-    question: 'Os produtos são feitos em Portugal?',
+    question: 'Fazem entregas em toda a União Europeia?',
     answer:
-      'Sim, todos os produtos da Recicloth são produzidos em Portugal com materiais de alta qualidade. ' +
-      'Ao comprar na nossa loja está a apoiar o artesanato português e a adquirir peças com autenticidade e origem garantida.',
+      'Sim! Entregamos em todos os países da União Europeia. ' +
+      'Envios para Portugal continental têm custo reduzido (€3,99) com entrega em 2-3 dias úteis. ' +
+      'Para o resto da UE o custo é €8,99 com entrega em 5-10 dias úteis. Portes grátis em compras acima de €75.',
   },
   {
-    question: 'Os acessórios de croché artesanais são uma boa prenda para mulher?',
+    question: 'Qual é a política de devolução da Recicloth?',
     answer:
-      'Absolutamente. As nossas prendas artesanais para mulher feitas à mão — bolsas, acessórios e decoração em croché — ' +
-      'são presentes originais e únicos para aniversários, Natal, Dia dos Namorados ou simplesmente para surpreender alguém especial. ' +
-      'Cada peça é embalada com cuidado e chega pronta a oferecer.',
+      'Tem 14 dias a partir da receção para devolver qualquer artigo, desde que nas mesmas condições em que foi recebido. ' +
+      'Consulte a nossa Política de Devoluções para mais detalhes sobre o processo e condições.',
   },
   {
-    question: 'A decoração de sala em croché artesanal é resistente para uso diário?',
+    question: 'Comprar roupa reciclada faz realmente diferença para o ambiente?',
     answer:
-      'Sim. Utilizamos fios de alta qualidade selecionados para durabilidade e beleza. ' +
-      'A decoração de sala em croché artesanal da Recicloth é criada para durar anos, mantendo as cores e a forma com cuidados básicos de manutenção.',
+      'Sim. A produção de uma única t-shirt nova pode consumir até 2.700 litros de água. ' +
+      'Ao escolher roupa reciclada ou de segunda mão, está a evitar essa pegada hídrica e a reduzir as emissões de CO₂ associadas à produção têxtil. ' +
+      'Cada compra na Recicloth é uma ação concreta pela moda circular.',
   },
 ];

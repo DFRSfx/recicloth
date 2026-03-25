@@ -176,14 +176,38 @@
   }
 
   /* Hide scrollbar for Chrome, Safari and Opera */
-  .scrollbar-hide::-webkit-scrollbar {
+  .scrollbar-hide::-webkit-scrollbar,
+  .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
 
   /* Hide scrollbar for IE, Edge and Firefox */
-  .scrollbar-hide {
+  .scrollbar-hide,
+  .hide-scrollbar {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+  }
+
+  /* Scroll fade indicator for horizontal scrolling */
+  .scroll-fade-right {
+    position: relative;
+  }
+
+  .scroll-fade-right::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(to right, rgba(249, 249, 249, 0), rgba(249, 249, 249, 1));
+    pointer-events: none;
+  }
+
+  @media (min-width: 1024px) {
+    .scroll-fade-right::after {
+      display: none;
+    }
   }
 }
 

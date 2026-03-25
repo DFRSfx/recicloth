@@ -40,28 +40,29 @@ const Favorites: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#f9f9f9] py-8 lg:py-16">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Heart className="h-8 w-8 text-primary-600 fill-current" />
-              Os Meus Favoritos
-            </h1>
-            <p className="text-gray-600 mt-2">
+            <div className="flex items-center gap-3 mb-1">
+              <Heart className="h-7 w-7 text-[#1E4D3B] fill-current" />
+              <h1 className="text-3xl lg:text-4xl font-bold text-[#0f172a] tracking-tight">
+                Os Meus Favoritos
+              </h1>
+            </div>
+            <p className="text-[#64748b] text-[15px]">
               {favorites.length === 0
                 ? 'Ainda não tem favoritos guardados'
-                : `${favorites.length} ${favorites.length === 1 ? 'produto' : 'produtos'} guardado${
-                    favorites.length === 1 ? '' : 's'
-                  }`}
+                : `${favorites.length} produto${favorites.length === 1 ? '' : 's'} guardado${favorites.length === 1 ? '' : 's'}`}
             </p>
           </div>
 
           {favorites.length > 0 && (
             <button
               onClick={handleClearAllFavorites}
-              className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="flex items-center gap-2 text-sm text-[#dc2626] hover:text-[#b91c1c] transition-colors font-medium"
             >
               <Trash2 className="h-4 w-4" />
               Limpar Favoritos
@@ -71,43 +72,56 @@ const Favorites: React.FC = () => {
 
         {/* Loading State */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-12 w-12 text-primary-600 animate-spin" />
+          <div className="flex items-center justify-center py-32">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1E4D3B]"></div>
           </div>
         ) : favorites.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 lg:p-24 text-center">
             <div className="max-w-md mx-auto">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Heart className="h-12 w-12 text-gray-400" />
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Heart className="h-10 w-10 text-gray-300" strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">
                 Ainda sem favoritos
               </h3>
-              <p className="text-gray-600 mb-8">
+              <p className="text-gray-500 mb-8 leading-relaxed text-[15px]">
                 Explore a nossa loja e adicione produtos à sua lista de favoritos para os encontrar
                 facilmente mais tarde.
               </p>
               <button
                 onClick={() => navigate('/loja')}
-                className="px-8 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-semibold"
+                className="px-8 py-3.5 bg-[#1E4D3B] text-white rounded font-medium hover:bg-[#163a2c] transition-colors shadow-sm"
               >
                 Explorar Produtos
               </button>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 lg:gap-x-6 lg:gap-y-12">
             {favoriteProducts.map((product) => (
               <div key={product.id} className="relative group h-full">
-                {/* Remove Button - Always visible on mobile, hover on desktop */}
+                
+                {/* IMPORTANT UX FIX:
+                  Instead of putting a random absolute button over the card which ruins the hover state,
+                  we inject the remove button into the top right, but give it a solid white background 
+                  and high z-index so it clearly sits on top of the image slider.
+                */}
                 <button
-                  onClick={() => removeFromFavorites(product.id)}
-                  className="absolute top-2 right-2 z-30 p-2 bg-white rounded-full shadow-md hover:bg-red-50 hover:scale-110 transition-all md:opacity-0 md:group-hover:opacity-100"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    removeFromFavorites(product.id);
+                  }}
+                  className="absolute top-2 right-2 z-30 flex items-center justify-center w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.12)] text-[#dc2626] hover:bg-white hover:scale-110 transition-all"
                   aria-label="Remover dos favoritos"
                 >
-                  <X className="h-4 w-4 text-red-600" />
+                  <X className="h-5 w-5" strokeWidth={2} />
                 </button>
-                <ProductCard product={product} />
+
+                {/* Note: We pass hideActions={true} so ProductCard doesn't render its own 
+                  Heart button, which would conflict with our Remove button above.
+                */}
+                <ProductCard product={product} hideActions={true} />
               </div>
             ))}
           </div>
@@ -115,10 +129,10 @@ const Favorites: React.FC = () => {
 
         {/* Continue Shopping */}
         {favorites.length > 0 && (
-          <div className="mt-12 text-center">
+          <div className="mt-20 pt-10 border-t border-gray-200 text-center">
             <button
               onClick={() => navigate('/loja')}
-              className="inline-flex items-center gap-2 px-8 py-3 border-2 border-primary-600 text-primary-600 rounded-lg hover:bg-primary-600 hover:text-white transition-colors font-semibold"
+              className="inline-flex items-center justify-center px-8 py-3.5 bg-white border border-[#1E4D3B] text-[#1E4D3B] rounded font-medium hover:bg-gray-50 transition-colors"
             >
               Continuar a Comprar
             </button>

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Search, SlidersHorizontal, ChevronLeft } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Search, SlidersHorizontal, ChevronLeft, Check } from 'lucide-react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 import ProductCard from '../components/ProductCard';
@@ -26,6 +26,33 @@ const Shop: React.FC = () => {
   // UI State
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [expandedFilters, setExpandedFilters] = useState({ color: true, price: true });
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Detect iOS for native select styling
+  const isIOS = useMemo(() => {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+  }, []);
+
+  const sortOptions = [
+    { value: 'newest', label: 'Mais Recentes' },
+    { value: 'price_asc', label: 'Preço: Menor para Maior' },
+    { value: 'price_desc', label: 'Preço: Maior para Menor' }
+  ];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isDropdownOpen]);
 
   const toggleFilter = (section: keyof typeof expandedFilters) => {
     setExpandedFilters(prev => ({ ...prev, [section]: !prev[section] }));
@@ -54,6 +81,66 @@ const Shop: React.FC = () => {
     () => Array.from(new Set(allProducts.flatMap(product => product.colors.map(color => color.name)))),
     [allProducts]
   );
+
+  // Get unique colors with their hex values for filter buttons
+  const uniqueColors = useMemo(() => {
+    const colorMap = new Map<string, string>();
+    allProducts.forEach(product => {
+      product.colors.forEach(color => {
+        if (color.hex && !colorMap.has(color.hex)) {
+          colorMap.set(color.hex, color.name);
+        }
+      });
+    });
+    return Array.from(colorMap.entries()).map(([hex, name]) => ({ hex, name }));
+  }, [allProducts]);
+
+  // Calculate dynamic price brackets based on actual product prices
+  const priceBrackets = useMemo(() => {
+    if (allProducts.length === 0) {
+      return [
+        { id: '0-49', label: '€ 0,00 - € 49,99' },
+        { id: '50-99', label: '€ 50,00 - € 99,99' },
+        { id: '100-199', label: '€ 100,00 - € 199,99' }
+      ];
+    }
+
+    const prices = allProducts.map(p => p.price);
+    const maxPrice = Math.max(...prices);
+    const minPrice = Math.min(...prices);
+    
+    // Create brackets dynamically
+    const brackets: { id: string; label: string }[] = [];
+    const step = 50; // €50 increments
+    
+    let currentMin = 0;
+    while (currentMin < maxPrice) {
+      const currentMax = currentMin + step - 0.01;
+      const hasProducts = prices.some(p => p >= currentMin && p < currentMin + step);
+      
+      if (hasProducts) {
+        brackets.push({
+          id: `${currentMin}-${currentMin + step - 1}`,
+          label: `€ ${currentMin.toFixed(2)} - € ${currentMax.toFixed(2)}`
+        });
+      }
+      
+      currentMin += step;
+      
+      // Limit to reasonable number of brackets
+      if (brackets.length >= 10) break;
+    }
+    
+    // Add a final bracket for remaining high prices if needed
+    if (maxPrice >= currentMin) {
+      brackets.push({
+        id: `${currentMin}+`,
+        label: `€ ${currentMin.toFixed(2)}+`
+      });
+    }
+    
+    return brackets;
+  }, [allProducts]);
 
   const selectedColor = selectedColors[0] ?? '';
 
@@ -86,16 +173,17 @@ const Shop: React.FC = () => {
     let filtered = allProducts.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = !selectedCategory || product.category === selectedCategory;
-      const matchesColor = selectedColors.length === 0 || product.colors.some(c => selectedColors.includes(c.name));
+      const matchesColor = selectedColors.length === 0 || product.colors.some(c => selectedColors.includes(c.hex));
       
       const matchesPrice = selectedPrices.length === 0 || selectedPrices.some(bracket => {
-        if (bracket === '0-49') return product.price < 50;
-        if (bracket === '50-99') return product.price >= 50 && product.price < 100;
-        if (bracket === '100-199') return product.price >= 100 && product.price < 200;
-        if (bracket === '200-299') return product.price >= 200 && product.price < 300;
-        if (bracket === '300-399') return product.price >= 300 && product.price < 400;
-        if (bracket === '400+') return product.price >= 400;
-        return false;
+        // Handle dynamic price brackets
+        if (bracket.endsWith('+')) {
+          const minPrice = parseInt(bracket.replace('+', ''));
+          return product.price >= minPrice;
+        }
+        
+        const [min, max] = bracket.split('-').map(Number);
+        return product.price >= min && product.price < max + 1;
       });
 
       const minPrice = (priceRange[0] / 100) * maxProductPrice;
@@ -119,8 +207,8 @@ const Shop: React.FC = () => {
 
   const currentProducts = filteredProducts.slice(0, displayCount);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center">Error: {error}</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center">A carregar...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center">Erro: {error}</div>;
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-gray-900 font-sans relative pb-24 lg:pb-0">
@@ -144,24 +232,26 @@ const Shop: React.FC = () => {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-12 pb-6">
         <div className="lg:hidden mb-6">
           <Link to="/loja" className="flex items-center gap-2 text-sm font-medium text-gray-900">
-            <ChevronLeft size={16} strokeWidth={2.5} /> Shop by Category
+            <ChevronLeft size={16} strokeWidth={2.5} /> Comprar por Categoria
           </Link>
         </div>
         <h1 className="text-3xl lg:text-4xl font-bold mb-3 tracking-tight">
-          {selectedCategory ? selectedCategory : "Men's New Arrivals"}
+          {selectedCategory ? selectedCategory : "Novidades"}
         </h1>
         <p className="text-sm lg:text-base text-gray-600 max-w-2xl mb-6 lg:mb-8">
-          Gear to connect with the places that make us feel small. Timeless designs for our future planet.
+          Moda sustentável que respeita o planeta. Designs atemporais para o nosso futuro.
         </p>
 
         {/* Top Nav */}
-        <div className="flex gap-6 overflow-x-auto border-b border-gray-300 pb-4 text-sm font-medium whitespace-nowrap hide-scrollbar">
-          <button onClick={() => handleCategoryChange('')} className={`${!selectedCategory ? 'text-black border-b-4 border-gray-400 pb-[14px] -mb-[18px]' : 'text-gray-600'}`}>All Items</button>
-          {allCategories.map((cat) => (
-            <button key={cat.id} onClick={() => handleCategoryChange(cat.name)} className={`${selectedCategory === cat.name ? 'text-black border-b-4 border-gray-400 pb-[14px] -mb-[18px]' : 'text-gray-600'}`}>
-              {cat.name}
-            </button>
-          ))}
+        <div className="-mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0">
+          <div className="flex gap-6 overflow-x-auto border-b border-gray-300 pb-4 text-sm font-medium whitespace-nowrap scrollbar-hide pr-4 sm:pr-6 lg:pr-0">
+            <button onClick={() => handleCategoryChange('')} className={`${!selectedCategory ? 'text-black border-b-4 border-gray-400 pb-[14px] -mb-[18px]' : 'text-gray-600'} flex-shrink-0`}>Todos os Artigos</button>
+            {allCategories.map((cat) => (
+              <button key={cat.id} onClick={() => handleCategoryChange(cat.name)} className={`${selectedCategory === cat.name ? 'text-black border-b-4 border-gray-400 pb-[14px] -mb-[18px]' : 'text-gray-600'} flex-shrink-0`}>
+                {cat.name}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -177,14 +267,21 @@ const Shop: React.FC = () => {
           {/* Color Grid */}
           <div className="border-t border-gray-200 py-4">
             <button onClick={() => toggleFilter('color')} className="flex justify-between items-center w-full text-left font-medium text-sm">
-              Color {expandedFilters.color ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              Cor {expandedFilters.color ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
             {expandedFilters.color && (
-              <div className="mt-4 grid grid-cols-2 gap-y-4 gap-x-2 px-2">
-                {/* Map your actual dynamic colors here. Using static array for the layout demo */}
-                {['#1e3a8a', '#064e3b', '#000000', '#9ca3af'].map(colorHex => (
-                  <button key={colorHex} onClick={() => toggleColor(colorHex)} className={`flex items-center gap-2 group ${selectedColors.includes(colorHex) ? 'ring-2 ring-black rounded-full' : ''}`}>
-                    <span className="w-6 h-6 rounded-full border border-gray-300 shadow-sm" style={{ backgroundColor: colorHex }}></span>
+              <div className="mt-4 space-y-3 px-2">
+                {uniqueColors.map(color => (
+                  <button 
+                    key={color.hex} 
+                    onClick={() => toggleColor(color.hex)} 
+                    className={`flex items-center gap-3 group w-full text-left ${selectedColors.includes(color.hex) ? 'font-bold' : ''}`}
+                  >
+                    <span 
+                      className={`w-6 h-6 rounded-full border border-gray-300 shadow-sm flex-shrink-0 ${selectedColors.includes(color.hex) ? 'ring-2 ring-black ring-offset-2' : ''}`} 
+                      style={{ backgroundColor: color.hex }}
+                    ></span>
+                    <span className="text-sm group-hover:underline">{color.name}</span>
                   </button>
                 ))}
               </div>
@@ -194,15 +291,11 @@ const Shop: React.FC = () => {
           {/* Price Checkboxes */}
           <div className="border-y border-gray-200 py-4">
             <button onClick={() => toggleFilter('price')} className="flex justify-between items-center w-full text-left font-medium text-sm">
-              Price {expandedFilters.price ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              Preço {expandedFilters.price ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
             {expandedFilters.price && (
               <div className="mt-4 space-y-4">
-                {[
-                  { id: '0-49', label: '€ 0,00 - € 49,99' },
-                  { id: '50-99', label: '€ 50,00 - € 99,99' },
-                  { id: '100-199', label: '€ 100,00 - € 199,99' }
-                ].map((bracket) => (
+                {priceBrackets.map((bracket) => (
                   <label key={bracket.id} className="flex items-start gap-3 text-sm cursor-pointer group">
                     <input type="checkbox" checked={selectedPrices.includes(bracket.id)} onChange={() => togglePrice(bracket.id)} className="w-4 h-4 mt-0.5 rounded-sm border-2 border-gray-400 text-black focus:ring-black cursor-pointer" />
                     <span className="group-hover:underline text-gray-900 font-bold leading-tight">{bracket.label}</span>
@@ -216,13 +309,61 @@ const Shop: React.FC = () => {
         {/* Product Grid Area */}
         <main className="flex-1">
           <div className="flex justify-between items-center mb-6 text-sm font-medium">
-            <span className="text-gray-900 font-bold">{filteredProducts.length} Items</span>
+            <span className="text-gray-900 font-bold">{filteredProducts.length} Artigos</span>
             <div className="hidden lg:flex items-center gap-2">
-              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="border-none bg-transparent font-medium text-sm focus:ring-0 cursor-pointer pr-8">
-                <option value="newest">Newest</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-              </select>
+              {isIOS ? (
+                // Native iOS select
+                <div className="relative">
+                  <select 
+                    value={sortBy} 
+                    onChange={(e) => setSortBy(e.target.value)} 
+                    className="border-none bg-transparent focus:ring-0 cursor-pointer font-medium text-sm pr-8 appearance-none"
+                  >
+                    {sortOptions.map(option => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                // Custom styled dropdown for Desktop & Android
+                <div ref={dropdownRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center justify-between gap-3 bg-white border border-gray-300 rounded-lg px-4 py-2.5 pr-3 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent shadow-sm hover:shadow transition-all font-medium text-sm min-w-[200px]"
+                  >
+                    <span>{sortOptions.find(opt => opt.value === sortBy)?.label}</span>
+                    <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-full min-w-[240px] bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden animate-fadeIn">
+                      {sortOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setSortBy(option.value);
+                            setIsDropdownOpen(false);
+                          }}
+                          className={`
+                            w-full text-left px-4 py-3 text-sm transition-colors flex items-center justify-between group
+                            ${sortBy === option.value 
+                              ? 'bg-gray-50 text-black font-semibold' 
+                              : 'text-gray-700 hover:bg-gray-50 hover:text-black'
+                            }
+                          `}
+                        >
+                          <span>{option.label}</span>
+                          {sortBy === option.value && (
+                            <Check className="h-4 w-4 text-black" strokeWidth={2.5} />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -237,7 +378,7 @@ const Shop: React.FC = () => {
       {/* Mobile FAB */}
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 lg:hidden">
         <button onClick={() => setShowMobileFilters(true)} className="flex items-center gap-2 bg-black text-white px-6 py-3.5 rounded-full font-bold text-sm shadow-xl hover:scale-105 transition-transform">
-          Filter & Sort <SlidersHorizontal size={16} />
+          Filtrar & Ordenar <SlidersHorizontal size={16} />
         </button>
       </div>
     </div>

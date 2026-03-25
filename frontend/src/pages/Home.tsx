@@ -43,16 +43,16 @@ const Home: React.FC = () => {
       <section className="py-10 bg-white border-b border-gray-100">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-            Na <strong>Recicloth</strong>, cada{' '}
-            <strong>mala de croché feita à mão em Portugal</strong> leva entre{' '}
-            <strong>8 a 15 horas de trabalho artesanal</strong> — um detalhe que
-            não encontra em produções em série. Criamos{' '}
-            <strong>prendas artesanais para mulher feitas à mão</strong>,{' '}
-            <strong>acessórios de croché artesanais para oferecer</strong> e{' '}
-            <strong>decoração de sala em croché artesanal</strong> que transforma
-            qualquer espaço com autenticidade portuguesa. Também aceitamos{' '}
+            Na <strong>Recicloth</strong>, acreditamos que a{' '}
+            <strong>moda sustentável</strong> começa na escolha de cada peça.{' '}
+            Cada artigo — <strong>reciclado, upcycled ou de segunda mão</strong>{' '}
+            — é cuidadosamente selecionado e verificado para garantir qualidade e{' '}
+            <strong>impacto ambiental positivo</strong>. Encontre{' '}
+            <strong>roupa reciclada para homem e mulher</strong>,{' '}
+            <strong>acessórios upcycled</strong> e peças únicas que respeitam o
+            planeta sem abdicar do estilo. Tem dúvidas?{' '}
             <Link to="/contacto" className="text-primary-600 hover:underline font-medium">
-              bolsas de croché personalizadas por encomenda
+              Fale connosco
             </Link>
             .
           </p>
@@ -147,7 +147,7 @@ const Home: React.FC = () => {
               Novidades
             </h2>
             <p className="text-lg text-gray-600">
-              As mais recentes criações do nosso ateliê
+              As mais recentes adições à nossa coleção sustentável
             </p>
           </div>
 
@@ -204,10 +204,10 @@ const Home: React.FC = () => {
                   <Heart className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-1.5">
-                  Feito à Mão
+                  Moda Circular
                 </h3>
                 <p className="text-xs text-gray-600 leading-relaxed">
-                  Cada peça criada com amor e dedicação
+                  Cada peça tem uma segunda vida
                 </p>
               </div>
             </div>
@@ -219,10 +219,10 @@ const Home: React.FC = () => {
                   <Shield className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-1.5">
-                  Qualidade Premium
+                  Seleção Rigorosa
                 </h3>
                 <p className="text-xs text-gray-600 leading-relaxed">
-                  Materiais de alta qualidade
+                  Cada peça verificada antes de chegar até si
                 </p>
               </div>
             </div>
@@ -235,10 +235,10 @@ const Home: React.FC = () => {
                 </div>
                 <div className="text-left flex-1">
                   <h3 className="text-base font-bold text-gray-900 mb-1">
-                    Peças Únicas
+                    Impacto Real
                   </h3>
                   <p className="text-xs text-gray-600 leading-relaxed">
-                    Designs exclusivos que não encontra em mais lugar nenhum
+                    Cada compra reduz o desperdício têxtil
                   </p>
                 </div>
               </div>
@@ -254,10 +254,10 @@ const Home: React.FC = () => {
                   <Heart className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Feito à Mão
+                  Moda Circular
                 </h3>
                 <p className="text-base text-gray-600 leading-relaxed">
-                  Cada peça é cuidadosamente criada à mão com amor e dedicação
+                  Cada peça reciclada ou upcycled tem uma história e uma segunda vida
                 </p>
               </div>
             </div>
@@ -269,10 +269,10 @@ const Home: React.FC = () => {
                   <Shield className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Qualidade Premium
+                  Seleção Rigorosa
                 </h3>
                 <p className="text-base text-gray-600 leading-relaxed">
-                  Utilizamos apenas materiais de alta qualidade e técnicas tradicionais
+                  Cada artigo é inspecionado e verificado antes de entrar na nossa coleção
                 </p>
               </div>
             </div>
@@ -284,10 +284,10 @@ const Home: React.FC = () => {
                   <Star className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Peças Únicas
+                  Impacto Real
                 </h3>
                 <p className="text-base text-gray-600 leading-relaxed">
-                  Designs exclusivos que não encontra em mais lugar nenhum
+                  Cada compra reduz o desperdício têxtil e apoia um planeta mais sustentável
                 </p>
               </div>
             </div>
@@ -302,7 +302,7 @@ const Home: React.FC = () => {
             Pronto para Descobrir?
           </h2>
           <p className="text-xl text-primary-100 mb-8">
-            Explore a nossa coleção completa de produtos de croché artesanais feitos à mão em Portugal
+            Explore a nossa coleção completa de roupa reciclada, upcycled e de segunda mão
           </p>
           <Link
             to="/loja"
@@ -322,7 +322,7 @@ const Home: React.FC = () => {
               Perguntas Frequentes
             </h2>
             <p className="text-gray-600">
-              Tudo o que precisa de saber sobre os nossos produtos artesanais
+              Tudo o que precisa de saber sobre moda sustentável na Recicloth
             </p>
           </div>
 

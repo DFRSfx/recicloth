@@ -132,9 +132,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false 
           <button
             onClick={handleToggleFavorite}
             aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-            className="absolute top-2 right-2 z-20 p-2 text-black opacity-0 group-hover/image:opacity-100 transition-opacity duration-200"
+            className="absolute top-2 right-2 z-20 p-2.5 rounded-full bg-white/80 backdrop-blur-sm text-black opacity-0 group-hover/image:opacity-100 hover:bg-white hover:scale-110 hover:shadow-lg transition-all duration-200 active:scale-95"
           >
-            <Heart className={`h-5 w-5 transition-colors ${isFavorite ? 'fill-current' : 'fill-white/50'}`} strokeWidth={1.5} />
+            <Heart className={`h-5 w-5 transition-all duration-200 ${isFavorite ? 'fill-red-500 text-red-500 scale-110' : 'fill-none hover:fill-red-50 hover:text-red-500'}`} strokeWidth={1.5} />
           </button>
         )}
 
