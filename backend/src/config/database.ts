@@ -7,6 +7,9 @@ const rawHost = process.env.DB_HOST || 'localhost';
 const rawPort = Number(process.env.DB_PORT || 5432);
 const rawDatabase = process.env.DB_NAME || 'postgres';
 const rawUser = process.env.DB_USER || 'postgres';
+const rawPoolMax = Number(process.env.DB_POOL_MAX || 2);
+const rawIdleTimeoutMs = Number(process.env.DB_IDLE_TIMEOUT_MS || 10000);
+const rawConnectionTimeoutMs = Number(process.env.DB_CONNECTION_TIMEOUT_MS || 5000);
 
 const isSupabaseHost =
   rawHost.includes('supabase.co') || rawHost.includes('pooler.supabase.com');
@@ -41,7 +44,9 @@ const pgPool = new Pool({
   user: rawUser,
   password: process.env.DB_PASSWORD || '',
   database: rawDatabase,
-  max: 10,
+  max: Number.isFinite(rawPoolMax) && rawPoolMax > 0 ? rawPoolMax : 2,
+  idleTimeoutMillis: Number.isFinite(rawIdleTimeoutMs) && rawIdleTimeoutMs > 0 ? rawIdleTimeoutMs : 10000,
+  connectionTimeoutMillis: Number.isFinite(rawConnectionTimeoutMs) && rawConnectionTimeoutMs > 0 ? rawConnectionTimeoutMs : 5000,
   ssl: process.env.DB_SSL === 'true' || (process.env.NODE_ENV === 'production' && isSupabaseHost)
     ? { rejectUnauthorized: false }
     : false
