@@ -107,13 +107,4 @@ const pool = {
   }
 };
 
-pgPool.connect()
-  .then(client => {
-    console.log('✅ PostgreSQL connected successfully');
-    client.release();
-  })
-  .catch(err => {
-    console.error('❌ PostgreSQL connection failed:', err.message);
-  });
-
 export default pool;

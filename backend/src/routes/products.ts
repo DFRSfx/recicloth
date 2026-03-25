@@ -5,6 +5,7 @@ import { upload } from '../config/upload.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { getCached, setCached, clearCachedByPrefix } from '../utils/apiCache.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,6 +87,15 @@ const parseImages = (images: any): string[] => {
 
 router.get('/', async (req, res) => {
   try {
+    const cacheKey = 'products:list';
+    const cached = getCached<any[]>(cacheKey);
+    if (cached) {
+      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+      res.setHeader('X-Cache', 'HIT');
+      res.json(cached);
+      return;
+    }
+
     const [rows]: any = await pool.query(
       `SELECT p.*, c.name as category_name, c.slug as category_slug
        FROM products p
@@ -98,6 +108,9 @@ router.get('/', async (req, res) => {
       images: parseImages(product.images),
     }));
 
+    setCached(cacheKey, products, 60_000);
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    res.setHeader('X-Cache', 'MISS');
     res.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -217,6 +230,7 @@ router.post(
         [productId]
       );
 
+      clearCachedByPrefix('products:');
       res.status(201).json({ ...newProduct[0], images: imagePaths });
     } catch (error) {
       console.error('Error creating product:', error);
@@ -358,6 +372,7 @@ router.put(
         return;
       }
 
+      clearCachedByPrefix('products:');
       res.json({ ...updatedProduct[0], images: finalImages });
     } catch (error) {
       console.error('Error updating product:', error);
@@ -389,6 +404,7 @@ router.delete('/:id', ...requireAdmin, async (req: AuthRequest, res) => {
       console.log('🗑️ Deleted product image directory for ID', productId);
     }
 
+    clearCachedByPrefix('products:');
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
     console.error('Error deleting product:', error);

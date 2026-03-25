@@ -5,6 +5,7 @@ import { upload } from '../config/upload.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getCached, setCached, clearCachedByPrefix } from '../utils/apiCache.js';
 
 const router = express.Router();
 
@@ -62,6 +63,15 @@ interface HeroSlide {
 // Get all active slides (public)
 router.get('/', async (req, res) => {
   try {
+    const cacheKey = 'hero-slides:active';
+    const cached = getCached<any[]>(cacheKey);
+    if (cached) {
+      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+      res.setHeader('X-Cache', 'HIT');
+      res.json(cached);
+      return;
+    }
+
     const [slidesResult] = await pool.query<HeroSlide>(
       'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides WHERE is_active = TRUE ORDER BY display_order ASC'
     );
@@ -72,6 +82,9 @@ router.get('/', async (req, res) => {
       ...getSlideUrls(slide.id, slide.updated_at),
     }));
 
+    setCached(cacheKey, slidesWithImages, 60_000);
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    res.setHeader('X-Cache', 'MISS');
     res.json(slidesWithImages);
   } catch (error) {
     console.error('Error fetching hero slides:', error);
@@ -154,6 +167,7 @@ router.post('/', ...requireAdmin, upload.single('image'), async (req, res) => {
     );
     const newSlide = Array.isArray(newSlideResult) ? newSlideResult : (newSlideResult.rows as HeroSlide[]);
 
+    clearCachedByPrefix('hero-slides:');
     res.status(201).json({ ...newSlide[0], ...getSlideUrls(id, newSlide[0].updated_at) });
   } catch (error) {
     console.error('Error creating hero slide:', error);
@@ -200,6 +214,7 @@ router.put('/:id', ...requireAdmin, upload.single('image'), async (req, res) => 
       ? updatedSlideResult
       : (updatedSlideResult.rows as HeroSlide[]);
 
+    clearCachedByPrefix('hero-slides:');
     res.json({
       ...updatedSlide[0],
       ...getSlideUrls(req.params.id, updatedSlide[0].updated_at)
@@ -228,6 +243,7 @@ router.delete('/:id', ...requireAdmin, async (req, res) => {
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 
+    clearCachedByPrefix('hero-slides:');
     res.json({ message: 'Slide deleted successfully' });
   } catch (error) {
     console.error('Error deleting hero slide:', error);
@@ -251,6 +267,7 @@ router.post('/reorder', ...requireAdmin, async (req, res) => {
       );
     }
 
+    clearCachedByPrefix('hero-slides:');
     res.json({ message: 'Slides reordered successfully' });
   } catch (error) {
     console.error('Error reordering slides:', error);

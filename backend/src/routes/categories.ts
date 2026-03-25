@@ -2,16 +2,29 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import pool from '../config/database.js';
 import { requireAdmin, AuthRequest } from '../middleware/auth.js';
+import { getCached, setCached, clearCachedByPrefix } from '../utils/apiCache.js';
 
 const router = express.Router();
 
 // Get all categories (public)
 router.get('/', async (req, res) => {
   try {
+    const cacheKey = 'categories:list';
+    const cached = getCached<any[]>(cacheKey);
+    if (cached) {
+      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+      res.setHeader('X-Cache', 'HIT');
+      res.json(cached);
+      return;
+    }
+
     const [rows] = await pool.query(
       'SELECT * FROM categories ORDER BY name ASC'
     );
 
+    setCached(cacheKey, rows, 60_000);
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    res.setHeader('X-Cache', 'MISS');
     res.json(rows);
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -75,6 +88,7 @@ router.post(
         [result.insertId]
       );
 
+      clearCachedByPrefix('categories:');
       res.status(201).json(newCategory[0]);
     } catch (error: any) {
       console.error('Error creating category:', error);
@@ -149,6 +163,7 @@ router.put(
         return;
       }
 
+      clearCachedByPrefix('categories:');
       res.json(updatedCategory[0]);
     } catch (error: any) {
       console.error('Error updating category:', error);
@@ -174,6 +189,7 @@ router.delete('/:id', ...requireAdmin, async (req: AuthRequest, res) => {
       return;
     }
 
+    clearCachedByPrefix('categories:');
     res.json({ message: 'Category deleted successfully' });
   } catch (error) {
     console.error('Error deleting category:', error);
