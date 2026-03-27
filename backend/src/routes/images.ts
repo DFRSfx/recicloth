@@ -18,38 +18,34 @@ const s3Client = new S3Client({
 const bucket = process.env.SUPABASE_S3_BUCKET || 'images-storage';
 
 /**
- * GET /images/*
+ * GET /api/images/*
  * Image proxy endpoint that streams content
  *
  * Maps your domain to Supabase S3 storage
  * Hides the Supabase project ID and storage endpoint
  *
  * Usage:
- *   GET /images/products/28/image-1-28.webp
+ *   GET /api/images/products/28/image-1-28.webp
  *   → Streams the image from S3 through your domain
  */
 router.get('/:dir/:subdir/:filename', async (req, res) => {
   try {
     const { dir, subdir, filename } = req.params;
-    console.log(`📸 Image request: ${dir}/${subdir}/${filename}`);
 
     // Security: validate path (prevent directory traversal)
     if (dir.includes('..') || subdir.includes('..') || filename.includes('..')) {
-      console.error('❌ Invalid path detected');
       res.status(400).json({ error: 'Invalid path' });
       return;
     }
 
     // Only allow products directory for now
     if (dir !== 'products') {
-      console.error(`❌ Directory not allowed: ${dir}`);
       res.status(404).json({ error: 'Not found' });
       return;
     }
 
     const imagePath = `${dir}/${subdir}/${filename}`;
     const cacheKey = `image-proxy:${imagePath}`;
-    console.log(`📍 Image path: ${imagePath}`);
 
     // Check cache for metadata (content-type, content-length)
     const cachedMeta = getCached<{ contentType: string; contentLength: number }>(cacheKey);
@@ -81,7 +77,7 @@ router.get('/:dir/:subdir/:filename', async (req, res) => {
         }, 3600000);
       }
 
-      // Get the object
+      // Stream the object
       const getCmd = new GetObjectCommand({
         Bucket: bucket,
         Key: imagePath,
@@ -89,32 +85,23 @@ router.get('/:dir/:subdir/:filename', async (req, res) => {
       const getResult = await s3Client.send(getCmd);
 
       // Set response headers
-      res.set('Content-Type', getResult.ContentType || 'image/webp');
+      if (getResult.ContentType) {
+        res.set('Content-Type', getResult.ContentType);
+      }
       if (getResult.ContentLength) {
         res.set('Content-Length', getResult.ContentLength.toString());
       }
 
-      // Read body and send (more reliable on serverless than streaming)
+      // Stream to client
       if (getResult.Body) {
-        try {
-          const stream = getResult.Body as any;
-
-          // Collect chunks into buffer
-          const chunks: Buffer[] = [];
-
-          for await (const chunk of stream) {
-            chunks.push(chunk);
-          }
-
-          const buffer = Buffer.concat(chunks);
-          res.send(buffer);
-          console.log(`✅ Sent image: ${imagePath} (${buffer.length} bytes)`);
-        } catch (streamErr) {
-          console.error('❌ Error reading S3 stream:', streamErr);
-          res.status(500).json({ error: 'Failed to read stream' });
-        }
+        getResult.Body.pipe(res)
+          .on('error', (err) => {
+            console.error('❌ Stream error:', err);
+            if (!res.headersSent) {
+              res.status(500).json({ error: 'Stream failed' });
+            }
+          });
       } else {
-        console.error('❌ No body in S3 response');
         res.status(500).json({ error: 'Failed to read image' });
       }
     } catch (error: any) {
@@ -132,7 +119,7 @@ router.get('/:dir/:subdir/:filename', async (req, res) => {
 });
 
 /**
- * GET /images/check/:dir/:subdir/:filename
+ * GET /api/images/check/:dir/:subdir/:filename
  * Diagnostic endpoint to verify if an image exists in S3
  * Returns: { exists: boolean, contentType, contentLength, bucket }
  */
