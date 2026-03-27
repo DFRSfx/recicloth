@@ -151,27 +151,28 @@ export default function ProductForm() {
           setImagePreviews(data.images.map((img: string) => getAbsoluteImageUrl(img)));
 
           const detectedColors = data.images.map((imgPath: string) => {
-            const match = imgPath.match(/-([a-z0-9-]+)\.webp$/);
-            if (match) {
-              const colorSlug = match[1];
-              
-              // 2. SLUGIFIER A SÉRIO (limpa acentos e múltiplos hifens)
-              const found = parsedColors.find((c: any) => {
-                const nameSlug = c.name
-                  .toLowerCase()
-                  .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove acentos
-                  .replace(/[^a-z0-9]+/g, '-') // substitui tudo o que não for letra/número por hífen
-                  .replace(/(^-|-$)/g, ''); // remove hifens no início e no fim
-                  
-                return nameSlug === colorSlug;
-              });
-              
-              // Retorna o objeto exato encontrado (para o "name" bater certo com o <option>) 
-              // ou vazio se não encontrar, nada de inventar nomes com replace.
-              return found || { name: '', hex: '' };
-            }
-            return { name: '', hex: '' };
+            // 1. Limpar a string: retira caminhos (slashes) e a extensão (.webp, .jpg)
+            // Ex: "https://.../image-1-28-shore-blue.webp" -> "image-1-28-shore-blue"
+            const filename = imgPath.split('/').pop()?.split('.')[0].toLowerCase() || '';
+            
+            // 2. Ordenar cores do maior nome para o menor (Evita que "Azul" anule "Azul Claro")
+            const sortedColors = [...parsedColors].sort((a, b) => b.name.length - a.name.length);
+            
+            // 3. Procurar a cor cujo slug coincida com o final do nome do ficheiro
+            const found = sortedColors.find((c: any) => {
+              const nameSlug = c.name
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove acentos
+                .replace(/[^a-z0-9]+/g, '-') // caracteres especiais viram hífen
+                .replace(/(^-|-$)/g, ''); // limpa pontas
+                
+              // Verifica se o ficheiro acaba exatamente em "-slug"
+              return filename.endsWith(`-${nameSlug}`);
+            });
+            
+            return found || { name: '', hex: '' };
           });
+          
           setImageColors(detectedColors);
         }
       }
