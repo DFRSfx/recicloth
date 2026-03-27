@@ -94,13 +94,20 @@ router.get('/:dir/:subdir/:filename', async (req, res) => {
 
       // Stream to client
       if (getResult.Body) {
-        getResult.Body.pipe(res)
-          .on('error', (err) => {
-            console.error('❌ Stream error:', err);
-            if (!res.headersSent) {
-              res.status(500).json({ error: 'Stream failed' });
-            }
-          });
+        try {
+          // AWS SDK v3 Body is an async iterable, convert to Buffer and send
+          const chunks: Buffer[] = [];
+          for await (const chunk of getResult.Body as AsyncIterable<Uint8Array>) {
+            chunks.push(Buffer.from(chunk));
+          }
+          const buffer = Buffer.concat(chunks);
+          res.send(buffer);
+        } catch (err) {
+          console.error('❌ Stream error:', err);
+          if (!res.headersSent) {
+            res.status(500).json({ error: 'Stream failed' });
+          }
+        }
       } else {
         res.status(500).json({ error: 'Failed to read image' });
       }
