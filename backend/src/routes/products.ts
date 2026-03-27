@@ -201,11 +201,14 @@ router.post(
         }
       }
 
+      // Extract just color names from imageColors (ignore hex to avoid duplication)
       let imageColorsArray: string[] = [];
       if (imageColors) {
         try {
           const parsed = typeof imageColors === 'string' ? JSON.parse(imageColors) : imageColors;
-          imageColorsArray = Array.isArray(parsed) ? parsed : [];
+          imageColorsArray = Array.isArray(parsed)
+            ? parsed.map((item: any) => (typeof item === 'string' ? item : item.name || ''))
+            : [];
         } catch (e) {
           console.error('Error parsing imageColors:', e);
         }
@@ -363,17 +366,20 @@ router.put(
         }
       }
 
-      // Parse the colors for all images (existing + new)
-      let imageColorsArray: any[] = [];
+      // Parse the colors for each image (just the color names, not hex - avoid duplication)
+      let imageColorsArray: string[] = [];
       if (imageColors) {
         try {
           const parsed = typeof imageColors === 'string' ? JSON.parse(imageColors) : imageColors;
-          imageColorsArray = Array.isArray(parsed) ? parsed : [];
+          // Extract just color names, ignore hex since it's in the colors array
+          imageColorsArray = Array.isArray(parsed)
+            ? parsed.map((item: any) => (typeof item === 'string' ? item : item.name || ''))
+            : [];
         } catch (e) {
           console.error('Error parsing imageColors:', e);
         }
       }
-      console.log('📦 Received imageColors count:', imageColorsArray.length);
+      console.log('📦 Image color assignments:', imageColorsArray);
 
       // Delete files that were removed by the admin (including md/sm variants)
       const dir = getProductDir(productId);

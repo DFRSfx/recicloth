@@ -1,4 +1,6 @@
--- Add image_colors column to products table to store image-to-color mappings
+-- Add image_colors column to products table to store which color each image represents
+-- Stores as array of color NAMES (not hex, to avoid duplication with colors column)
+-- Example: ["Preto", "Weathered Stone", "", "Shore Blue"]
 ALTER TABLE products ADD COLUMN IF NOT EXISTS image_colors JSONB DEFAULT '[]'::jsonb;
 
 -- Create index for better query performance

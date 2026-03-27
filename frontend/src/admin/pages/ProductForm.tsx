@@ -148,9 +148,15 @@ export default function ProductForm() {
           setExistingImages(data.images);
           setImagePreviews(data.images.map((img: string) => getAbsoluteImageUrl(img)));
 
-          // Load image colors for existing images
+          // Load image colors for existing images (stored as names only, look up full color info)
           if (data.image_colors && Array.isArray(data.image_colors)) {
-            setImageColors(data.image_colors);
+            const colorNames = data.image_colors;
+            const loadedColors = colorNames.map((colorName: string) => {
+              if (!colorName) return { name: '', hex: '' };
+              const found = (data.colors || []).find((c: any) => c.name === colorName);
+              return found || { name: colorName, hex: '' };
+            });
+            setImageColors(loadedColors);
           } else {
             // Initialize with empty colors if not present
             setImageColors(data.images.map(() => ({ name: '', hex: '' })));
