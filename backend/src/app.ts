@@ -20,6 +20,7 @@ import shippingAddressesRouter from './routes/shipping-addresses.js';
 import paymentRouter from './routes/payment.js';
 import pool from './config/database.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { warmCaches } from './utils/dataWarmer.js';
 
 dotenv.config();
 
@@ -131,6 +132,9 @@ app.use('/api/cart', cartRouter);
 app.use('/api/favorites', favoritesRouter);
 app.use('/api/shipping-addresses', shippingAddressesRouter);
 app.use('/api/payment', paymentRouter);
+
+// Warm caches on startup (async, non-blocking)
+warmCaches().catch(err => console.error('Initial cache warm failed:', err));
 
 // Error handling
 app.use(errorHandler);
