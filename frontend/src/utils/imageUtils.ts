@@ -45,13 +45,28 @@ export const imgVariant = (imagePath: string, variant: 'sm' | 'md' | 'lg'): stri
   return imagePath.replace(/\.webp$/, `-${variant}.webp`);
 };
 
-export const getAbsoluteImageUrl = (imageUrl: string): string => {
-  if (!imageUrl) return '';
+/**
+ * Constructs image URL using your domain (not direct S3 URL)
+ * Frontend shows: https://recicloth.com/api/images/products/28/image-1-28.webp
+ * Backend proxies to: Supabase public storage
+ *
+ * @param imagePath - Relative path (e.g., '/products/28/image-1-28.webp')
+ * @returns Full URL through your domain
+ */
+export const getAbsoluteImageUrl = (imagePath: string): string => {
+  if (!imagePath) return '';
 
   // Already absolute
-  if (imageUrl.startsWith('http')) return imageUrl;
+  if (imagePath.startsWith('http')) return imagePath;
 
-  // Use same domain when VITE_API_URL is empty (recommended for Vercel monodeploy).
-  const backendOrigin = import.meta.env.VITE_API_URL?.trim();
-  return backendOrigin ? `${backendOrigin}${imageUrl}` : imageUrl;
+  // Relative path from storage
+  if (imagePath.startsWith('/')) {
+    // Use your domain + API proxy (not direct S3 URL)
+    const backendUrl = import.meta.env.VITE_API_URL?.trim() || '';
+    return backendUrl
+      ? `${backendUrl}/api/images${imagePath}`
+      : `/api/images${imagePath}`;
+  }
+
+  return imagePath;
 };

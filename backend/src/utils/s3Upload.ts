@@ -1,4 +1,5 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const s3Client = new S3Client({
   region: process.env.SUPABASE_S3_REGION || 'eu-west-1',
@@ -11,13 +12,12 @@ const s3Client = new S3Client({
 });
 
 const bucket = process.env.SUPABASE_S3_BUCKET || 'images-storage';
-const baseUrl = process.env.SUPABASE_S3_ENDPOINT?.replace('/storage/v1/s3', '') || '';
 
 /**
  * Upload image to Supabase S3 storage
  * @param buffer Image buffer (processed by sharp)
  * @param key S3 key/path (e.g., 'products/28/image-1-28.webp')
- * @returns Public URL of uploaded image
+ * @returns Relative path only (e.g., '/products/28/image-1-28.webp')
  */
 export async function uploadToS3(buffer: Buffer, key: string): Promise<string> {
   try {
@@ -31,12 +31,40 @@ export async function uploadToS3(buffer: Buffer, key: string): Promise<string> {
 
     await s3Client.send(command);
 
-    // Return public URL
-    const publicUrl = `${baseUrl}/storage/v1/object/public/${bucket}/${key}`;
+    // Return relative path only (full URL constructed on frontend)
+    const relativePath = `/${key}`;
     console.log(`✅ Uploaded to S3: ${key}`);
-    return publicUrl;
+    return relativePath;
   } catch (error) {
     console.error('❌ S3 upload failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate a signed URL for accessing a private S3 object
+ * Useful for private buckets - URL expires after expirationSeconds
+ * @param key S3 key/path (e.g., 'products/28/image-1-28.webp')
+ * @param expirationSeconds How long URL is valid (default: 1 hour)
+ * @returns Signed URL valid for specified duration
+ */
+export async function generateSignedUrl(
+  key: string,
+  expirationSeconds: number = 3600
+): Promise<string> {
+  try {
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    });
+
+    const signedUrl = await getSignedUrl(s3Client, command, {
+      expiresIn: expirationSeconds,
+    });
+
+    return signedUrl;
+  } catch (error) {
+    console.error('❌ Signed URL generation failed:', error);
     throw error;
   }
 }
