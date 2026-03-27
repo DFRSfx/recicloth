@@ -91,6 +91,16 @@
         border-color: #24563f !important;
       }
 
+      /* Menu header SVG icon color */
+      .asw-menu-header svg {
+        fill: #24563f !important;
+      }
+
+      /* Menu footer reset button */
+      .asw-menu-reset-footer-btn {
+        background: #24563f !important;
+      }
+
       /* Alternative: override even more aggressively if needed */
       [class*="asw-menu-btn"] {
         left: auto !important;
@@ -142,6 +152,18 @@
         profileBtns.forEach(btn => {
           btn.style.setProperty('border-color', '#24563f', 'important');
         });
+
+        // Menu header SVG icon color
+        const headerSvgs = document.querySelectorAll('.asw-menu-header svg');
+        headerSvgs.forEach(svg => {
+          svg.style.setProperty('fill', '#24563f', 'important');
+        });
+
+        // Menu footer reset button
+        const resetBtn = document.querySelector('.asw-menu-reset-footer-btn');
+        if (resetBtn) {
+          resetBtn.style.setProperty('background', '#24563f', 'important');
+        }
       }
 
       // Run on load and after a delay to ensure widget is loaded
