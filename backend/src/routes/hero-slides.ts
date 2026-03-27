@@ -16,9 +16,9 @@ const HERO_VARIANTS = [
 function getSlideUrls(id: number | string, updatedAt: Date | string) {
   const ts = new Date(updatedAt).getTime();
   return {
-    background_image:    `/api/images/hero-slides/${id}/heroslide-${id}.webp?v=${ts}`,
-    background_image_md: `/api/images/hero-slides/${id}/heroslide-${id}-md.webp?v=${ts}`,
-    background_image_sm: `/api/images/hero-slides/${id}/heroslide-${id}-sm.webp?v=${ts}`,
+    background_image:    `/hero-slides/${id}/heroslide-${id}.webp?v=${ts}`,
+    background_image_md: `/hero-slides/${id}/heroslide-${id}-md.webp?v=${ts}`,
+    background_image_sm: `/hero-slides/${id}/heroslide-${id}-sm.webp?v=${ts}`,
   };
 }
 
