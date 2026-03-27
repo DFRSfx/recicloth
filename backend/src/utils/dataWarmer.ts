@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-import { setCached } from './apiCache.js';
+import { setCached, getCached } from './apiCache.js';
 
 const parseImages = (images: any): string[] => {
   if (!images) return [];
@@ -14,11 +14,26 @@ const parseImages = (images: any): string[] => {
   return [];
 };
 
+let isWarming = false;
+
 /**
- * Warm up critical caches on server startup.
+ * Warm up critical caches (lazy — on first request, not startup).
  * This preloads the most-accessed data to avoid cold starts.
+ * Prevents multiple simultaneous warm attempts on serverless.
  */
 export async function warmCaches() {
+  // Check if already cached to avoid redundant work
+  if (getCached('products:list') && getCached('categories:list')) {
+    return { success: true, cached: true };
+  }
+
+  // Prevent concurrent warming attempts (important on serverless with multiple instances)
+  if (isWarming) {
+    console.log('⏳ Cache warm already in progress, skipping...');
+    return { success: false, inProgress: true };
+  }
+
+  isWarming = true;
   try {
     const startTime = Date.now();
 
@@ -69,9 +84,11 @@ export async function warmCaches() {
       `${formattedFeatured.length} featured items`
     );
 
+    isWarming = false;
     return { success: true, duration, itemsLoaded: formattedProducts.length + (categories || []).length };
   } catch (error) {
     console.error('❌ Cache warm failed:', error);
+    isWarming = false;
     return { success: false, error };
   }
 }

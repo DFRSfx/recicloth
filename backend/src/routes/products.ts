@@ -6,6 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { getCached, setCached, clearCachedByPrefix } from '../utils/apiCache.js';
+import { warmCaches } from '../utils/dataWarmer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -87,6 +88,9 @@ const parseImages = (images: any): string[] => {
 
 router.get('/', async (req, res) => {
   try {
+    // Lazy cache warming on first request (prevents startup connection exhaustion on serverless)
+    warmCaches().catch(err => console.error('Lazy cache warm failed:', err));
+
     const cacheKey = 'products:list';
     const cached = getCached<any[]>(cacheKey);
     if (cached) {

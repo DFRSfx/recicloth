@@ -133,8 +133,21 @@ app.use('/api/favorites', favoritesRouter);
 app.use('/api/shipping-addresses', shippingAddressesRouter);
 app.use('/api/payment', paymentRouter);
 
-// Warm caches on startup (async, non-blocking)
-warmCaches().catch(err => console.error('Initial cache warm failed:', err));
+// Optional: Expose cache warming endpoint for manual triggers or cron jobs
+app.get('/api/admin/warm-cache', async (_req, res) => {
+  try {
+    const result = await warmCaches();
+    if (result.success) {
+      res.json({ message: 'Cache warmed successfully', ...result });
+    } else if (result.cached) {
+      res.json({ message: 'Cache already populated', ...result });
+    } else {
+      res.status(503).json({ error: 'Cache warm failed', ...result });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Cache warm endpoint error', details: String(error) });
+  }
+});
 
 // Error handling
 app.use(errorHandler);

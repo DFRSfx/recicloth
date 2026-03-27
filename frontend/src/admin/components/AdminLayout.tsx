@@ -58,7 +58,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* Logo */}
         <div className="h-24 flex items-center px-6 border-b border-secondary-200 flex-shrink-0">
           <img
-            src="/images/logo.png"
+            src="/images/logo.svg"
             alt="Recicloth"
             className="h-20 w-auto"
             onError={(e) => {

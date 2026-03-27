@@ -10,7 +10,7 @@ export const getOrganizationSchema = () => ({
   url: SITE_URL,
   logo: {
     '@type': 'ImageObject',
-    url: `${SITE_URL}/images/logo.png`,
+    url: `${SITE_URL}/images/logo.svg`,
     width: 1472,
     height: 704,
   },
@@ -53,7 +53,7 @@ export const getLocalBusinessSchema = () => ({
   '@id': `${SITE_URL}/#organization`,
   name: 'Recicloth',
   url: SITE_URL,
-  image: `${SITE_URL}/images/logo.png`,
+  image: `${SITE_URL}/images/logo.svg`,
   email: 'recicloth1972@gmail.com',
   description:
     'Loja online de roupa reciclada e moda sustentável. ' +

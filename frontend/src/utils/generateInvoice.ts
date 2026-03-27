@@ -40,7 +40,7 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
   });
   const year = new Date(order.created_at).getFullYear();
   const invoiceNumber = `${year}-${String(order.id).padStart(4, '0')}`;
-  const logoUrl = `${window.location.origin}/images/logo.png`;
+  const logoUrl = `${window.location.origin}/images/logo.svg`;
 
   const itemsHtml = order.order_items.map(item => `
     <tr>

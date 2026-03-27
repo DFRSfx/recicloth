@@ -276,7 +276,7 @@ const Navbar: React.FC = () => {
           <div className="flex items-center gap-8 lg:gap-12 flex-shrink-0">
             <Link to="/" className="flex items-center">
               <img
-                src="/images/logo.png"
+                src="/images/logo.svg"
                 alt="Recicloth"
                 className="h-12 w-auto" 
               />
