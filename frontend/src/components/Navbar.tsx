@@ -269,20 +269,20 @@ const Navbar: React.FC = () => {
     <nav className="bg-white sticky top-0 z-50 border-b border-gray-100">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Main Navbar Row */}
-        <div className="flex items-center justify-between py-4 gap-6">
+        {/* Main Navbar Row - MELHORIA DESKTOP AQUI (pt-6 pb-2 para dar espaço em cima) */}
+        <div className="flex items-center justify-between pt-6 pb-2 md:pt-8 md:pb-2 gap-6">
           
           {/* Logo & Desktop Nav Links */}
-          <div className="flex items-center gap-8 lg:gap-12 flex-shrink-0">
+          <div className="flex items-center gap-10 xl:gap-14 flex-shrink-0">
             <Link to="/" className="flex items-center">
               <img
-                src="/images/logo.svg"
+                src="/images/logo.png"
                 alt="Recicloth"
                 className="h-12 w-auto" 
               />
             </Link>
 
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-10">
               {navigation.map((item) => (
                 item.name === 'Loja' ? (
                   <div key={item.name} className="relative h-full flex items-center" ref={megaMenuRef}>
@@ -291,8 +291,8 @@ const Navbar: React.FC = () => {
                       onClick={() => navigate('/loja')}
                       className={`text-[16px] font-medium transition-colors duration-200 pb-1 border-b-2 ${
                         isActive(item.href)
-                          ? 'text-primary-800 border-primary-800'
-                          : 'text-gray-600 border-transparent hover:text-primary-800'
+                          ? 'text-[#1E4D3B] border-[#1E4D3B]'
+                          : 'text-gray-600 border-transparent hover:text-[#1E4D3B]'
                       }`}
                     >
                       {item.name}
@@ -324,11 +324,11 @@ const Navbar: React.FC = () => {
                                 onClick={() => setMegaMenuOpen(false)}
                                 className="group relative overflow-hidden rounded-lg hover:shadow-xl transition-all duration-300 border border-gray-100"
                               >
-                                <div className="aspect-square bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
-                                  <span className="text-4xl font-bold text-primary-600">Todas</span>
+                                <div className="aspect-square bg-gradient-to-br from-[#e8f5e9] to-[#bbf7d0] flex items-center justify-center">
+                                  <span className="text-4xl font-bold text-[#1E4D3B]">Todas</span>
                                 </div>
                                 <div className="p-4 bg-white">
-                                  <h4 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                                  <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">
                                     Todas as Categorias
                                   </h4>
                                   <p className="text-sm text-gray-600 mt-1">Ver todos os produtos</p>
@@ -362,7 +362,7 @@ const Navbar: React.FC = () => {
                                       </div>
                                     </div>
                                     <div className="p-4 bg-white">
-                                      <h4 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                                      <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">
                                         {category.name}
                                       </h4>
                                       <p className="text-sm text-gray-600 mt-1">
@@ -384,8 +384,8 @@ const Navbar: React.FC = () => {
                     to={item.href}
                     className={`text-[16px] font-medium transition-colors duration-200 pb-1 border-b-2 ${
                       isActive(item.href)
-                        ? 'text-primary-800 border-primary-800'
-                        : 'text-gray-600 border-transparent hover:text-primary-800'
+                        ? 'text-[#1E4D3B] border-[#1E4D3B]'
+                        : 'text-gray-600 border-transparent hover:text-[#1E4D3B]'
                     }`}
                   >
                     {item.name}
@@ -395,9 +395,9 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Centered Desktop Search Bar */}
-          <div className="hidden md:flex flex-1 justify-center max-w-2xl" ref={searchRef}>
-            <div className="relative w-full max-w-lg">
+          {/* Centered Desktop Search Bar - Ajustado espaçamento e alinhamento */}
+          <div className="hidden md:flex flex-1 justify-center px-4 xl:px-8" ref={searchRef}>
+            <div className="relative w-full max-w-lg lg:max-w-xl">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-[18px] w-[18px] text-gray-400" />
               <input
                 type="text"
@@ -409,7 +409,7 @@ const Navbar: React.FC = () => {
                   setSearchOpen(true);
                 }}
                 onFocus={() => setSearchOpen(true)}
-                className="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-primary-800 focus:border-primary-800 text-sm placeholder-gray-400 transition-colors"
+                className="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-[#1E4D3B] focus:border-[#1E4D3B] text-sm placeholder-gray-400 transition-colors"
               />
 
               {/* Search Results Dropdown */}
@@ -432,7 +432,7 @@ const Navbar: React.FC = () => {
                             <h4 className="text-sm font-medium text-gray-900">{product.name}</h4>
                             <p className="text-xs text-gray-500">{product.category}</p>
                           </div>
-                          <p className="text-sm font-semibold text-primary-800">{product.price.toFixed(2)}€</p>
+                          <p className="text-sm font-semibold text-[#1E4D3B]">{product.price.toFixed(2)}€</p>
                         </button>
                       ))}
                     </div>
@@ -462,7 +462,7 @@ const Navbar: React.FC = () => {
             <Link to="/favoritos" aria-label="Favoritos" className="hidden md:block hover:text-black transition-colors relative">
               <Heart className="h-6 w-6" strokeWidth={1.5} />
               {favorites.length > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-primary-800 text-white rounded-full text-[10px] font-bold w-4 h-4 flex items-center justify-center shadow-sm">
+                <span className="absolute -top-1.5 -right-2 bg-[#1E4D3B] text-white rounded-full text-[10px] font-bold w-4 h-4 flex items-center justify-center shadow-sm">
                   {favorites.length}
                 </span>
               )}
@@ -472,7 +472,7 @@ const Navbar: React.FC = () => {
             <Link to="/carrinho" aria-label="Carrinho" className="hover:text-black transition-colors relative">
               <ShoppingCart className="h-6 w-6" strokeWidth={1.5} />
               {itemCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-primary-800 text-white rounded-full text-[10px] font-bold w-4 h-4 flex items-center justify-center shadow-sm">
+                <span className="absolute -top-1.5 -right-2 bg-[#1E4D3B] text-white rounded-full text-[10px] font-bold w-4 h-4 flex items-center justify-center shadow-sm">
                   {itemCount}
                 </span>
               )}
@@ -510,7 +510,7 @@ const Navbar: React.FC = () => {
                 placeholder="Procurar produtos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-primary-800 focus:border-primary-800 text-sm"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-[#1E4D3B] focus:border-[#1E4D3B] text-sm"
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
 
@@ -529,7 +529,7 @@ const Navbar: React.FC = () => {
                             <h4 className="text-sm font-medium text-gray-900">{product.name}</h4>
                             <p className="text-xs text-gray-500">{product.category}</p>
                           </div>
-                          <p className="text-sm font-semibold text-primary-800">{product.price.toFixed(2)}€</p>
+                          <p className="text-sm font-semibold text-[#1E4D3B]">{product.price.toFixed(2)}€</p>
                         </button>
                       ))}
                     </div>
@@ -556,7 +556,7 @@ const Navbar: React.FC = () => {
                   to={item.href}
                   onClick={handleCloseMenu}
                   className={`block px-4 py-3 text-[15px] rounded-md transition-colors ${
-                    isActive(item.href) ? 'text-primary-900 bg-primary-50 font-medium' : 'text-gray-700 hover:text-primary-900 hover:bg-primary-50'
+                    isActive(item.href) ? 'text-gray-900 bg-gray-50 font-medium' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                 >
                   {item.name}
@@ -566,15 +566,15 @@ const Navbar: React.FC = () => {
               <div className="border-t border-gray-100 my-2 mx-2"></div>
 
               {/* Favorites - Mobile */}
-              <Link to="/favoritos" onClick={handleCloseMenu} className="w-full flex items-center justify-between px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-primary-900 hover:bg-primary-50 transition-colors">
+              <Link to="/favoritos" onClick={handleCloseMenu} className="w-full flex items-center justify-between px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3"><Heart className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> Favoritos</div>
-                {favorites.length > 0 && <span className="bg-primary-800 text-white rounded-full text-xs font-bold w-5 h-5 flex items-center justify-center">{favorites.length}</span>}
+                {favorites.length > 0 && <span className="bg-[#1E4D3B] text-white rounded-full text-xs font-bold w-5 h-5 flex items-center justify-center">{favorites.length}</span>}
               </Link>
 
               {/* Cart - Mobile */}
-              <Link to="/carrinho" onClick={handleCloseMenu} className="w-full flex items-center justify-between px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-primary-900 hover:bg-primary-50 transition-colors">
+              <Link to="/carrinho" onClick={handleCloseMenu} className="w-full flex items-center justify-between px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3"><ShoppingCart className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> Carrinho</div>
-                {itemCount > 0 && <span className="bg-primary-800 text-white rounded-full text-xs font-bold w-5 h-5 flex items-center justify-center">{itemCount}</span>}
+                {itemCount > 0 && <span className="bg-[#1E4D3B] text-white rounded-full text-xs font-bold w-5 h-5 flex items-center justify-center">{itemCount}</span>}
               </Link>
 
               <div className="border-t border-gray-100 my-2 mx-2"></div>
@@ -585,7 +585,7 @@ const Navbar: React.FC = () => {
                   handleCloseMenu();
                   setTimeout(() => setUserMenuOpen(true), 200);
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-primary-900 hover:bg-primary-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
               >
                 <User className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> Minha Conta
               </button>
@@ -594,7 +594,7 @@ const Navbar: React.FC = () => {
         )}
       </div>
 
-      {/* Categories Row - Desktop */}
+      {/* Categories Row - Desktop (MELHORIA: pt-2 pb-6 e remoção de bordas) */}
       <div className="hidden md:block">
         <div
           ref={categoriesRef}
@@ -605,7 +605,7 @@ const Navbar: React.FC = () => {
           onMouseLeave={handleMouseLeave}
         >
           <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex gap-10 py-4 justify-center min-w-max">
+            <div className="flex gap-10 pt-2 pb-6 justify-center min-w-max">
               {categoriesLoading ? (
                 <div className="flex gap-8">
                   {[1, 2, 3, 4].map((i) => (
@@ -619,8 +619,8 @@ const Navbar: React.FC = () => {
                     onClick={() => handleCategoryClick(category.name)}
                     className={`flex-shrink-0 transition-colors duration-200 whitespace-nowrap text-[15px] ${
                       selectedCategory === category.name
-                        ? 'text-gray-900 font-bold'
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'text-[#1E4D3B] font-bold'
+                        : 'text-gray-600 hover:text-[#1E4D3B]'
                     }`}
                   >
                     {category.name}
@@ -654,8 +654,8 @@ const Navbar: React.FC = () => {
                 onClick={() => handleCategoryClick(category.name)}
                 className={`flex-shrink-0 transition-colors duration-200 whitespace-nowrap text-[15px] ${
                   selectedCategory === category.name
-                    ? 'text-gray-900 font-bold'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'text-[#1E4D3B] font-bold border-b-2 border-[#1E4D3B] pb-1'
+                    : 'text-gray-600 font-medium hover:text-[#1E4D3B] pb-1'
                 }`}
               >
                 {category.name}
@@ -708,13 +708,13 @@ const Navbar: React.FC = () => {
                   <div className="flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => handleOpenAuthModal('register')}
-                      className="flex-1 flex items-center justify-center px-6 py-3 border-2 border-white text-white rounded-lg hover:bg-white hover:text-primary-800 hover:scale-105 transition-all duration-200 font-semibold text-sm shadow-lg hover:shadow-xl"
+                      className="flex-1 flex items-center justify-center px-6 py-3 border-2 border-white text-white rounded-lg hover:bg-white hover:text-[#1E4D3B] hover:scale-105 transition-all duration-200 font-semibold text-sm shadow-lg hover:shadow-xl"
                     >
                       CRIAR CONTA
                     </button>
                     <button
                       onClick={() => handleOpenAuthModal('login')}
-                      className="flex-1 flex items-center justify-center px-6 py-3 bg-white text-primary-800 rounded-lg hover:bg-primary-50 hover:scale-105 transition-all duration-200 font-semibold text-sm shadow-lg hover:shadow-xl"
+                      className="flex-1 flex items-center justify-center px-6 py-3 bg-white text-[#1E4D3B] rounded-lg hover:bg-gray-50 hover:scale-105 transition-all duration-200 font-semibold text-sm shadow-lg hover:shadow-xl"
                     >
                       INICIAR SESSÃO
                     </button>
@@ -729,8 +729,8 @@ const Navbar: React.FC = () => {
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-                    <div className="p-2 bg-primary-100 rounded-lg">
-                      <Package className="h-5 w-5 text-primary-800" />
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Package className="h-5 w-5 text-[#1E4D3B]" />
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900 text-sm">Produtos Exclusivos</h4>
@@ -738,8 +738,8 @@ const Navbar: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-                    <div className="p-2 bg-primary-100 rounded-lg">
-                      <Heart className="h-5 w-5 text-primary-800" />
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Heart className="h-5 w-5 text-[#1E4D3B]" />
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900 text-sm">Promoções Especiais</h4>
@@ -780,52 +780,52 @@ const Navbar: React.FC = () => {
                   A Minha Conta
                 </h3>
                 <div className="flex flex-col gap-2">
-                  <Link to="/perfil" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-primary-50 transition-all border border-transparent hover:border-primary-200">
-                    <div className="p-2 bg-primary-100 rounded-lg group-hover:bg-primary-200 transition-colors">
-                      <UserCircle className="h-5 w-5 text-primary-800" />
+                  <Link to="/perfil" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200">
+                    <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                      <UserCircle className="h-5 w-5 text-[#1E4D3B]" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 group-hover:text-primary-800 transition-colors">Dados Pessoais</h4>
+                      <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">Dados Pessoais</h4>
                       <p className="text-xs text-gray-500">Gerir informação da conta</p>
                     </div>
-                    <svg className="h-5 w-5 text-gray-400 group-hover:text-primary-800 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                    <svg className="h-5 w-5 text-gray-400 group-hover:text-[#1E4D3B] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                   </Link>
 
-                  <Link to="/encomendas" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-primary-50 transition-all border border-transparent hover:border-primary-200">
-                    <div className="p-2 bg-primary-100 rounded-lg group-hover:bg-primary-200 transition-colors">
-                      <Package className="h-5 w-5 text-primary-800" />
+                  <Link to="/encomendas" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200">
+                    <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                      <Package className="h-5 w-5 text-[#1E4D3B]" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 group-hover:text-primary-800 transition-colors">As Minhas Encomendas</h4>
+                      <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">As Minhas Encomendas</h4>
                       <p className="text-xs text-gray-500">Ver histórico de compras</p>
                     </div>
-                    <svg className="h-5 w-5 text-gray-400 group-hover:text-primary-800 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                    <svg className="h-5 w-5 text-gray-400 group-hover:text-[#1E4D3B] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                   </Link>
 
-                  <Link to="/favoritos" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-primary-50 transition-all border border-transparent hover:border-primary-200">
-                    <div className="p-2 bg-primary-100 rounded-lg group-hover:bg-primary-200 transition-colors relative">
-                      <Heart className="h-5 w-5 text-primary-800" />
-                      {favorites.length > 0 && <span className="absolute -top-1 -right-1 bg-primary-800 text-white rounded-full text-[10px] w-4 h-4 flex items-center justify-center">{favorites.length}</span>}
+                  <Link to="/favoritos" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200">
+                    <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors relative">
+                      <Heart className="h-5 w-5 text-[#1E4D3B]" />
+                      {favorites.length > 0 && <span className="absolute -top-1 -right-1 bg-[#1E4D3B] text-white rounded-full text-[10px] w-4 h-4 flex items-center justify-center">{favorites.length}</span>}
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 group-hover:text-primary-800 transition-colors">Favoritos</h4>
+                      <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">Favoritos</h4>
                       <p className="text-xs text-gray-500">{favorites.length === 0 ? 'Produtos guardados' : `${favorites.length} ${favorites.length === 1 ? 'produto' : 'produtos'}`}</p>
                     </div>
-                    <svg className="h-5 w-5 text-gray-400 group-hover:text-primary-800 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                    <svg className="h-5 w-5 text-gray-400 group-hover:text-[#1E4D3B] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                   </Link>
 
                   {user?.role === 'admin' && (
                     <>
                       <div className="border-t border-gray-200 my-3"></div>
-                      <Link to="/admin" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl bg-primary-50 border border-primary-200 hover:bg-primary-100 transition-all">
-                        <div className="p-2 bg-primary-200 rounded-lg group-hover:bg-primary-300 transition-colors">
-                          <Settings className="h-5 w-5 text-primary-800" />
+                      <Link to="/admin" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-all">
+                        <div className="p-2 bg-gray-200 rounded-lg group-hover:bg-gray-300 transition-colors">
+                          <Settings className="h-5 w-5 text-[#1E4D3B]" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-primary-800">Painel de Administrador</h4>
-                          <p className="text-xs text-primary-700">Gerir loja e produtos</p>
+                          <h4 className="font-semibold text-[#1E4D3B]">Painel de Administrador</h4>
+                          <p className="text-xs text-gray-600">Gerir loja e produtos</p>
                         </div>
-                        <svg className="h-5 w-5 text-primary-800" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                        <svg className="h-5 w-5 text-[#1E4D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </Link>
                     </>
                   )}

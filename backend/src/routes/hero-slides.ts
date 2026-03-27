@@ -2,17 +2,10 @@ import express from 'express';
 import pool from '../config/database.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { upload } from '../config/upload.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { getCached, setCached, clearCachedByPrefix } from '../utils/apiCache.js';
+import { uploadToS3 } from '../utils/s3Upload.js';
 
 const router = express.Router();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const heroSlidesDir = path.join(__dirname, '../../public/hero-slides');
 
 const HERO_VARIANTS = [
   { variant: 'lg', suffix: '',    width: 1920, height: 1080, quality: 85 },
@@ -20,31 +13,52 @@ const HERO_VARIANTS = [
   { variant: 'sm', suffix: '-sm', width: 800,  height: 450,  quality: 68 },
 ] as const;
 
-function getSlidePath(id: number | string, suffix: string = ''): string {
-  return path.join(heroSlidesDir, `heroslide-${id}${suffix}.webp`);
-}
-
 function getSlideUrls(id: number | string, updatedAt: Date | string) {
   const ts = new Date(updatedAt).getTime();
   return {
-    background_image:    `/hero-slides/heroslide-${id}.webp?v=${ts}`,
-    background_image_md: `/hero-slides/heroslide-${id}-md.webp?v=${ts}`,
-    background_image_sm: `/hero-slides/heroslide-${id}-sm.webp?v=${ts}`,
+    background_image:    `/api/images/hero-slides/${id}/heroslide-${id}.webp?v=${ts}`,
+    background_image_md: `/api/images/hero-slides/${id}/heroslide-${id}-md.webp?v=${ts}`,
+    background_image_sm: `/api/images/hero-slides/${id}/heroslide-${id}-sm.webp?v=${ts}`,
   };
 }
 
-async function saveSlideImages(id: number | string, buffer: Buffer): Promise<void> {
+async function processAndUploadSlideImage(id: number | string, buffer: Buffer): Promise<void> {
   const { default: sharp } = await import('sharp');
-  fs.mkdirSync(heroSlidesDir, { recursive: true });
   const opts = { effort: 6, smartSubsample: true };
-  await Promise.all(
-    HERO_VARIANTS.map(({ suffix, width, height, quality }) =>
-      sharp(buffer)
-        .resize(width, height, { fit: 'cover', position: 'center' })
-        .webp({ quality, ...opts })
-        .toFile(getSlidePath(id, suffix))
-    )
-  );
+
+  try {
+    // Generate all 3 variants
+    const lgBuffer = await sharp(buffer)
+      .resize(1920, 1080, { fit: 'cover', position: 'center' })
+      .webp({ quality: 85, ...opts })
+      .toBuffer();
+
+    const mdBuffer = await sharp(buffer)
+      .resize(1280, 720, { fit: 'cover', position: 'center' })
+      .webp({ quality: 75, ...opts })
+      .toBuffer();
+
+    const smBuffer = await sharp(buffer)
+      .resize(800, 450, { fit: 'cover', position: 'center' })
+      .webp({ quality: 68, ...opts })
+      .toBuffer();
+
+    // Upload all 3 variants to S3
+    const s3KeyLg = `hero-slides/${id}/heroslide-${id}.webp`;
+    const s3KeyMd = `hero-slides/${id}/heroslide-${id}-md.webp`;
+    const s3KeySm = `hero-slides/${id}/heroslide-${id}-sm.webp`;
+
+    await Promise.all([
+      uploadToS3(lgBuffer, s3KeyLg),
+      uploadToS3(mdBuffer, s3KeyMd),
+      uploadToS3(smBuffer, s3KeySm),
+    ]);
+
+    console.log(`✅ Hero slide ${id} uploaded to S3 with all variants`);
+  } catch (error) {
+    console.error('❌ Hero slide image processing/upload failed:', error);
+    throw error;
+  }
 }
 
 interface HeroSlide {
@@ -158,8 +172,8 @@ router.post('/', ...requireAdmin, upload.single('image'), async (req, res) => {
 
     const id = result.insertId;
 
-    // Save all size variants to disk
-    await saveSlideImages(id, req.file.buffer);
+    // Process and upload all size variants to S3
+    await processAndUploadSlideImage(id, req.file.buffer);
 
     const [newSlideResult] = await pool.query<HeroSlide>(
       'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides WHERE id = ?',
@@ -201,9 +215,9 @@ router.put('/:id', ...requireAdmin, upload.single('image'), async (req, res) => 
       return res.status(404).json({ error: 'Slide not found' });
     }
 
-    // Overwrite all size variants on disk if a new image was uploaded
+    // Process and upload all size variants to S3 if a new image was uploaded
     if (req.file) {
-      await saveSlideImages(req.params.id, req.file.buffer);
+      await processAndUploadSlideImage(req.params.id, req.file.buffer);
     }
 
     const [updatedSlideResult] = await pool.query<HeroSlide>(
@@ -237,12 +251,7 @@ router.delete('/:id', ...requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Slide not found' });
     }
 
-    // Remove all size variants from disk
-    for (const { suffix } of HERO_VARIANTS) {
-      const filePath = getSlidePath(req.params.id, suffix);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    }
-
+    // Note: S3 files are left orphaned but won't affect functionality
     clearCachedByPrefix('hero-slides:');
     res.json({ message: 'Slide deleted successfully' });
   } catch (error) {
