@@ -178,7 +178,7 @@ export default function HeroSlidesList() {
       formDataToSend.append('text_color', formData.text_color);
       formDataToSend.append('display_order', formData.display_order.toString());
       formDataToSend.append('is_active', formData.is_active.toString());
-      formDataToSend.append('image', imageFile);
+      formDataToSend.append('image', imageFile!);
 
       const response = await fetch(`${API_URL}/hero-slides`, {
         method: 'POST',
@@ -908,6 +908,6 @@ export default function HeroSlidesList() {
           </div>
         </>
       )}
-    </div>
+    </main>
   );
 }
