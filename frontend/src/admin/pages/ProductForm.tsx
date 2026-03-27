@@ -148,19 +148,23 @@ export default function ProductForm() {
           setExistingImages(data.images);
           setImagePreviews(data.images.map((img: string) => getAbsoluteImageUrl(img)));
 
-          // Load image colors for existing images (stored as names only, look up full color info)
-          if (data.image_colors && Array.isArray(data.image_colors)) {
-            const colorNames = data.image_colors;
-            const loadedColors = colorNames.map((colorName: string) => {
-              if (!colorName) return { name: '', hex: '' };
-              const found = (data.colors || []).find((c: any) => c.name === colorName);
-              return found || { name: colorName, hex: '' };
-            });
-            setImageColors(loadedColors);
-          } else {
-            // Initialize with empty colors if not present
-            setImageColors(data.images.map(() => ({ name: '', hex: '' })));
-          }
+          // Detect colors from filenames (e.g., image-1-28-preto.webp → "Preto")
+          // This is for UI display only - actual color info is in the filename
+          const detectedColors = data.images.map((imgPath: string) => {
+            // Extract color slug from filename: image-1-28-COLOR-SLUG.webp
+            const match = imgPath.match(/-([a-z0-9-]+)\.webp$/);
+            if (match) {
+              const colorSlug = match[1];
+              // Try to find matching color in product.colors
+              const found = (data.colors || []).find((c: any) => {
+                const nameSlug = c.name.toLowerCase().replace(/\s+/g, '-');
+                return nameSlug === colorSlug;
+              });
+              return found || { name: colorSlug.replace(/-/g, ' '), hex: '' };
+            }
+            return { name: '', hex: '' };
+          });
+          setImageColors(detectedColors);
         }
       }
     } catch (error) {
@@ -423,16 +427,12 @@ export default function ProductForm() {
         formDataToSend.append('sizeStock', JSON.stringify([]));
       }
 
-      // Append colors for ALL images (existing + new) - just the color names
-      // Only send if editing (to update colors for existing images)
-      if (isEdit && imageColors.length > 0) {
-        const colorNames = imageColors.map((color) => (typeof color === 'string' ? color : color?.name || ''));
-        console.log('🎨 Sending ALL image colors for edit:', colorNames);
-        formDataToSend.append('imageColors', JSON.stringify(colorNames));
-      } else if (!isEdit && selectedFiles.length > 0) {
-        // For creation, send colors for new files only
-        const colorNames = imageColors.map((color) => color?.name || '');
-        console.log('🎨 Sending NEW image colors for create:', colorNames);
+      // Append colors for new images only (for filename encoding during upload)
+      // Colors for existing images are already in filenames, no need to update
+      if (selectedFiles.length > 0 && imageColors.length > existingImages.length) {
+        const newImageColors = imageColors.slice(existingImages.length);
+        const colorNames = newImageColors.map((color) => color?.name || '');
+        console.log('🎨 Color selection for new images:', colorNames);
         formDataToSend.append('imageColors', JSON.stringify(colorNames));
       }
       

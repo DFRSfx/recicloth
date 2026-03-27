@@ -201,7 +201,7 @@ router.post(
         }
       }
 
-      // Extract just color names from imageColors (ignore hex to avoid duplication)
+      // Parse image color selections (used to encode color in filename)
       let imageColorsArray: string[] = [];
       if (imageColors) {
         try {
@@ -238,21 +238,21 @@ router.post(
 
       // Insert product first to obtain its ID
       const [result]: any = await pool.query(
-        'INSERT INTO products (name, description, price, weight, category_id, stock, stock_mode, featured, colors, size_stock, image_colors) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [name, description, price, weight ? Number(weight) : null, category, normalizedStock, normalizedStockMode, featured === 'true', JSON.stringify(colorsArray), JSON.stringify(sizeStockArray), JSON.stringify(imageColorsArray)]
+        'INSERT INTO products (name, description, price, weight, category_id, stock, stock_mode, featured, colors, size_stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [name, description, price, weight ? Number(weight) : null, category, normalizedStock, normalizedStockMode, featured === 'true', JSON.stringify(colorsArray), JSON.stringify(sizeStockArray)]
       );
       const productId = result.insertId;
 
       // Save each image to disk (generates lg / md / sm variants)
+      // Colors are encoded in filename during upload (e.g., image-1-28-preto.webp)
       const imagePaths: string[] = [];
       for (let i = 0; i < files.length; i++) {
         imagePaths.push(await processAndUploadImage(productId, files[i].buffer, i + 1, imageColorsArray[i]));
       }
 
-      // Store paths and colors in products table
-      await pool.query('UPDATE products SET images = ?, image_colors = ? WHERE id = ?', [
+      // Store image paths in products table
+      await pool.query('UPDATE products SET images = ? WHERE id = ?', [
         JSON.stringify(imagePaths),
-        JSON.stringify(imageColorsArray),
         productId,
       ]);
 
@@ -366,12 +366,11 @@ router.put(
         }
       }
 
-      // Parse the colors for each image (just the color names, not hex - avoid duplication)
+      // Parse image color selections for new files (used to encode color in filename)
       let imageColorsArray: string[] = [];
       if (imageColors) {
         try {
           const parsed = typeof imageColors === 'string' ? JSON.parse(imageColors) : imageColors;
-          // Extract just color names, ignore hex since it's in the colors array
           imageColorsArray = Array.isArray(parsed)
             ? parsed.map((item: any) => (typeof item === 'string' ? item : item.name || ''))
             : [];
@@ -379,7 +378,6 @@ router.put(
           console.error('Error parsing imageColors:', e);
         }
       }
-      console.log('📦 Image color assignments:', imageColorsArray);
 
       // Delete files that were removed by the admin (including md/sm variants)
       const dir = getProductDir(productId);
@@ -410,15 +408,9 @@ router.put(
       // Final order: existing (in admin's order) + newly uploaded
       const finalImages = [...keepPaths, ...newPaths];
 
-      // Frontend sends imageColorsArray with complete color mapping for all images in final order
-      // Just use it directly - it already has the right order and counts
-      const finalImageColors = imageColorsArray.length > 0
-        ? imageColorsArray
-        : finalImages.map(() => ({ name: '', hex: '' }));
-
-      await pool.query('UPDATE products SET images = ?, image_colors = ? WHERE id = ?', [
+      // Update only images (colors are encoded in filenames, no separate storage needed)
+      await pool.query('UPDATE products SET images = ? WHERE id = ?', [
         JSON.stringify(finalImages),
-        JSON.stringify(finalImageColors),
         productId,
       ]);
 
@@ -435,8 +427,7 @@ router.put(
       }
 
       clearCachedByPrefix('products:');
-      console.log('✅ Product updated:', productId, 'Images:', finalImages.length, 'Colors:', finalImageColors.length);
-      res.json({ ...updatedProduct[0], images: finalImages, image_colors: finalImageColors });
+      res.json({ ...updatedProduct[0], images: finalImages });
     } catch (error) {
       console.error('❌ Error updating product:', error);
       res.status(500).json({ error: 'Failed to update product', details: String(error) });
