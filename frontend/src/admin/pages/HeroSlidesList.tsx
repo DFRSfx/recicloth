@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Edit, Trash2, Save, X, MoveVertical, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, MoveVertical, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import AdminSelect from '../components/AdminSelect';
 import { useToast } from '../../context/ToastContext';
+import { getAbsoluteImageUrl } from '../../utils/imageUtils';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const API_URL = `${SERVER_URL}/api`;
@@ -324,15 +325,18 @@ export default function HeroSlidesList() {
   }
 
   return (
-    <div className="space-y-6">
+    <main className="space-y-6 sm:space-y-8 pb-8">
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center justify-between">
-          <span>{error}</span>
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="text-red-600 flex-shrink-0" size={20} />
+            <span className="text-red-700 text-sm">{error}</span>
+          </div>
           {error.includes('expirada') && (
             <button
               onClick={() => window.location.href = '/'}
-              className="ml-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="ml-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
             >
               Fazer Login
             </button>
@@ -340,13 +344,17 @@ export default function HeroSlidesList() {
         </div>
       )}
 
+      {/* Page Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-800">Hero Slides</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-[#1A1A1A]">Hero Slides</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Gerir os slides da página inicial</p>
+        </div>
         <button
           onClick={() => { setShowAddForm(!showAddForm); setAddFieldErrors({}); }}
-          className="bg-primary-600 text-white px-4 py-3 rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-colors flex items-center touch-manipulation min-h-[44px]"
+          className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2 font-medium text-sm"
         >
-          {showAddForm ? <X size={20} className="mr-2" /> : <Plus size={20} className="mr-2" />}
+          {showAddForm ? <X size={18} /> : <Plus size={18} />}
           {showAddForm ? 'Cancelar' : 'Criar Slide'}
         </button>
       </div>
@@ -540,7 +548,7 @@ export default function HeroSlidesList() {
             <div className="relative h-48 overflow-hidden">
               <div
                 className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url(${SERVER_URL}${slide.background_image_md || slide.background_image})` }}
+                style={{ backgroundImage: `url(${getAbsoluteImageUrl(slide.background_image_md || slide.background_image)})` }}
               >
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-black bg-opacity-40"></div>
@@ -630,31 +638,36 @@ export default function HeroSlidesList() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/50 z-40"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
             onClick={() => {
               setEditingId(null);
               loadSlides();
             }}
+            role="button"
+            tabIndex={-1}
+            aria-label="Fechar modal"
           />
 
           {/* Modal */}
-          <div className="fixed inset-4 md:inset-x-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl z-50 overflow-y-auto max-h-[90vh]">
-            <div className="bg-white rounded-xl shadow-2xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#1A1A1A]">Editar Slide</h2>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-secondary-200">
+              <div className="p-6 border-b border-secondary-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-[#1A1A1A]">Editar Slide</h2>
                 <button
                   onClick={() => {
                     setEditingId(null);
                     loadSlides();
                   }}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                  aria-label="Fechar"
+                  className="text-gray-400 hover:text-gray-600 transition-colors rounded-lg p-1"
+                  aria-label="Fechar modal"
                 >
                   <X size={24} />
                 </button>
               </div>
+            </div>
 
-              <div className="space-y-4">
+            <div className="p-6 space-y-5">
                 {(() => {
                   const slide = slides.find(s => s.id === editingId);
                   if (!slide) return null;
@@ -778,9 +791,9 @@ export default function HeroSlidesList() {
                         {/* Show current image or preview */}
                         <div className="mt-3">
                           <img
-                            src={imagePreview || `${SERVER_URL}${slide.background_image_md || slide.background_image}`}
-                            alt="Preview"
-                            className="w-full h-48 object-cover rounded-lg"
+                            src={imagePreview || getAbsoluteImageUrl(slide.background_image_md || slide.background_image)}
+                            alt="Preview da imagem de fundo"
+                            className="w-full h-48 object-cover rounded-lg border border-gray-200"
                           />
                         </div>
                       </div>
@@ -822,23 +835,22 @@ export default function HeroSlidesList() {
                         </div>
                       </div>
 
-                      <div className="flex gap-3 pt-4">
-                        <button
-                          onClick={() => handleUpdate(editingId)}
-                          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-colors touch-manipulation min-h-[48px] font-medium"
-                        >
-                          <Save size={20} />
-                          <span>Guardar</span>
-                        </button>
+                      <div className="flex gap-3 pt-2">
                         <button
                           onClick={() => {
                             setEditingId(null);
                             loadSlides();
                           }}
-                          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-tertiary-100 active:bg-gray-100 transition-colors touch-manipulation min-h-[48px] font-medium"
+                          className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-sm transition-colors"
                         >
-                          <X size={20} />
-                          <span>Cancelar</span>
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => handleUpdate(editingId)}
+                          className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Save size={18} />
+                          Guardar
                         </button>
                       </div>
                     </>
@@ -855,36 +867,39 @@ export default function HeroSlidesList() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/50 z-40"
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
             onClick={() => setDeleteConfirm(null)}
+            role="button"
+            tabIndex={-1}
+            aria-label="Fechar modal"
           />
 
           {/* Modal */}
-          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-md z-50">
-            <div className="bg-white rounded-xl shadow-2xl p-6">
-              <div className="mb-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                  <Trash2 className="text-red-600" size={24} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-sm border border-secondary-200 p-6">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                  <AlertCircle className="text-red-600" size={24} />
                 </div>
-                <h2 className="text-xl font-bold text-[#1A1A1A] text-center mb-2">Eliminar Slide</h2>
-                <p className="text-gray-600 text-center">
+                <h2 className="text-lg font-semibold text-[#1A1A1A] mb-2">Eliminar Slide</h2>
+                <p className="text-gray-600 mb-1">
                   Tem a certeza que deseja eliminar o slide <span className="font-semibold">"{deleteConfirm.title}"</span>?
                 </p>
-                <p className="text-sm text-gray-500 text-center mt-2">
+                <p className="text-sm text-gray-500">
                   Esta ação não pode ser revertida.
                 </p>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-tertiary-100 active:bg-gray-100 transition-colors touch-manipulation min-h-[48px] font-medium"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 transition-colors touch-manipulation min-h-[48px] font-medium"
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm transition-colors"
                 >
                   Eliminar
                 </button>

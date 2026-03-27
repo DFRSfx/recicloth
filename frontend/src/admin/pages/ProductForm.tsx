@@ -6,6 +6,7 @@ import { getAbsoluteImageUrl } from '../../utils/imageUtils';
 import { Save, ArrowLeft, X, Upload, GripVertical } from 'lucide-react';
 import ColorPicker, { ColorOption } from '../components/ColorPicker';
 import AdminSelect from '../components/AdminSelect';
+import RichTextEditor from '../components/RichTextEditor';
 
 interface SizeStockItem {
   size: string;
@@ -59,7 +60,6 @@ export default function ProductForm() {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const nameRef = useRef<HTMLInputElement>(null);
-  const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const priceRef = useRef<HTMLInputElement>(null);
   const stockRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
@@ -121,6 +121,16 @@ export default function ProductForm() {
               .filter((item: SizeStockItem) => item.size)
           : [];
 
+        // 1. PARSER DE CORES ISOLADO E ROBUSTO
+        const parsedColors = data.colors
+          ? (Array.isArray(data.colors)
+              ? data.colors
+              : JSON.parse(data.colors))
+              .map((item: any) =>
+                typeof item === 'string' ? { name: item, hex: '' } : { name: item.name || '', hex: item.hex || '' }
+              )
+          : [];
+
         setFormData({
           name: data.name,
           description: data.description,
@@ -132,35 +142,33 @@ export default function ProductForm() {
             ? data.stock_mode
             : (parsedSizeStock.length > 0 ? 'apparel' : 'unit'),
           featured: data.featured || false,
-          colors: data.colors
-            ? (Array.isArray(data.colors)
-                ? data.colors
-                : JSON.parse(data.colors))
-                .map((item: any) =>
-                  typeof item === 'string' ? { name: item, hex: '' } : { name: item.name || '', hex: item.hex || '' }
-                )
-            : [],
+          colors: parsedColors, // USA A VARIÁVEL PROCESSADA AQUI
           size_stock: parsedSizeStock
         });
         
-        // Load existing images from API - they come as file paths, convert to absolute URLs
         if (data.images && Array.isArray(data.images)) {
           setExistingImages(data.images);
           setImagePreviews(data.images.map((img: string) => getAbsoluteImageUrl(img)));
 
-          // Detect colors from filenames (e.g., image-1-28-preto.webp → "Preto")
-          // This is for UI display only - actual color info is in the filename
           const detectedColors = data.images.map((imgPath: string) => {
-            // Extract color slug from filename: image-1-28-COLOR-SLUG.webp
             const match = imgPath.match(/-([a-z0-9-]+)\.webp$/);
             if (match) {
               const colorSlug = match[1];
-              // Try to find matching color in product.colors
-              const found = (data.colors || []).find((c: any) => {
-                const nameSlug = c.name.toLowerCase().replace(/\s+/g, '-');
+              
+              // 2. SLUGIFIER A SÉRIO (limpa acentos e múltiplos hifens)
+              const found = parsedColors.find((c: any) => {
+                const nameSlug = c.name
+                  .toLowerCase()
+                  .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove acentos
+                  .replace(/[^a-z0-9]+/g, '-') // substitui tudo o que não for letra/número por hífen
+                  .replace(/(^-|-$)/g, ''); // remove hifens no início e no fim
+                  
                 return nameSlug === colorSlug;
               });
-              return found || { name: colorSlug.replace(/-/g, ' '), hex: '' };
+              
+              // Retorna o objeto exato encontrado (para o "name" bater certo com o <option>) 
+              // ou vazio se não encontrar, nada de inventar nomes com replace.
+              return found || { name: '', hex: '' };
             }
             return { name: '', hex: '' };
           });
@@ -370,8 +378,8 @@ export default function ProductForm() {
         nameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         nameRef.current?.focus();
       } else if (errors.description) {
-        descriptionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        descriptionRef.current?.focus();
+        const descElement = document.getElementById('product-description');
+        descElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else if (errors.price) {
         priceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         priceRef.current?.focus();
@@ -529,20 +537,17 @@ export default function ProductForm() {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="product-description" className="block text-sm font-medium text-gray-700 mb-2">
-              Descrição *
-            </label>
-            <textarea
-              id="product-description"
-              name="description"
-              ref={descriptionRef}
+          <div id="product-description">
+            <RichTextEditor
+              label="Descrição *"
               value={formData.description}
-              onChange={(e) => { setFormData({ ...formData, description: e.target.value }); clearFieldError('description'); }}
-              rows={4}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${fieldErrors.description ? 'border-red-500' : 'border-gray-300'}`}
+              onChange={(html) => {
+                setFormData({ ...formData, description: html });
+                clearFieldError('description');
+              }}
+              error={fieldErrors.description}
+              placeholder="Escreva a descrição do produto com formatação..."
             />
-            {fieldErrors.description && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.description}</p>}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
