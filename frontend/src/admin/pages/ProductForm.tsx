@@ -76,18 +76,24 @@ export default function ProductForm() {
   }, [id]);
 
   useEffect(() => {
-    // Keep one color mapping per newly uploaded file
+    // Keep color mappings for all images (existing + new)
     setImageColors((prev) => {
+      const totalImages = existingImages.length + selectedFiles.length;
       const next = [...prev];
-      if (next.length < selectedFiles.length) {
-        for (let i = next.length; i < selectedFiles.length; i++) next.push({ name: '', hex: '' });
+
+      // Add placeholders for new files if needed
+      if (next.length < totalImages) {
+        for (let i = next.length; i < totalImages; i++) next.push({ name: '', hex: '' });
       }
-      if (next.length > selectedFiles.length) {
-        return next.slice(0, selectedFiles.length);
+
+      // Remove colors if images were deleted
+      if (next.length > totalImages) {
+        return next.slice(0, totalImages);
       }
+
       return next;
     });
-  }, [selectedFiles.length]);
+  }, [selectedFiles.length, existingImages.length]);
 
   useEffect(() => {
     // If a color is removed from available colors, clear invalid image-color mappings
@@ -140,7 +146,15 @@ export default function ProductForm() {
         // Load existing images from API - they come as file paths, convert to absolute URLs
         if (data.images && Array.isArray(data.images)) {
           setExistingImages(data.images);
-          setImagePreviews(data.images.map(img => getAbsoluteImageUrl(img)));
+          setImagePreviews(data.images.map((img: string) => getAbsoluteImageUrl(img)));
+
+          // Load image colors for existing images
+          if (data.image_colors && Array.isArray(data.image_colors)) {
+            setImageColors(data.image_colors);
+          } else {
+            // Initialize with empty colors if not present
+            setImageColors(data.images.map(() => ({ name: '', hex: '' })));
+          }
         }
       }
     } catch (error) {
@@ -169,12 +183,13 @@ export default function ProductForm() {
     if (index < existingImages.length) {
       setExistingImages(prev => prev.filter((_, i) => i !== index));
       setImagePreviews(prev => prev.filter((_, i) => i !== index));
+      setImageColors(prev => prev.filter((_, i) => i !== index));
     } else {
       // It's a new file
       const fileIndex = index - existingImages.length;
       setSelectedFiles(prev => prev.filter((_, i) => i !== fileIndex));
-      setImageColors(prev => prev.filter((_, i) => i !== fileIndex));
       setImagePreviews(prev => prev.filter((_, i) => i !== index));
+      setImageColors(prev => prev.filter((_, i) => i !== index));
     }
   };
 
@@ -187,6 +202,14 @@ export default function ProductForm() {
       const [movedItem] = newPreviews.splice(fromIndex, 1);
       newPreviews.splice(toIndex, 0, movedItem);
       return newPreviews;
+    });
+
+    // Move imageColors (which now tracks all images)
+    setImageColors(prev => {
+      const newColors = [...prev];
+      const [movedColor] = newColors.splice(fromIndex, 1);
+      newColors.splice(toIndex, 0, movedColor);
+      return newColors;
     });
 
     // Move in existing images or files
@@ -208,27 +231,18 @@ export default function ProductForm() {
         newFiles.splice(toFileIndex, 0, movedItem);
         return newFiles;
       });
-      setImageColors(prev => {
-        const newColors = [...prev];
-        const fromFileIndex = fromIndex - existingImages.length;
-        const toFileIndex = toIndex - existingImages.length;
-        const [movedColor] = newColors.splice(fromFileIndex, 1);
-        newColors.splice(toFileIndex, 0, movedColor);
-        return newColors;
-      });
     } else {
       // Mixed - need to reorganize both arrays
       type AllItem =
         | { type: 'existing'; path: string; preview: string }
-        | { type: 'new'; file: File; preview: string; color: ColorOption };
+        | { type: 'new'; file: File; preview: string };
 
       const allItems: AllItem[] = [
         ...existingImages.map((path, i) => ({ type: 'existing' as const, path, preview: imagePreviews[i] })),
         ...selectedFiles.map((file, i) => ({
           type: 'new' as const,
           file,
-          preview: imagePreviews[existingImages.length + i],
-          color: imageColors[i] || { name: '', hex: '' }
+          preview: imagePreviews[existingImages.length + i]
         }))
       ];
 
@@ -239,16 +253,12 @@ export default function ProductForm() {
         .filter((item): item is { type: 'existing'; path: string; preview: string } => item.type === 'existing')
         .map(item => item.path);
       const newFiles = allItems
-        .filter((item): item is { type: 'new'; file: File; preview: string; color: ColorOption } => item.type === 'new')
+        .filter((item): item is { type: 'new'; file: File; preview: string } => item.type === 'new')
         .map(item => item.file);
-      const newImageColors = allItems
-        .filter((item): item is { type: 'new'; file: File; preview: string; color: ColorOption } => item.type === 'new')
-        .map(item => item.color);
       const newPreviews = allItems.map(item => item.preview);
 
       setExistingImages(newExisting);
       setSelectedFiles(newFiles);
-      setImageColors(newImageColors);
       setImagePreviews(newPreviews);
     }
   };
@@ -850,36 +860,33 @@ export default function ProductForm() {
                         )}
                       </div>
 
-                      {/* Footer Area (Color Select) */}
-                      {index >= existingImages.length && (
-                        <div className="p-2 border-t border-gray-200 bg-white">
-                          <select
-                            id={`image-color-${index}`}
-                            name={`imageColor-${index}`}
-                            aria-label={`Cor associada à imagem ${index + 1}`}
-                            value={imageColors[index - existingImages.length]?.name || ''}
-                            onChange={(e) => {
-                              const fileIndex = index - existingImages.length;
-                              const value = e.target.value;
-                              const selected = (formData.colors || []).find((c) => c.name === value);
-                              setImageColors((prev) => {
-                                const next = [...prev];
-                                next[fileIndex] = selected || { name: '', hex: '' };
-                                return next;
-                              });
-                              clearFieldError('imageColors');
-                            }}
-                            className="w-full text-sm pl-2 pr-8 py-1.5 rounded-md border border-gray-300 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all cursor-pointer text-gray-700"
-                          >
-                            <option value="" disabled className="text-gray-400">Associar cor...</option>
-                            {(formData.colors || []).map((color) => (
-                              <option key={`${index}-${color.name}`} value={color.name}>
-                                {color.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
+                      {/* Footer Area (Color Select) - for all images */}
+                      <div className="p-2 border-t border-gray-200 bg-white">
+                        <select
+                          id={`image-color-${index}`}
+                          name={`imageColor-${index}`}
+                          aria-label={`Cor associada à imagem ${index + 1}`}
+                          value={imageColors[index]?.name || ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const selected = (formData.colors || []).find((c) => c.name === value);
+                            setImageColors((prev) => {
+                              const next = [...prev];
+                              next[index] = selected || { name: '', hex: '' };
+                              return next;
+                            });
+                            clearFieldError('imageColors');
+                          }}
+                          className="w-full text-sm pl-2 pr-8 py-1.5 rounded-md border border-gray-300 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all cursor-pointer text-gray-700"
+                        >
+                          <option value="" disabled className="text-gray-400">Associar cor...</option>
+                          {(formData.colors || []).map((color) => (
+                            <option key={`${index}-${color.name}`} value={color.name}>
+                              {color.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   ))}
                 </div>

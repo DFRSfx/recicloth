@@ -235,8 +235,8 @@ router.post(
 
       // Insert product first to obtain its ID
       const [result]: any = await pool.query(
-        'INSERT INTO products (name, description, price, weight, category_id, stock, stock_mode, featured, colors, size_stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [name, description, price, weight ? Number(weight) : null, category, normalizedStock, normalizedStockMode, featured === 'true', JSON.stringify(colorsArray), JSON.stringify(sizeStockArray)]
+        'INSERT INTO products (name, description, price, weight, category_id, stock, stock_mode, featured, colors, size_stock, image_colors) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [name, description, price, weight ? Number(weight) : null, category, normalizedStock, normalizedStockMode, featured === 'true', JSON.stringify(colorsArray), JSON.stringify(sizeStockArray), JSON.stringify(imageColorsArray)]
       );
       const productId = result.insertId;
 
@@ -246,9 +246,10 @@ router.post(
         imagePaths.push(await processAndUploadImage(productId, files[i].buffer, i + 1, imageColorsArray[i]));
       }
 
-      // Store paths in products table
-      await pool.query('UPDATE products SET images = ? WHERE id = ?', [
+      // Store paths and colors in products table
+      await pool.query('UPDATE products SET images = ?, image_colors = ? WHERE id = ?', [
         JSON.stringify(imagePaths),
+        JSON.stringify(imageColorsArray),
         productId,
       ]);
 
@@ -335,12 +336,22 @@ router.put(
         await pool.query(`UPDATE products SET ${updates.join(', ')} WHERE id = ?`, values);
       }
 
-      // Current images in DB
+      // Current images and colors in DB
       const [currentRows]: any = await pool.query(
-        'SELECT images FROM products WHERE id = ?',
+        'SELECT images, image_colors FROM products WHERE id = ?',
         [productId]
       );
       const currentImages = parseImages(currentRows[0]?.images);
+      let currentImageColors: any[] = [];
+      if (currentRows[0]?.image_colors) {
+        try {
+          currentImageColors = typeof currentRows[0].image_colors === 'string'
+            ? JSON.parse(currentRows[0].image_colors)
+            : (Array.isArray(currentRows[0].image_colors) ? currentRows[0].image_colors : []);
+        } catch (e) {
+          console.error('Error parsing current image_colors:', e);
+        }
+      }
 
       // Parse the list of paths the admin wants to keep
       let keepPaths: string[] = [];
@@ -352,7 +363,8 @@ router.put(
         }
       }
 
-      let imageColorsArray: string[] = [];
+      // Parse the colors for all images (existing + new)
+      let imageColorsArray: any[] = [];
       if (imageColors) {
         try {
           const parsed = typeof imageColors === 'string' ? JSON.parse(imageColors) : imageColors;
@@ -390,8 +402,32 @@ router.put(
 
       // Final order: existing (in admin's order) + newly uploaded
       const finalImages = [...keepPaths, ...newPaths];
-      await pool.query('UPDATE products SET images = ? WHERE id = ?', [
+
+      // Build final image_colors array: keep colors for retained images + add colors for new images
+      const finalImageColors: any[] = [];
+      for (const imagePath of keepPaths) {
+        const currentIndex = currentImages.indexOf(imagePath);
+        if (currentIndex >= 0 && currentIndex < currentImageColors.length) {
+          finalImageColors.push(currentImageColors[currentIndex]);
+        } else if (imageColorsArray.length > finalImageColors.length) {
+          finalImageColors.push(imageColorsArray[finalImageColors.length]);
+        } else {
+          finalImageColors.push({ name: '', hex: '' });
+        }
+      }
+      // Add colors for new images
+      for (let i = 0; i < newPaths.length; i++) {
+        const colorIndex = keepPaths.length + i;
+        if (colorIndex < imageColorsArray.length) {
+          finalImageColors.push(imageColorsArray[colorIndex]);
+        } else {
+          finalImageColors.push({ name: '', hex: '' });
+        }
+      }
+
+      await pool.query('UPDATE products SET images = ?, image_colors = ? WHERE id = ?', [
         JSON.stringify(finalImages),
+        JSON.stringify(finalImageColors),
         productId,
       ]);
 
