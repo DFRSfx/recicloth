@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { productsApi } from '../../utils/apiHelpers';
 import { useCategories } from '../../hooks/useCategories';
+import { getAbsoluteImageUrl } from '../../utils/imageUtils';
 import { Save, ArrowLeft, X, Upload, GripVertical } from 'lucide-react';
 import ColorPicker, { ColorOption } from '../components/ColorPicker';
 import AdminSelect from '../components/AdminSelect';
@@ -136,10 +137,10 @@ export default function ProductForm() {
           size_stock: parsedSizeStock
         });
         
-        // Load existing images from API - they come as file paths
+        // Load existing images from API - they come as file paths, convert to absolute URLs
         if (data.images && Array.isArray(data.images)) {
           setExistingImages(data.images);
-          setImagePreviews(data.images);
+          setImagePreviews(data.images.map(img => getAbsoluteImageUrl(img)));
         }
       }
     } catch (error) {
