@@ -278,7 +278,6 @@ router.put(
   async (req: AuthRequest, res) => {
     try {
       console.log('🔄 UPDATE Product ID:', req.params.id);
-      console.log('📦 Received imageColors:', JSON.stringify(imageColorsArray?.slice(0, 2)));
 
       const { name, description, price, weight, category, stock, stockMode, featured, existingImages, colors, imageColors, sizeStock } = req.body;
       const files = req.files as Express.Multer.File[];
@@ -374,6 +373,7 @@ router.put(
           console.error('Error parsing imageColors:', e);
         }
       }
+      console.log('📦 Received imageColors count:', imageColorsArray.length);
 
       // Delete files that were removed by the admin (including md/sm variants)
       const dir = getProductDir(productId);
