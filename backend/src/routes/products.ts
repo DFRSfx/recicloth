@@ -154,11 +154,16 @@ router.post(
   upload.array('images', 10),
   async (req: AuthRequest, res) => {
     try {
-      const { name, description, price, category, stock, stockMode, featured, colors, imageColors, sizeStock } = req.body;
+      const { name, description, price, weight, category, stock, stockMode, featured, colors, imageColors, sizeStock } = req.body;
       const files = req.files as Express.Multer.File[];
 
       if (!name || !description || !price || !category) {
         res.status(400).json({ error: 'Missing required fields' });
+        return;
+      }
+
+      if (weight && (Number(weight) <= 0 || !Number.isInteger(Number(weight)))) {
+        res.status(400).json({ error: 'Weight must be a positive integer (in grams)' });
         return;
       }
 
@@ -210,8 +215,8 @@ router.post(
 
       // Insert product first to obtain its ID
       const [result]: any = await pool.query(
-        'INSERT INTO products (name, description, price, category_id, stock, stock_mode, featured, colors, size_stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [name, description, price, category, normalizedStock, normalizedStockMode, featured === 'true', JSON.stringify(colorsArray), JSON.stringify(sizeStockArray)]
+        'INSERT INTO products (name, description, price, weight, category_id, stock, stock_mode, featured, colors, size_stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [name, description, price, weight ? Number(weight) : null, category, normalizedStock, normalizedStockMode, featured === 'true', JSON.stringify(colorsArray), JSON.stringify(sizeStockArray)]
       );
       const productId = result.insertId;
 
@@ -253,9 +258,14 @@ router.put(
     try {
       console.log('🔄 UPDATE Product ID:', req.params.id);
 
-      const { name, description, price, category, stock, stockMode, featured, existingImages, colors, imageColors, sizeStock } = req.body;
+      const { name, description, price, weight, category, stock, stockMode, featured, existingImages, colors, imageColors, sizeStock } = req.body;
       const files = req.files as Express.Multer.File[];
       const productId = parseInt(req.params.id);
+
+      if (weight && (Number(weight) <= 0 || !Number.isInteger(Number(weight)))) {
+        res.status(400).json({ error: 'Weight must be a positive integer (in grams)' });
+        return;
+      }
 
       // Update product fields
       const updates: string[] = [];
@@ -264,6 +274,7 @@ router.put(
       if (name !== undefined)        { updates.push('name = ?');        values.push(name); }
       if (description !== undefined) { updates.push('description = ?'); values.push(description); }
       if (price !== undefined)       { updates.push('price = ?');       values.push(price); }
+      if (weight !== undefined)      { updates.push('weight = ?');      values.push(weight ? Number(weight) : null); }
       if (category !== undefined)    { updates.push('category_id = ?'); values.push(category); }
       if (featured !== undefined)    { updates.push('featured = ?');    values.push(featured === 'true'); }
       if (stockMode !== undefined)   { updates.push('stock_mode = ?');  values.push(stockMode === 'apparel' || stockMode === 'shoes' ? stockMode : 'unit'); }

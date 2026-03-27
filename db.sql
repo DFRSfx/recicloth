@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS products (
   name VARCHAR(100) NOT NULL,
   description TEXT NOT NULL,
   price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
+  weight INTEGER CHECK (weight > 0),
   category_id BIGINT NOT NULL REFERENCES categories(id) ON UPDATE CASCADE,
   stock INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
   stock_mode VARCHAR(20) NOT NULL DEFAULT 'unit' CHECK (stock_mode IN ('unit', 'apparel', 'shoes')),

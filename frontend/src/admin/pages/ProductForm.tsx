@@ -17,6 +17,7 @@ interface ProductFormData {
   name: string;
   description: string;
   price: number;
+  weight?: number;
   category_id: number;
   stock: number;
   stock_mode: StockMode;
@@ -38,6 +39,7 @@ export default function ProductForm() {
     name: '',
     description: '',
     price: 0,
+    weight: undefined,
     category_id: 0,
     stock: 0,
     stock_mode: 'unit',
@@ -116,6 +118,7 @@ export default function ProductForm() {
           name: data.name,
           description: data.description,
           price: data.price,
+          weight: data.weight,
           category_id: Number(data.category_id),
           stock: Number(data.stock) || 0,
           stock_mode: (data.stock_mode === 'apparel' || data.stock_mode === 'shoes' || data.stock_mode === 'unit')
@@ -369,6 +372,9 @@ export default function ProductForm() {
       formDataToSend.append('name', formData.name);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('price', formData.price.toString());
+      if (formData.weight) {
+        formDataToSend.append('weight', formData.weight.toString());
+      }
       formDataToSend.append('category', formData.category_id.toString());
       const hasSizeStock = (formData.size_stock || []).length > 0;
       const totalSizeStock = (formData.size_stock || []).reduce(
@@ -534,6 +540,24 @@ export default function ProductForm() {
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${fieldErrors.price ? 'border-red-500' : 'border-gray-300'}`}
               />
               {fieldErrors.price && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.price}</p>}
+            </div>
+
+            <div>
+              <label htmlFor="product-weight" className="block text-sm font-medium text-gray-700 mb-2">
+                Peso (gramas)
+              </label>
+              <input
+                id="product-weight"
+                name="weight"
+                type="number"
+                min="1"
+                placeholder="Ex: 350"
+                value={formData.weight || ''}
+                onChange={(e) => { setFormData({ ...formData, weight: e.target.value ? parseInt(e.target.value, 10) : undefined }); clearFieldError('weight'); }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${fieldErrors.weight ? 'border-red-500' : 'border-gray-300'}`}
+              />
+              {fieldErrors.weight && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.weight}</p>}
+              <p className="mt-1 text-xs text-gray-500">Opcional</p>
             </div>
 
             <div>
