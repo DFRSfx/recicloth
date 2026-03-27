@@ -7,6 +7,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { getCached, setCached, clearCachedByPrefix } from '../utils/apiCache.js';
 import { warmCaches } from '../utils/dataWarmer.js';
+import { uploadToS3, deleteFromS3 } from '../utils/s3Upload.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,15 +30,13 @@ const toColorSlug = (value?: string): string => {
     .slice(0, 40);
 };
 
-const saveImageToDisk = async (
+const processAndUploadImage = async (
   productId: number,
   buffer: Buffer,
   index: number,
   colorName?: string
 ): Promise<string> => {
   const { default: sharp } = await import('sharp');
-  const dir = getProductDir(productId);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
   const colorSlug = toColorSlug(colorName);
   const base = colorSlug
@@ -45,25 +44,25 @@ const saveImageToDisk = async (
     : `image-${index}-${productId}`;
   const opts = { effort: 6, smartSubsample: true };
 
-  // lg — product detail page (max 1200 px, quality 85)
-  await sharp(buffer)
-    .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-    .webp({ quality: 85, ...opts })
-    .toFile(path.join(dir, `${base}.webp`));
+  try {
+    // Process image to WebP format (full quality for storage)
+    const processedBuffer = await sharp(buffer)
+      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 85, ...opts })
+      .toBuffer();
 
-  // md — shop grid (max 600 px, quality 82)
-  await sharp(buffer)
-    .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
-    .webp({ quality: 82, ...opts })
-    .toFile(path.join(dir, `${base}-md.webp`));
+    // Upload to Supabase S3
+    const s3Key = `products/${productId}/${base}.webp`;
+    const publicUrl = await uploadToS3(processedBuffer, s3Key);
 
-  // sm — admin / cart thumbnails (max 280 px, quality 75)
-  await sharp(buffer)
-    .resize(280, 280, { fit: 'inside', withoutEnlargement: true })
-    .webp({ quality: 75, ...opts })
-    .toFile(path.join(dir, `${base}-sm.webp`));
-
-  return `/produtos/${productId}/${base}.webp`;
+    return publicUrl;
+  } catch (error) {
+    console.error('❌ Image processing/upload failed:', error);
+    // Fallback to placeholder on any error
+    const placeholderUrl = `https://picsum.photos/seed/recicloth-${productId}-${index}/800/800?random=${Date.now()}`;
+    console.warn(`⚠️ Using placeholder: ${placeholderUrl}`);
+    return placeholderUrl;
+  }
 };
 
 const getNextImageIndex = (productId: number): number => {
@@ -223,7 +222,7 @@ router.post(
       // Save each image to disk (generates lg / md / sm variants)
       const imagePaths: string[] = [];
       for (let i = 0; i < files.length; i++) {
-        imagePaths.push(await saveImageToDisk(productId, files[i].buffer, i + 1, imageColorsArray[i]));
+        imagePaths.push(await processAndUploadImage(productId, files[i].buffer, i + 1, imageColorsArray[i]));
       }
 
       // Store paths in products table
@@ -363,7 +362,7 @@ router.put(
         let nextIndex = getNextImageIndex(productId);
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          newPaths.push(await saveImageToDisk(productId, file.buffer, nextIndex, imageColorsArray[i]));
+          newPaths.push(await processAndUploadImage(productId, file.buffer, nextIndex, imageColorsArray[i]));
           nextIndex++;
         }
       }
