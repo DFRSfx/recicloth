@@ -1,6 +1,7 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Undo2, Redo2, Code } from 'lucide-react';
+import { useEffect } from 'react';
 import '../styles/editor.css';
 
 interface RichTextEditorProps {
@@ -20,6 +21,17 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Escreva
     },
     immediatelyRender: false,
   });
+
+  // Update editor content when value prop changes (e.g., when loading product data)
+  useEffect(() => {
+    if (editor && value) {
+      // Only update if the content is different to avoid cursor jumping
+      const currentContent = editor.getHTML();
+      if (currentContent !== value) {
+        editor.commands.setContent(value);
+      }
+    }
+  }, [value, editor]);
 
   if (!editor) {
     return null;
