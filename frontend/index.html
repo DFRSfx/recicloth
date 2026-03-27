@@ -54,8 +54,8 @@
 
     <!-- Accessibility Widget Styling (Recicloth Theme) -->
     <style>
-      /* Button positioning and color */
-      .asw-menu-btn {
+      /* Button positioning and color - use high specificity */
+      a.asw-menu-btn {
         left: auto !important;
         right: 20px !important;
         border: 3px solid white !important;
@@ -73,7 +73,43 @@
       .asw-card-title {
         color: #24563f !important;
       }
+
+      /* Alternative: override even more aggressively if needed */
+      [class*="asw-menu-btn"] {
+        left: auto !important;
+        right: 20px !important;
+        border: 3px solid white !important;
+        outline: 5px solid #24563f !important;
+        background: #24563f !important;
+      }
     </style>
+    <script>
+      // Override accessibility widget colors after page load
+      function updateAccessibilityWidgetColors() {
+        const btn = document.querySelector('.asw-menu-btn');
+        if (btn) {
+          btn.style.setProperty('background', 'linear-gradient(96deg, #24563f, #1a3f2f)', 'important');
+          btn.style.setProperty('outline', '5px solid #24563f', 'important');
+          btn.style.setProperty('left', 'auto', 'important');
+          btn.style.setProperty('right', '20px', 'important');
+        }
+
+        const header = document.querySelector('.asw-menu-header');
+        if (header) {
+          header.style.setProperty('background', 'linear-gradient(135deg, #24563f, #1a3f2f)', 'important');
+        }
+
+        const titles = document.querySelectorAll('.asw-card-title');
+        titles.forEach(title => {
+          title.style.setProperty('color', '#24563f', 'important');
+        });
+      }
+
+      // Run on load and after a delay to ensure widget is loaded
+      window.addEventListener('load', updateAccessibilityWidgetColors);
+      setTimeout(updateAccessibilityWidgetColors, 1000);
+      setTimeout(updateAccessibilityWidgetColors, 3000);
+    </script>
   </head>
   <body>
     <div id="root"></div>
