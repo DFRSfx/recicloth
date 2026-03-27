@@ -1,22 +1,32 @@
 import express from 'express';
 import { getCached, setCached } from '../utils/apiCache.js';
+import { S3Client, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 
 const router = express.Router();
 
-// Supabase public storage base URL (configurable via environment)
-const SUPABASE_PUBLIC_URL = process.env.SUPABASE_PUBLIC_STORAGE_URL ||
-  'https://orekmrlxkpuymngiphzf.supabase.co/storage/v1/object/public/images-storage';
+// S3 storage access (direct via AWS SDK - hides Supabase project ID)
+const s3Client = new S3Client({
+  region: process.env.SUPABASE_S3_REGION || 'eu-west-1',
+  credentials: {
+    accessKeyId: process.env.SUPABASE_S3_ACCESS_KEY || '',
+    secretAccessKey: process.env.SUPABASE_S3_SECRET_KEY || '',
+  },
+  endpoint: process.env.SUPABASE_S3_ENDPOINT,
+  forcePathStyle: true,
+});
+
+const bucket = process.env.SUPABASE_S3_BUCKET || 'images-storage';
 
 /**
  * GET /api/images/*
- * Image proxy/redirect endpoint
+ * Image proxy endpoint that streams content
  *
- * Maps your domain to Supabase public storage
- * Hides the actual S3 URL from clients
+ * Maps your domain to Supabase S3 storage
+ * Hides the Supabase project ID and storage endpoint
  *
  * Usage:
- *   /api/images/products/28/image-1-28.webp
- *   → https://orekmrlxkpuymngiphzf.supabase.co/storage/v1/object/public/images-storage/products/28/image-1-28.webp
+ *   GET /api/images/products/28/image-1-28.webp
+ *   → Streams the image from S3 through your domain
  */
 router.get('/:dir/:subdir/:filename', async (req, res) => {
   try {
@@ -37,34 +47,71 @@ router.get('/:dir/:subdir/:filename', async (req, res) => {
     const imagePath = `${dir}/${subdir}/${filename}`;
     const cacheKey = `image-proxy:${imagePath}`;
 
-    // Check cache
-    const cached = getCached<{ url: string }>(cacheKey);
-    if (cached) {
+    // Check cache for metadata (content-type, content-length)
+    const cachedMeta = getCached<{ contentType: string; contentLength: number }>(cacheKey);
+    if (cachedMeta) {
       res.set('X-Cache', 'HIT');
-      return res.redirect(301, cached.url);
-    }
-
-    // Construct S3 URL
-    const s3Url = `${SUPABASE_PUBLIC_URL}/${imagePath}`;
-
-    // Verify image exists with HEAD request (no caching needed)
-    try {
-      const headResponse = await fetch(s3Url, { method: 'HEAD' });
-      if (!headResponse.ok) {
-        res.status(404).json({ error: 'Image not found' });
-        return;
+      res.set('Content-Type', cachedMeta.contentType);
+      if (cachedMeta.contentLength) {
+        res.set('Content-Length', cachedMeta.contentLength.toString());
       }
-    } catch (error) {
-      res.status(404).json({ error: 'Image not found' });
-      return;
+      res.set('Cache-Control', 'public, max-age=31536000'); // 1 year (cache busting via URL variants)
+    } else {
+      res.set('X-Cache', 'MISS');
+      res.set('Cache-Control', 'public, max-age=31536000');
     }
 
-    // Cache the URL for 1 hour
-    setCached(cacheKey, { url: s3Url }, 3600000);
+    // Get object from S3
+    try {
+      const headCmd = new HeadObjectCommand({
+        Bucket: bucket,
+        Key: imagePath,
+      });
+      const headResult = await s3Client.send(headCmd);
 
-    res.set('X-Cache', 'MISS');
-    // Redirect to actual S3 URL (301 = permanent redirect, cached by browser)
-    res.redirect(301, s3Url);
+      // Cache metadata for 1 hour
+      if (headResult.ContentType && headResult.ContentLength) {
+        setCached(cacheKey, {
+          contentType: headResult.ContentType,
+          contentLength: headResult.ContentLength,
+        }, 3600000);
+      }
+
+      // Stream the object
+      const getCmd = new GetObjectCommand({
+        Bucket: bucket,
+        Key: imagePath,
+      });
+      const getResult = await s3Client.send(getCmd);
+
+      // Set response headers
+      if (getResult.ContentType) {
+        res.set('Content-Type', getResult.ContentType);
+      }
+      if (getResult.ContentLength) {
+        res.set('Content-Length', getResult.ContentLength.toString());
+      }
+
+      // Stream to client
+      if (getResult.Body) {
+        getResult.Body.pipe(res)
+          .on('error', (err) => {
+            console.error('❌ Stream error:', err);
+            if (!res.headersSent) {
+              res.status(500).json({ error: 'Stream failed' });
+            }
+          });
+      } else {
+        res.status(500).json({ error: 'Failed to read image' });
+      }
+    } catch (error: any) {
+      if (error.name === 'NoSuchKey' || error.Code === 'NoSuchKey') {
+        res.status(404).json({ error: 'Image not found' });
+      } else {
+        console.error('❌ S3 read failed:', error);
+        res.status(500).json({ error: 'Failed to serve image' });
+      }
+    }
   } catch (error) {
     console.error('❌ Image proxy failed:', error);
     res.status(500).json({ error: 'Failed to serve image' });
@@ -74,7 +121,7 @@ router.get('/:dir/:subdir/:filename', async (req, res) => {
 /**
  * GET /api/images/check/:dir/:subdir/:filename
  * Diagnostic endpoint to verify if an image exists in S3
- * Returns: { exists: boolean, status: number, url: string }
+ * Returns: { exists: boolean, contentType, contentLength, bucket }
  */
 router.get('/check/:dir/:subdir/:filename', async (req, res) => {
   try {
@@ -91,18 +138,34 @@ router.get('/check/:dir/:subdir/:filename', async (req, res) => {
     }
 
     const imagePath = `${dir}/${subdir}/${filename}`;
-    const s3Url = `${SUPABASE_PUBLIC_URL}/${imagePath}`;
 
-    const headResponse = await fetch(s3Url, { method: 'HEAD' });
-    const exists = headResponse.ok;
+    try {
+      const headCmd = new HeadObjectCommand({
+        Bucket: bucket,
+        Key: imagePath,
+      });
+      const headResult = await s3Client.send(headCmd);
 
-    res.json({
-      imagePath,
-      s3Url,
-      exists,
-      status: headResponse.status,
-      supabase_public_url: SUPABASE_PUBLIC_URL,
-    });
+      res.json({
+        imagePath,
+        exists: true,
+        contentType: headResult.ContentType,
+        contentLength: headResult.ContentLength,
+        lastModified: headResult.LastModified,
+        bucket,
+        endpoint: process.env.SUPABASE_S3_ENDPOINT,
+      });
+    } catch (error: any) {
+      if (error.name === 'NoSuchKey' || error.Code === 'NoSuchKey') {
+        res.json({
+          imagePath,
+          exists: false,
+          error: 'Image not found in S3',
+        });
+      } else {
+        throw error;
+      }
+    }
   } catch (error) {
     console.error('❌ Diagnostic check failed:', error);
     res.status(500).json({ error: String(error) });
