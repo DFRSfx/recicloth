@@ -71,4 +71,42 @@ router.get('/:dir/:subdir/:filename', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/images/check/:dir/:subdir/:filename
+ * Diagnostic endpoint to verify if an image exists in S3
+ * Returns: { exists: boolean, status: number, url: string }
+ */
+router.get('/check/:dir/:subdir/:filename', async (req, res) => {
+  try {
+    const { dir, subdir, filename } = req.params;
+
+    if (dir.includes('..') || subdir.includes('..') || filename.includes('..')) {
+      res.status(400).json({ error: 'Invalid path' });
+      return;
+    }
+
+    if (dir !== 'products') {
+      res.status(400).json({ error: 'Only products directory allowed' });
+      return;
+    }
+
+    const imagePath = `${dir}/${subdir}/${filename}`;
+    const s3Url = `${SUPABASE_PUBLIC_URL}/${imagePath}`;
+
+    const headResponse = await fetch(s3Url, { method: 'HEAD' });
+    const exists = headResponse.ok;
+
+    res.json({
+      imagePath,
+      s3Url,
+      exists,
+      status: headResponse.status,
+      supabase_public_url: SUPABASE_PUBLIC_URL,
+    });
+  } catch (error) {
+    console.error('❌ Diagnostic check failed:', error);
+    res.status(500).json({ error: String(error) });
+  }
+});
+
 export default router;
