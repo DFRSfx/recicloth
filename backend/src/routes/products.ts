@@ -278,6 +278,7 @@ router.put(
   async (req: AuthRequest, res) => {
     try {
       console.log('🔄 UPDATE Product ID:', req.params.id);
+      console.log('📦 Received imageColors:', JSON.stringify(imageColorsArray?.slice(0, 2)));
 
       const { name, description, price, weight, category, stock, stockMode, featured, existingImages, colors, imageColors, sizeStock } = req.body;
       const files = req.files as Express.Multer.File[];
@@ -403,27 +404,11 @@ router.put(
       // Final order: existing (in admin's order) + newly uploaded
       const finalImages = [...keepPaths, ...newPaths];
 
-      // Build final image_colors array: keep colors for retained images + add colors for new images
-      const finalImageColors: any[] = [];
-      for (const imagePath of keepPaths) {
-        const currentIndex = currentImages.indexOf(imagePath);
-        if (currentIndex >= 0 && currentIndex < currentImageColors.length) {
-          finalImageColors.push(currentImageColors[currentIndex]);
-        } else if (imageColorsArray.length > finalImageColors.length) {
-          finalImageColors.push(imageColorsArray[finalImageColors.length]);
-        } else {
-          finalImageColors.push({ name: '', hex: '' });
-        }
-      }
-      // Add colors for new images
-      for (let i = 0; i < newPaths.length; i++) {
-        const colorIndex = keepPaths.length + i;
-        if (colorIndex < imageColorsArray.length) {
-          finalImageColors.push(imageColorsArray[colorIndex]);
-        } else {
-          finalImageColors.push({ name: '', hex: '' });
-        }
-      }
+      // Frontend sends imageColorsArray with complete color mapping for all images in final order
+      // Just use it directly - it already has the right order and counts
+      const finalImageColors = imageColorsArray.length > 0
+        ? imageColorsArray
+        : finalImages.map(() => ({ name: '', hex: '' }));
 
       await pool.query('UPDATE products SET images = ?, image_colors = ? WHERE id = ?', [
         JSON.stringify(finalImages),
@@ -444,10 +429,11 @@ router.put(
       }
 
       clearCachedByPrefix('products:');
-      res.json({ ...updatedProduct[0], images: finalImages });
+      console.log('✅ Product updated:', productId, 'Images:', finalImages.length, 'Colors:', finalImageColors.length);
+      res.json({ ...updatedProduct[0], images: finalImages, image_colors: finalImageColors });
     } catch (error) {
-      console.error('Error updating product:', error);
-      res.status(500).json({ error: 'Failed to update product' });
+      console.error('❌ Error updating product:', error);
+      res.status(500).json({ error: 'Failed to update product', details: String(error) });
     }
   }
 );
