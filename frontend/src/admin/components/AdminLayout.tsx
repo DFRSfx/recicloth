@@ -10,7 +10,8 @@ import {
   LogOut,
   User,
   ArrowLeft,
-  Image
+  Image,
+  Users
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -28,6 +29,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Categorias', path: '/admin/categorias', icon: FolderOpen },
     { name: 'Produtos', path: '/admin/produtos', icon: Package },
     { name: 'Encomendas', path: '/admin/encomendas', icon: ShoppingCart },
+    { name: 'Utilizadores', path: '/admin/utilizadores', icon: Users },
   ];
 
   const isActive = (path: string) => {

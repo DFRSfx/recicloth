@@ -159,7 +159,12 @@ router.put(
     body('status')
       .optional()
       .isIn(['active', 'inactive', 'suspended'])
-      .withMessage('Status inválido')
+      .withMessage('Status inválido'),
+    body('n_telemovel')
+      .optional()
+      .trim()
+      .matches(/^[+\d\s\-()]+$/)
+      .withMessage('Número de telefone inválido')
   ],
   requireAdmin,
   async (req: AuthRequest, res) => {

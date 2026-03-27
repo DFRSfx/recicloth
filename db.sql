@@ -1,6 +1,10 @@
 -- PostgreSQL schema for Recicloth
 -- Compatible with Supabase PostgreSQL
 
+-- Create ENUM types
+CREATE TYPE user_role AS ENUM ('customer', 'admin');
+CREATE TYPE user_status AS ENUM ('pending', 'active', 'inactive', 'suspended');
+
 CREATE TABLE IF NOT EXISTS users (
   id BIGSERIAL PRIMARY KEY,
   email VARCHAR(100) NOT NULL UNIQUE,
@@ -9,8 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255) NOT NULL DEFAULT '',
   name VARCHAR(100) NOT NULL,
   n_telemovel VARCHAR(20),
-  role VARCHAR(20) NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'admin')),
-  status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('pending', 'active', 'inactive', 'suspended')),
+  role user_role NOT NULL DEFAULT 'customer',
+  status user_status NOT NULL DEFAULT 'active',
   email_verified BOOLEAN NOT NULL DEFAULT FALSE,
   email_verification_token VARCHAR(255),
   email_verification_expires TIMESTAMP,

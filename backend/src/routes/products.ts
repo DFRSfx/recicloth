@@ -339,22 +339,12 @@ router.put(
         await pool.query(`UPDATE products SET ${updates.join(', ')} WHERE id = ?`, values);
       }
 
-      // Current images and colors in DB
+      // Current images in DB
       const [currentRows]: any = await pool.query(
-        'SELECT images, image_colors FROM products WHERE id = ?',
+        'SELECT images FROM products WHERE id = ?',
         [productId]
       );
       const currentImages = parseImages(currentRows[0]?.images);
-      let currentImageColors: any[] = [];
-      if (currentRows[0]?.image_colors) {
-        try {
-          currentImageColors = typeof currentRows[0].image_colors === 'string'
-            ? JSON.parse(currentRows[0].image_colors)
-            : (Array.isArray(currentRows[0].image_colors) ? currentRows[0].image_colors : []);
-        } catch (e) {
-          console.error('Error parsing current image_colors:', e);
-        }
-      }
 
       // Parse the list of paths the admin wants to keep
       let keepPaths: string[] = [];

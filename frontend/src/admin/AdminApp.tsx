@@ -8,6 +8,7 @@ import OrdersList from './pages/OrdersList';
 import OrderDetails from './pages/OrderDetails';
 import CategoriesList from './pages/CategoriesList';
 import HeroSlidesList from './pages/HeroSlidesList';
+import UsersList from './pages/UsersList';
 
 export default function AdminApp() {
   const { user, isAuthenticated } = useAuth();
@@ -40,6 +41,7 @@ export default function AdminApp() {
         <Route path="/produtos/editar/:id" element={<ProductForm />} />
         <Route path="/encomendas" element={<OrdersList />} />
         <Route path="/encomendas/:id" element={<OrderDetails />} />
+        <Route path="/utilizadores" element={<UsersList />} />
         <Route path="/hero-slides" element={<HeroSlidesList />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
