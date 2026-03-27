@@ -18,14 +18,14 @@ const s3Client = new S3Client({
 const bucket = process.env.SUPABASE_S3_BUCKET || 'images-storage';
 
 /**
- * GET /api/images/*
+ * GET /images/*
  * Image proxy endpoint that streams content
  *
  * Maps your domain to Supabase S3 storage
  * Hides the Supabase project ID and storage endpoint
  *
  * Usage:
- *   GET /api/images/products/28/image-1-28.webp
+ *   GET /images/products/28/image-1-28.webp
  *   → Streams the image from S3 through your domain
  */
 router.get('/:dir/:subdir/:filename', async (req, res) => {
@@ -119,7 +119,7 @@ router.get('/:dir/:subdir/:filename', async (req, res) => {
 });
 
 /**
- * GET /api/images/check/:dir/:subdir/:filename
+ * GET /images/check/:dir/:subdir/:filename
  * Diagnostic endpoint to verify if an image exists in S3
  * Returns: { exists: boolean, contentType, contentLength, bucket }
  */

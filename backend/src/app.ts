@@ -133,7 +133,7 @@ app.use('/api/cart', cartRouter);
 app.use('/api/favorites', favoritesRouter);
 app.use('/api/shipping-addresses', shippingAddressesRouter);
 app.use('/api/payment', paymentRouter);
-app.use('/api/images', imagesRouter);
+app.use('/images', imagesRouter);
 
 // Optional: Expose cache warming endpoint for manual triggers or cron jobs
 app.get('/api/admin/warm-cache', async (_req, res) => {
