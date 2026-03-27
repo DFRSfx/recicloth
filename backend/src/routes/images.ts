@@ -38,8 +38,8 @@ router.get('/:dir/:subdir/:filename', async (req, res) => {
       return;
     }
 
-    // Only allow products directory for now
-    if (dir !== 'products') {
+    // Only allow products and hero-slides directories
+    if (dir !== 'products' && dir !== 'hero-slides') {
       res.status(404).json({ error: 'Not found' });
       return;
     }
@@ -139,8 +139,8 @@ router.get('/check/:dir/:subdir/:filename', async (req, res) => {
       return;
     }
 
-    if (dir !== 'products') {
-      res.status(400).json({ error: 'Only products directory allowed' });
+    if (dir !== 'products' && dir !== 'hero-slides') {
+      res.status(400).json({ error: 'Only products and hero-slides directories allowed' });
       return;
     }
 

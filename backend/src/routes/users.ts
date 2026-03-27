@@ -161,7 +161,7 @@ router.put(
       .isIn(['active', 'inactive', 'suspended'])
       .withMessage('Status inválido'),
     body('n_telemovel')
-      .optional()
+      .optional({ checkFalsy: true })
       .trim()
       .matches(/^[+\d\s\-()]+$/)
       .withMessage('Número de telefone inválido')
