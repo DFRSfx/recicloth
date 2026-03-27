@@ -89,6 +89,23 @@ export const ordersApi = {
   }),
 };
 
+// Users
+export const usersApi = {
+  getAll: () => fetchWithAuth('/users'),
+  getOne: (id: number) => fetchWithAuth(`/users/${id}`),
+  create: (data: any) => fetchWithAuth('/users', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id: number, data: any) => fetchWithAuth(`/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: number) => fetchWithAuth(`/users/${id}`, {
+    method: 'DELETE',
+  }),
+};
+
 // Stats
 export const statsApi = {
   getDashboard: () => fetchWithAuth('/stats/dashboard'),
