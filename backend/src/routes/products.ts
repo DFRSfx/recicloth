@@ -45,17 +45,38 @@ const processAndUploadImage = async (
   const opts = { effort: 6, smartSubsample: true };
 
   try {
-    // Process image to WebP format (full quality for storage)
-    const processedBuffer = await sharp(buffer)
+    // Generate all 3 versions for optimal performance
+    // lg — product detail page (max 1200 px, quality 85)
+    const lgBuffer = await sharp(buffer)
       .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
       .webp({ quality: 85, ...opts })
       .toBuffer();
 
-    // Upload to Supabase S3
-    const s3Key = `products/${productId}/${base}.webp`;
-    const publicUrl = await uploadToS3(processedBuffer, s3Key);
+    // md — shop grid (max 600 px, quality 82)
+    const mdBuffer = await sharp(buffer)
+      .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 82, ...opts })
+      .toBuffer();
 
-    return publicUrl;
+    // sm — admin / cart thumbnails (max 280 px, quality 75)
+    const smBuffer = await sharp(buffer)
+      .resize(280, 280, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 75, ...opts })
+      .toBuffer();
+
+    // Upload all 3 versions to S3 in parallel
+    const s3KeyLg = `products/${productId}/${base}.webp`;
+    const s3KeyMd = `products/${productId}/${base}-md.webp`;
+    const s3KeySm = `products/${productId}/${base}-sm.webp`;
+
+    const [lgUrl] = await Promise.all([
+      uploadToS3(lgBuffer, s3KeyLg),
+      uploadToS3(mdBuffer, s3KeyMd),
+      uploadToS3(smBuffer, s3KeySm),
+    ]);
+
+    // Return the main (lg) URL — frontend will use -md and -sm variants
+    return lgUrl;
   } catch (error) {
     console.error('❌ Image processing/upload failed:', error);
     // Fallback to placeholder on any error
