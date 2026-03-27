@@ -423,12 +423,17 @@ export default function ProductForm() {
         formDataToSend.append('sizeStock', JSON.stringify([]));
       }
 
-      // Append one color per new image (same order as selectedFiles)
-      if (selectedFiles.length > 0) {
-        formDataToSend.append(
-          'imageColors',
-          JSON.stringify(imageColors.map((color) => color?.name || ''))
-        );
+      // Append colors for ALL images (existing + new) - just the color names
+      // Only send if editing (to update colors for existing images)
+      if (isEdit && imageColors.length > 0) {
+        const colorNames = imageColors.map((color) => (typeof color === 'string' ? color : color?.name || ''));
+        console.log('🎨 Sending ALL image colors for edit:', colorNames);
+        formDataToSend.append('imageColors', JSON.stringify(colorNames));
+      } else if (!isEdit && selectedFiles.length > 0) {
+        // For creation, send colors for new files only
+        const colorNames = imageColors.map((color) => color?.name || '');
+        console.log('🎨 Sending NEW image colors for create:', colorNames);
+        formDataToSend.append('imageColors', JSON.stringify(colorNames));
       }
       
       // Append new image files
