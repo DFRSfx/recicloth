@@ -543,7 +543,7 @@ export default function ProductForm() {
               label="Descrição *"
               value={formData.description}
               onChange={(html) => {
-                setFormData({ ...formData, description: html });
+                setFormData(prev => ({ ...prev, description: html }));
                 clearFieldError('description');
               }}
               error={fieldErrors.description}

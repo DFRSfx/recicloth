@@ -2,7 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Undo2, Redo2, Code } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import '../styles/editor.css';
 
 interface RichTextEditorProps {
@@ -14,6 +14,9 @@ interface RichTextEditorProps {
 }
 
 export default function RichTextEditor({ value, onChange, placeholder = 'Escreva a descrição...', label = 'Descrição', error }: RichTextEditorProps) {
+  // Tracks whether the last content change came from the editor itself (not from outside)
+  const internalChange = useRef(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -21,19 +24,23 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Escreva
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
+      internalChange.current = true;
       onChange(editor.getHTML());
     },
     immediatelyRender: false,
   });
 
-  // Update editor content when value prop changes (e.g., when loading product data)
+  // Sync external value changes into the editor (e.g. loading saved product data)
+  // but skip when the change originated from the editor itself to avoid resetting cursor/headings
   useEffect(() => {
-    if (editor && value) {
-      // Only update if the content is different to avoid cursor jumping
-      const currentContent = editor.getHTML();
-      if (currentContent !== value) {
-        editor.commands.setContent(value);
-      }
+    if (!editor) return;
+    if (internalChange.current) {
+      internalChange.current = false;
+      return;
+    }
+    const currentContent = editor.getHTML();
+    if (currentContent !== value) {
+      editor.commands.setContent(value || '');
     }
   }, [value, editor]);
 
