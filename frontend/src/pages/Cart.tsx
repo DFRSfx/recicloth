@@ -3,15 +3,13 @@ import { Link } from 'react-router-dom';
 import { ShoppingBag, ArrowRight, ArrowLeft, Trash2, ShieldCheck, RefreshCw, AlertTriangle } from 'lucide-react';
 import SEO from '../components/SEO';
 import CartItem from '../components/CartItem';
-import CartToast from '../components/CartToast';
 import { useCart } from '../context/CartContext';
 
 const Cart: React.FC = () => {
   const { items, total, clearCart, itemCount } = useCart();
-  
+
   // Estado para controlar o modal de confirmação
   const [showClearModal, setShowClearModal] = useState(false);
-  const [cartToast, setCartToast] = useState<{ name: string; image?: string; type: 'added' | 'removed' | 'updated' } | null>(null);
 
   const shipping = 0;
   const subtotalExVat = total / 1.23;
@@ -99,7 +97,6 @@ const Cart: React.FC = () => {
                   <CartItem
                     key={`${item.product.id}-${item.selectedColor || 'default'}`}
                     item={item}
-                    onNotify={(name, image, type) => setCartToast({ name, image, type })}
                   />
                 ))}
               </div>
@@ -189,17 +186,8 @@ const Cart: React.FC = () => {
         </div>
       </div>
 
-      {/* Cart Notification */}
-      {cartToast && (
-        <CartToast
-          productName={cartToast.name}
-          productImage={cartToast.image}
-          type={cartToast.type}
-          onClose={() => setCartToast(null)}
-        />
-      )}
 
-      {/* Modal de Confirmação de Limpeza */}
+{/* Modal de Confirmação de Limpeza */}
       {showClearModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setShowClearModal(false)}></div>

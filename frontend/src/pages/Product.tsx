@@ -9,7 +9,7 @@ import ProductCard from '../components/ProductCard';
 import { getProductSchema, getBreadcrumbSchema } from '../utils/schemas';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 import Toast, { ToastType } from '../components/Toast';
-import CartToast from '../components/CartToast';
+import { fireCartToast } from '../components/CartToastManager';
 
 const toColorSlug = (value: string): string =>
   value
@@ -29,7 +29,6 @@ const Product: React.FC = () => {
 
   const [selectedColor, setSelectedColor] = useState('');
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
-  const [cartToast, setCartToast] = useState<{ name: string; image?: string; type: 'added' | 'removed' | 'updated' } | null>(null);
   
   const [mobileImageIndex, setMobileImageIndex] = useState(0);
   const [isAdded, setIsAdded] = useState(false);
@@ -136,7 +135,7 @@ const Product: React.FC = () => {
     
     addItem(product, selectedColor); 
     const previewImage = matchedImages[0] || product.images[0];
-    setCartToast({ name: product.name, image: imgVariant(previewImage, 'sm'), type: 'added' });
+    fireCartToast({ productId: product.id, colorName: selectedColor, productName: product.name, image: imgVariant(previewImage, 'sm'), type: 'added' });
     
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
@@ -397,7 +396,6 @@ const Product: React.FC = () => {
       )}
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      {cartToast && <CartToast productName={cartToast.name} productImage={cartToast.image} type={cartToast.type} onClose={() => setCartToast(null)} />}
     </div>
   );
 };

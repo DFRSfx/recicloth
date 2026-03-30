@@ -4,6 +4,7 @@ import { Minus, Plus, X } from 'lucide-react';
 import { CartItem as CartItemType } from '../types';
 import { useCart } from '../context/CartContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
+import { fireCartToast } from './CartToastManager';
 
 const toColorSlug = (value: string): string =>
   value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -16,17 +17,16 @@ const getColorImage = (images: string[], colorName?: string): string => {
 
 interface CartItemProps {
   item: CartItemType;
-  onNotify?: (name: string, image?: string, type: 'added' | 'removed' | 'updated') => void;
 }
 
-const CartItem: React.FC<CartItemProps> = ({ item, onNotify }) => {
+const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { updateQuantity, removeItem } = useCart();
 
   const colorImage = getColorImage(item.product.images, item.selectedColor);
 
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity <= 0) {
-      onNotify?.(item.product.name, imgVariant(colorImage, 'sm'), 'removed');
+      fireCartToast({ productId: item.product.id, colorName: item.selectedColor, productName: item.product.name, image: imgVariant(colorImage, 'sm'), type: 'removed' });
       removeItem(item.product.id);
     } else {
       updateQuantity(item.product.id, newQuantity);
@@ -64,7 +64,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onNotify }) => {
             
             <button
               onClick={() => {
-                onNotify?.(item.product.name, imgVariant(colorImage, 'sm'), 'removed');
+                fireCartToast({ productId: item.product.id, colorName: item.selectedColor, productName: item.product.name, image: imgVariant(colorImage, 'sm'), type: 'removed' });
                 removeItem(item.product.id);
               }}
               className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors flex-shrink-0"

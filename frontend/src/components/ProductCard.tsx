@@ -5,7 +5,7 @@ import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
-import CartToast from './CartToast';
+import { fireCartToast } from './CartToastManager';
 
 interface ProductCardProps {
   product: Product;
@@ -33,7 +33,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
 
   // Micro-interaction State
   const [isAdded, setIsAdded] = useState(false);
-  const [cartToast, setCartToast] = useState<{ name: string; image?: string; type: 'added' | 'removed' | 'updated' } | null>(null);
 
   // When a Shop filter color is selected, jump to that color's first image
   useEffect(() => {
@@ -46,6 +45,19 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
     const idx = product.images.findIndex(img => img.includes(`-${slug}`));
     if (idx >= 0) setCurrentImageIndex(idx);
   }, [selectedColorHex, product]);
+
+  // When image changes via swipe/arrow, sync activeColor to the new image's color
+  useEffect(() => {
+    if (!product.colors?.length) return;
+    const img = images[currentImageIndex];
+    if (!img) return;
+    for (const color of product.colors) {
+      if (img.includes(`-${toColorSlug(color.name)}`)) {
+        setActiveColor(color.name);
+        return;
+      }
+    }
+  }, [currentImageIndex]);
 
   // Clicking a color swatch: update active color AND jump to its first image
   const handleColorSelect = (colorName: string) => {
@@ -74,7 +86,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
     addItem(product, activeColor);
 
     const previewImage = imgVariant(product.images[currentImageIndex] || product.images[0], 'sm');
-    setCartToast({ name: product.name, image: previewImage, type: 'added' });
+    fireCartToast({ productId: product.id, colorName: activeColor, productName: product.name, image: previewImage, type: 'added' });
 
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
@@ -312,14 +324,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
 
     </div>
 
-    {cartToast && (
-      <CartToast
-        productName={cartToast.name}
-        productImage={cartToast.image}
-        type={cartToast.type}
-        onClose={() => setCartToast(null)}
-      />
-    )}
     </>
   );
 };

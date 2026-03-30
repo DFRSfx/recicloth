@@ -10,6 +10,7 @@ import ScrollToTop from './components/ScrollToTop';
 import GlobalConfirmModal from './components/GlobalConfirmModal';
 import MarketingConsent from './components/MarketingConsent';
 import AnalyticsTracker from './components/AnalyticsTracker';
+import CartToastManager from './components/CartToastManager';
 
 import Home from './pages/Home';
 import Shop from './pages/Shop';
@@ -45,6 +46,7 @@ function App() {
               <AnalyticsTracker />
               <GlobalConfirmModal />
               <MarketingConsent />
+              <CartToastManager />
 
               <Routes>
                 {/* Admin Routes */}
