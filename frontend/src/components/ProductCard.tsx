@@ -125,6 +125,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
   const images = product.images && product.images.length > 0 ? product.images : ['placeholder.jpg'];
 
   return (
+    <>
     <div className="flex flex-col group relative h-full">
       
       {/* --- IMAGE CAROUSEL CONTAINER --- */}
@@ -306,6 +307,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
         onClose={() => setCartToast(null)}
       />
     )}
+    </>
   );
 };
 
