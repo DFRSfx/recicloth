@@ -5,6 +5,15 @@ import { CartItem as CartItemType } from '../types';
 import { useCart } from '../context/CartContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 
+const toColorSlug = (value: string): string =>
+  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+const getColorImage = (images: string[], colorName?: string): string => {
+  if (!colorName || !images?.length) return images?.[0] ?? '';
+  const slug = toColorSlug(colorName);
+  return images.find(img => img.includes(`-${slug}.webp`) || img.includes(`-${slug}-`)) ?? images[0];
+};
+
 interface CartItemProps {
   item: CartItemType;
   onNotify?: (name: string, image?: string, type: 'added' | 'removed' | 'updated') => void;
@@ -13,9 +22,11 @@ interface CartItemProps {
 const CartItem: React.FC<CartItemProps> = ({ item, onNotify }) => {
   const { updateQuantity, removeItem } = useCart();
 
+  const colorImage = getColorImage(item.product.images, item.selectedColor);
+
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity <= 0) {
-      onNotify?.(item.product.name, imgVariant(item.product.images?.[0] ?? '', 'sm'), 'removed');
+      onNotify?.(item.product.name, imgVariant(colorImage, 'sm'), 'removed');
       removeItem(item.product.id);
     } else {
       updateQuantity(item.product.id, newQuantity);
@@ -28,7 +39,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onNotify }) => {
         {/* Product Image */}
         <Link to={`/produto/${item.product.id}`} className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 overflow-hidden rounded-lg hover:opacity-90 transition-opacity">
           <img
-            src={getAbsoluteImageUrl(imgVariant(item.product.images[0], 'sm'))}
+            src={getAbsoluteImageUrl(imgVariant(colorImage, 'sm'))}
             alt={item.product.name}
             className="w-full h-full object-cover"
           />
@@ -53,7 +64,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onNotify }) => {
             
             <button
               onClick={() => {
-                onNotify?.(item.product.name, imgVariant(item.product.images?.[0] ?? '', 'sm'), 'removed');
+                onNotify?.(item.product.name, imgVariant(colorImage, 'sm'), 'removed');
                 removeItem(item.product.id);
               }}
               className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors flex-shrink-0"

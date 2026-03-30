@@ -26,19 +26,34 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
   const [startX, setStartX] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
 
+  // Active color: explicitly tracked so cart always gets the right color
+  const [activeColor, setActiveColor] = useState<string | undefined>(
+    product.colors?.[0]?.name
+  );
+
   // Micro-interaction State
   const [isAdded, setIsAdded] = useState(false);
   const [cartToast, setCartToast] = useState<{ name: string; image?: string; type: 'added' | 'removed' | 'updated' } | null>(null);
 
-  // Jump to the image that matches the selected color from Shop filters
+  // When a Shop filter color is selected, jump to that color's first image
   useEffect(() => {
-    if (!selectedColorHex) return;
-    const colorObj = product.colors?.find(c => c.hex === selectedColorHex);
+    const colorObj = selectedColorHex
+      ? product.colors?.find(c => c.hex === selectedColorHex)
+      : product.colors?.[0];
     if (!colorObj) return;
+    setActiveColor(colorObj.name);
     const slug = toColorSlug(colorObj.name);
     const idx = product.images.findIndex(img => img.includes(`-${slug}`));
     if (idx >= 0) setCurrentImageIndex(idx);
   }, [selectedColorHex, product]);
+
+  // Clicking a color swatch: update active color AND jump to its first image
+  const handleColorSelect = (colorName: string) => {
+    setActiveColor(colorName);
+    const slug = toColorSlug(colorName);
+    const idx = product.images.findIndex(img => img.includes(`-${slug}`));
+    if (idx >= 0) setCurrentImageIndex(idx);
+  };
 
   const isFavorite = favorites.some(fav => fav.product_id === product.id);
 
@@ -52,27 +67,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
     }
   };
 
-  // Derive the active color from the image currently on screen
-  const activeColorName = React.useMemo(() => {
-    // Filter-selected color takes priority
-    if (selectedColorHex) {
-      return product.colors?.find(c => c.hex === selectedColorHex)?.name ?? product.colors?.[0]?.name;
-    }
-    // Otherwise match by slug in the current image filename
-    const currentImage = images[currentImageIndex];
-    if (currentImage && product.colors?.length) {
-      for (const color of product.colors) {
-        if (currentImage.includes(`-${toColorSlug(color.name)}`)) return color.name;
-      }
-    }
-    return product.colors?.[0]?.name;
-  }, [selectedColorHex, currentImageIndex, images, product.colors]);
-
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!product.inStock || isAdded) return;
 
-    addItem(product, activeColorName);
+    addItem(product, activeColor);
 
     const previewImage = imgVariant(product.images[currentImageIndex] || product.images[0], 'sm');
     setCartToast({ name: product.name, image: previewImage, type: 'added' });
@@ -255,12 +254,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
       {/* --- PRODUCT INFO SECTION --- */}
       <div className="flex flex-col flex-1 px-1 relative">
         
-        {/* Color Swatches */}
+        {/* Color Swatches — clickable */}
         <div className="flex gap-1.5 mb-2 items-center h-6">
           {product.colors && product.colors.slice(0, 4).map((color, idx) => (
-            <div 
-              key={idx} 
-              className="w-[18px] h-[18px] rounded-full border border-gray-300 shadow-sm" 
+            <button
+              key={idx}
+              type="button"
+              onClick={(e) => { e.preventDefault(); handleColorSelect(color.name); }}
+              className={`w-[18px] h-[18px] rounded-full border shadow-sm transition-transform hover:scale-110 ${activeColor === color.name ? 'ring-2 ring-black ring-offset-1' : 'border-gray-300'}`}
               style={{ backgroundColor: color.hex || '#D1D5DB' }}
               title={color.name}
             />
