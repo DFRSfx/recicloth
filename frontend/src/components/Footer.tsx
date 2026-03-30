@@ -67,6 +67,11 @@ const Footer: React.FC = () => {
                   Termos e Condições
                 </a>
               </li>
+              <li>
+                <a href="https://www.livroreclamacoes.pt" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity inline-block">
+                  <img src="https://www.livroreclamacoes.pt/Inicio/img/LRE_Theme.Logo_White.png?05CfBRVXskp07svwn4m+4A" alt="Livro de Reclamações Eletrónico" className="h-8 w-auto" />
+                </a>
+              </li>
             </ul>
           </div>
 

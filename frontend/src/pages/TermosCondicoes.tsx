@@ -67,6 +67,22 @@ const TermosCondicoes: React.FC = () => {
                 <li>E-mail para efeitos de ODR: <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a></li>
               </ul>
             </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Resolução Alternativa de Litígios (RAL)</h2>
+              <p className="text-sm mb-3">Em caso de litígio, o consumidor pode recorrer à seguinte entidade de resolução alternativa de litígios de consumo:</p>
+              <ul className="text-sm space-y-1">
+                <li><strong>CICAP – Centro de Informação de Consumo e Arbitragem do Porto</strong></li>
+                <li>Morada: Rua Damião de Góis, 31 – Loja 6, 4050-225 Porto</li>
+                <li>Website: <a href="https://www.cicap.pt" target="_blank" rel="noopener noreferrer" className="text-[#2D6A4F] underline">www.cicap.pt</a></li>
+              </ul>
+              <p className="text-sm mt-3 text-gray-600">Mais informações em <a href="https://www.consumidor.gov.pt" target="_blank" rel="noopener noreferrer" className="text-[#2D6A4F] underline">www.consumidor.gov.pt</a>.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Livro de Reclamações</h2>
+              <p className="text-sm">Dispomos de Livro de Reclamações Eletrónico. Para apresentar uma reclamação, aceda a: <a href="https://www.livroreclamacoes.pt" target="_blank" rel="noopener noreferrer" className="text-[#2D6A4F] underline">www.livroreclamacoes.pt</a>.</p>
+            </section>
           </div>
         ) : (
           <div className="space-y-10 text-[#1A1A1A] leading-relaxed">
@@ -106,6 +122,22 @@ const TermosCondicoes: React.FC = () => {
                 <li>ODR Platform: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-[#2D6A4F] underline">https://ec.europa.eu/consumers/odr</a></li>
                 <li>E-mail for ODR purposes: <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a></li>
               </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Alternative Dispute Resolution (ADR)</h2>
+              <p className="text-sm mb-3">In the event of a dispute, the consumer may contact the following alternative dispute resolution entity:</p>
+              <ul className="text-sm space-y-1">
+                <li><strong>CICAP – Consumer Information and Arbitration Centre of Porto</strong></li>
+                <li>Address: Rua Damião de Góis, 31 – Loja 6, 4050-225 Porto, Portugal</li>
+                <li>Website: <a href="https://www.cicap.pt" target="_blank" rel="noopener noreferrer" className="text-[#2D6A4F] underline">www.cicap.pt</a></li>
+              </ul>
+              <p className="text-sm mt-3 text-gray-600">More information at <a href="https://www.consumidor.gov.pt" target="_blank" rel="noopener noreferrer" className="text-[#2D6A4F] underline">www.consumidor.gov.pt</a>.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Complaints Book</h2>
+              <p className="text-sm">We have an Electronic Complaints Book. To submit a complaint, please visit: <a href="https://www.livroreclamacoes.pt" target="_blank" rel="noopener noreferrer" className="text-[#2D6A4F] underline">www.livroreclamacoes.pt</a>.</p>
             </section>
           </div>
         )}

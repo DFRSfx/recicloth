@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, ChevronLeft, ChevronRight, Plus, Check } from 'lucide-react';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
+import CartToast from './CartToast';
 
 interface ProductCardProps {
   product: Product;
   hideActions?: boolean;
+  selectedColorHex?: string;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false }) => {
+const toColorSlug = (value: string): string =>
+  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+
+const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false, selectedColorHex }) => {
   const { addItem } = useCart();
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
-  
+
   // Carousel State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -23,6 +28,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false 
 
   // Micro-interaction State
   const [isAdded, setIsAdded] = useState(false);
+  const [cartToast, setCartToast] = useState<{ name: string; image?: string; type: 'added' | 'removed' | 'updated' } | null>(null);
+
+  // Jump to the image that matches the selected color from Shop filters
+  useEffect(() => {
+    if (!selectedColorHex) return;
+    const colorObj = product.colors?.find(c => c.hex === selectedColorHex);
+    if (!colorObj) return;
+    const slug = toColorSlug(colorObj.name);
+    const idx = product.images.findIndex(img => img.includes(`-${slug}`));
+    if (idx >= 0) setCurrentImageIndex(idx);
+  }, [selectedColorHex, product]);
 
   const isFavorite = favorites.some(fav => fav.product_id === product.id);
 
@@ -40,16 +56,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false 
     e.preventDefault();
     if (!product.inStock || isAdded) return;
 
-    // Trigger cart context
-    addItem(product, product.colors?.[0]?.name);
-    
-    // Trigger success state micro-interaction
+    const colorObj = selectedColorHex
+      ? product.colors?.find(c => c.hex === selectedColorHex)
+      : product.colors?.[0];
+
+    addItem(product, colorObj?.name);
+
+    const previewImage = imgVariant(product.images[currentImageIndex] || product.images[0], 'sm');
+    setCartToast({ name: product.name, image: previewImage, type: 'added' });
+
     setIsAdded(true);
-    
-    // Reset after 2 seconds
-    setTimeout(() => {
-      setIsAdded(false);
-    }, 2000);
+    setTimeout(() => setIsAdded(false), 2000);
   };
 
   // --- Carousel Logic ---
@@ -280,6 +297,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false 
       </button>
 
     </div>
+
+    {cartToast && (
+      <CartToast
+        productName={cartToast.name}
+        productImage={cartToast.image}
+        type={cartToast.type}
+        onClose={() => setCartToast(null)}
+      />
+    )}
   );
 };
 

@@ -54,7 +54,7 @@ const PoliticaPrivacidade: React.FC = () => {
 
             <section>
               <h2 className="text-xl font-bold mb-3">Período de Conservação de Dados</h2>
-              <p className="text-sm">Os dados pessoais associados a encomendas e faturas são conservados por um período de <strong>5 (cinco) anos</strong>, conforme exigido pela legislação fiscal e contabilística portuguesa. Após este período, os dados serão eliminados de forma segura.</p>
+              <p className="text-sm">Os dados pessoais associados a encomendas e faturas são conservados por um período de <strong>10 (dez) anos</strong>, conforme exigido pela legislação fiscal e contabilística portuguesa (art.º 52.º do CIVA e art.º 40.º do Código Comercial). Após este período, os dados serão eliminados de forma segura.</p>
               <p className="text-sm mt-2">Os dados de marketing (caso o utilizador tenha dado consentimento) são conservados até que o utilizador retire o seu consentimento.</p>
             </section>
 
@@ -132,7 +132,7 @@ const PoliticaPrivacidade: React.FC = () => {
 
             <section>
               <h2 className="text-xl font-bold mb-3">Data Retention Period</h2>
-              <p className="text-sm">Personal data associated with orders and invoices is retained for a period of <strong>5 (five) years</strong>, as required by Portuguese tax and accounting legislation. After this period, data will be securely deleted.</p>
+              <p className="text-sm">Personal data associated with orders and invoices is retained for a period of <strong>10 (ten) years</strong>, as required by Portuguese tax and accounting legislation (art. 52 of the VAT Code and art. 40 of the Commercial Code). After this period, data will be securely deleted.</p>
               <p className="text-sm mt-2">Marketing data (where the user has given consent) is retained until the user withdraws their consent.</p>
             </section>
 
