@@ -12,6 +12,8 @@ const MarketingConsent: React.FC = () => {
 
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [marketingChecked, setMarketingChecked] = useState(false);
+  const [marketingError, setMarketingError] = useState('');
 
   const [cookieConsent, setCookieConsent] = useState({
     required: true,
@@ -45,7 +47,7 @@ const MarketingConsent: React.FC = () => {
       timers.push(privacyTimer);
     }
 
-    if (!hasSeenNewsletter) {
+    if (!hasSeenNewsletter && (currentConsent === 'true' || currentConsent === 'false')) {
       const newsletterTimer = setTimeout(() => setShowNewsletter(true), 2500);
       timers.push(newsletterTimer);
     }
@@ -66,11 +68,20 @@ const MarketingConsent: React.FC = () => {
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    let valid = true;
     if (!email.trim()) {
       setEmailError('Introduza o seu email');
-      return;
+      valid = false;
+    } else {
+      setEmailError('');
     }
-    setEmailError('');
+    if (!marketingChecked) {
+      setMarketingError('É necessário aceitar para subscrever');
+      valid = false;
+    } else {
+      setMarketingError('');
+    }
+    if (!valid) return;
     console.log(`Subscribed: ${email}`);
     handleCloseNewsletter();
   };
@@ -155,6 +166,20 @@ const MarketingConsent: React.FC = () => {
                     className={`w-full px-4 py-3 bg-[#e9e9e9] border-none text-gray-900 placeholder:text-gray-500 focus:ring-1 focus:ring-gray-400 outline-none text-center text-sm ${emailError ? 'ring-1 ring-red-400' : ''}`}
                   />
                   {emailError && <p className="mt-1 text-xs text-red-500 text-center">{emailError}</p>}
+                </div>
+                <div className="text-left">
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={marketingChecked}
+                      onChange={(e) => { setMarketingChecked(e.target.checked); if (marketingError) setMarketingError(''); }}
+                      className="mt-0.5 w-4 h-4 rounded border-gray-400 text-black focus:ring-black cursor-pointer flex-shrink-0"
+                    />
+                    <span className="text-[11px] text-gray-600 leading-relaxed">
+                      Aceito receber comunicações de marketing e novidades sobre moda sustentável
+                    </span>
+                  </label>
+                  {marketingError && <p className="mt-1 text-xs text-red-500">{marketingError}</p>}
                 </div>
                 <button
                   type="submit"

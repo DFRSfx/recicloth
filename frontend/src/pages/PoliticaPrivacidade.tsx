@@ -47,7 +47,7 @@ const PoliticaPrivacidade: React.FC = () => {
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li><strong>Recolha de Dados:</strong> Apenas os dados necessários para o envio (Nome, Morada, NIF, Email e Telefone).</li>
                 <li><strong>Finalidade:</strong> Processamento de encomendas, emissão de faturas e apoio ao cliente.</li>
-                <li><strong>Consentimento:</strong> No checkout, existe uma checkbox desmarcada: <em>"Aceito receber comunicações de marketing e novidades sobre moda sustentável"</em>. O silêncio não é consentimento.</li>
+                <li><strong>Consentimento:</strong> No pop-up de newsletter, existe uma checkbox desmarcada que o utilizador deve marcar ativamente: <em>"Aceito receber comunicações de marketing e novidades sobre moda sustentável"</em>. Não é possível subscrever sem aceitar. O silêncio não é consentimento.</li>
                 <li><strong>Direitos:</strong> O utilizador pode pedir a retificação ou eliminação dos seus dados a qualquer momento enviando um e-mail para <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a>.</li>
               </ul>
             </section>
@@ -125,7 +125,7 @@ const PoliticaPrivacidade: React.FC = () => {
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li><strong>Data Collected:</strong> Only data necessary for shipping (Name, Address, Tax ID, Email, and Phone).</li>
                 <li><strong>Purpose:</strong> Order processing, invoice issuance, and customer support.</li>
-                <li><strong>Consent:</strong> At checkout, an unchecked box is shown: <em>"I agree to receive marketing communications and updates about sustainable fashion"</em>. Silence does not constitute consent.</li>
+                <li><strong>Consent:</strong> In the newsletter pop-up, there is an unchecked box that the user must actively tick: <em>"I agree to receive marketing communications and updates about sustainable fashion"</em>. Subscribing is not possible without accepting. Silence does not constitute consent.</li>
                 <li><strong>Rights:</strong> Users may request rectification or deletion of their data at any time by emailing <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a>.</li>
               </ul>
             </section>
