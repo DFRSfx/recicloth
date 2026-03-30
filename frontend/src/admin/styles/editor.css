@@ -1,110 +1,99 @@
 /* Tiptap Editor Container */
-.tiptap-editor {
+.tiptap-editor .ProseMirror {
   padding: 1rem;
   min-height: 200px;
   outline: none;
-}
-
-/* ProseMirror Editor Styles */
-.tiptap-editor.ProseMirror {
   font-size: 14px;
   line-height: 1.7;
   color: #1a1a1a;
 }
 
-.tiptap-editor.ProseMirror:focus {
+.tiptap-editor .ProseMirror:focus {
   outline: none;
 }
 
 /* Headings */
-.tiptap-editor.ProseMirror h1 {
-  font-size: 28px;
+.tiptap-editor .ProseMirror h1 {
+  font-size: 24px;
   font-weight: 700;
   margin: 0.8em 0 0.4em 0;
   line-height: 1.2;
 }
 
-.tiptap-editor.ProseMirror h2 {
-  font-size: 22px;
+.tiptap-editor .ProseMirror h2 {
+  font-size: 20px;
   font-weight: 600;
   margin: 0.7em 0 0.35em 0;
   line-height: 1.3;
 }
 
-.tiptap-editor.ProseMirror h3 {
-  font-size: 18px;
+.tiptap-editor .ProseMirror h3 {
+  font-size: 16px;
   font-weight: 600;
   margin: 0.6em 0 0.3em 0;
   line-height: 1.4;
 }
 
 /* Paragraphs */
-.tiptap-editor.ProseMirror p {
-  margin: 0 0 1em 0;
+.tiptap-editor .ProseMirror p {
+  margin: 0 0 0.75em 0;
 }
 
-/* First paragraph handling */
-.tiptap-editor.ProseMirror > :first-child {
+.tiptap-editor .ProseMirror > :first-child {
   margin-top: 0;
 }
 
 /* Lists */
-.tiptap-editor.ProseMirror ul,
-.tiptap-editor.ProseMirror ol {
+.tiptap-editor .ProseMirror ul {
+  list-style-type: disc;
   padding-left: 1.5em;
-  margin: 1em 0;
+  margin: 0.75em 0;
 }
 
-.tiptap-editor.ProseMirror ul ul,
-.tiptap-editor.ProseMirror ol ol,
-.tiptap-editor.ProseMirror ul ol,
-.tiptap-editor.ProseMirror ol ul {
-  margin: 0.2em 0;
+.tiptap-editor .ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin: 0.75em 0;
 }
 
-.tiptap-editor.ProseMirror li {
-  margin: 0.3em 0;
+.tiptap-editor .ProseMirror li {
+  margin: 0.25em 0;
   list-style-position: outside;
 }
 
-.tiptap-editor.ProseMirror ol {
-  list-style-type: decimal;
-}
-
-.tiptap-editor.ProseMirror ul {
-  list-style-type: disc;
+.tiptap-editor .ProseMirror li > p {
+  margin: 0;
 }
 
 /* Code blocks */
-.tiptap-editor.ProseMirror pre {
+.tiptap-editor .ProseMirror pre {
   background-color: #f3f4f6;
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
   padding: 0.875rem;
   margin: 1em 0;
   overflow-x: auto;
-  line-height: 1.5;
 }
 
-.tiptap-editor.ProseMirror pre code {
+.tiptap-editor .ProseMirror pre code {
   background: transparent;
   color: #1f2937;
   padding: 0;
   font-size: 13px;
-  font-family: 'Menlo', 'Monaco', 'Ubuntu Mono', 'Courier New', monospace;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
 }
 
-.tiptap-editor.ProseMirror code {
+.tiptap-editor .ProseMirror code {
   background-color: #f3f4f6;
   border-radius: 0.25rem;
   padding: 0.15em 0.35em;
-  font-family: 'Menlo', 'Monaco', 'Ubuntu Mono', 'Courier New', monospace;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
   font-size: 13px;
   color: #d97706;
 }
 
 /* Blockquote */
-.tiptap-editor.ProseMirror blockquote {
+.tiptap-editor .ProseMirror blockquote {
   border-left: 3px solid #3b82f6;
   margin: 1em 0;
   padding-left: 1em;
@@ -113,50 +102,33 @@
 }
 
 /* Horizontal rule */
-.tiptap-editor.ProseMirror hr {
+.tiptap-editor .ProseMirror hr {
   margin: 1.5em 0;
   border: none;
   border-top: 1px solid #e5e7eb;
-  height: 0;
 }
 
 /* Links */
-.tiptap-editor.ProseMirror a {
+.tiptap-editor .ProseMirror a {
   color: #3b82f6;
   text-decoration: underline;
   cursor: pointer;
 }
 
-.tiptap-editor.ProseMirror a:hover {
-  color: #1d4ed8;
-}
-
-/* Strong/Bold */
-.tiptap-editor.ProseMirror strong,
-.tiptap-editor.ProseMirror b {
+/* Strong / Italic */
+.tiptap-editor .ProseMirror strong,
+.tiptap-editor .ProseMirror b {
   font-weight: 600;
 }
 
-/* Emphasis/Italic */
-.tiptap-editor.ProseMirror em,
-.tiptap-editor.ProseMirror i {
+.tiptap-editor .ProseMirror em,
+.tiptap-editor .ProseMirror i {
   font-style: italic;
 }
 
-/* Strikethrough */
-.tiptap-editor.ProseMirror s,
-.tiptap-editor.ProseMirror del {
-  text-decoration: line-through;
-}
-
-/* Selection styling */
-.tiptap-editor.ProseMirror ::selection {
-  background-color: rgba(59, 130, 246, 0.3);
-}
-
-/* Placeholder styling for empty editor */
-.tiptap-editor.ProseMirror.is-empty::before {
-  color: #d1d5db;
+/* Placeholder */
+.tiptap-editor .ProseMirror.is-editor-empty:first-child::before {
+  color: #9ca3af;
   content: attr(data-placeholder);
   float: left;
   height: 0;
