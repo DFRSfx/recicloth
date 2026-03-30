@@ -90,7 +90,19 @@ const Product: React.FC = () => {
   const handleMobileScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const scrollLeft = e.currentTarget.scrollLeft;
     const width = e.currentTarget.clientWidth;
-    setMobileImageIndex(Math.round(scrollLeft / width));
+    const newIndex = Math.round(scrollLeft / width);
+    setMobileImageIndex(newIndex);
+
+    // Sync selectedColor to whichever color's image is now visible
+    const image = visibleImages[newIndex];
+    if (image && product?.colors?.length) {
+      for (const color of product.colors) {
+        if (image.includes(`-${toColorSlug(color.name)}`)) {
+          setSelectedColor(color.name);
+          return;
+        }
+      }
+    }
   };
 
   if (loading) {

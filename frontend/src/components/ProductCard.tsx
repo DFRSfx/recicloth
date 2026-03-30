@@ -52,15 +52,27 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
     }
   };
 
+  // Derive the active color from the image currently on screen
+  const activeColorName = React.useMemo(() => {
+    // Filter-selected color takes priority
+    if (selectedColorHex) {
+      return product.colors?.find(c => c.hex === selectedColorHex)?.name ?? product.colors?.[0]?.name;
+    }
+    // Otherwise match by slug in the current image filename
+    const currentImage = images[currentImageIndex];
+    if (currentImage && product.colors?.length) {
+      for (const color of product.colors) {
+        if (currentImage.includes(`-${toColorSlug(color.name)}`)) return color.name;
+      }
+    }
+    return product.colors?.[0]?.name;
+  }, [selectedColorHex, currentImageIndex, images, product.colors]);
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!product.inStock || isAdded) return;
 
-    const colorObj = selectedColorHex
-      ? product.colors?.find(c => c.hex === selectedColorHex)
-      : product.colors?.[0];
-
-    addItem(product, colorObj?.name);
+    addItem(product, activeColorName);
 
     const previewImage = imgVariant(product.images[currentImageIndex] || product.images[0], 'sm');
     setCartToast({ name: product.name, image: previewImage, type: 'added' });
