@@ -1,7 +1,7 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
-import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Undo2, Redo2, Code } from 'lucide-react';
+import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Heading3, Undo2, Redo2, Code } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import '../styles/editor.css';
 
@@ -103,6 +103,15 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Escreva
           aria-label="Título 2"
         >
           <Heading2 size={18} />
+        </button>
+        <button
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          className={`${buttonClass} ${editor.isActive('heading', { level: 3 }) ? activeButtonClass : ''}`}
+          title="Título 3"
+          type="button"
+          aria-label="Título 3"
+        >
+          <Heading3 size={18} />
         </button>
 
         <div className="w-px bg-gray-300 mx-1"></div>

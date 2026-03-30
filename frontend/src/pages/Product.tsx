@@ -340,7 +340,7 @@ const Product: React.FC = () => {
                 {expandedSections.description ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
               </button>
               <div className={`overflow-hidden transition-all duration-300 ${expandedSections.description ? 'max-h-[2000px] pb-6' : 'max-h-0'}`}>
-                <div className="text-gray-700 text-sm leading-relaxed mb-4 product-description" dangerouslySetInnerHTML={{ __html: product.description }} />
+                <div className="product-description" dangerouslySetInnerHTML={{ __html: product.description }} />
                 
                 <div className="flex flex-wrap gap-2">
                   {product.featured && <span className="border border-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 uppercase tracking-wider">Destaque</span>}
