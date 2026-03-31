@@ -453,13 +453,13 @@ const Navbar: React.FC = () => {
               ref={searchButtonRef}
               onClick={handleSearchToggle}
               aria-label={searchOpen ? 'Fechar pesquisa' : 'Pesquisar'}
-              className="md:hidden hover:text-black transition-colors"
+              className="md:hidden flex items-center justify-center hover:text-black transition-colors"
             >
               <Search className="h-6 w-6" strokeWidth={1.5} />
             </button>
 
             {/* Heart Icon Desktop */}
-            <Link to="/favoritos" aria-label="Favoritos" className="hidden md:block hover:text-black transition-colors relative">
+            <Link to="/favoritos" aria-label="Favoritos" className="hidden md:flex items-center justify-center hover:text-black transition-colors relative">
               <Heart className="h-6 w-6" strokeWidth={1.5} />
               {favorites.length > 0 && (
                 <span className="absolute -top-1.5 -right-2 bg-[#1E4D3B] text-white rounded-full text-[10px] font-bold w-4 h-4 flex items-center justify-center shadow-sm">
@@ -469,7 +469,7 @@ const Navbar: React.FC = () => {
             </Link>
 
             {/* Cart Icon Mobile & Desktop */}
-            <Link to="/carrinho" aria-label="Carrinho" className="hover:text-black transition-colors relative">
+            <Link to="/carrinho" aria-label="Carrinho" className="flex items-center justify-center hover:text-black transition-colors relative">
               <ShoppingCart className="h-6 w-6" strokeWidth={1.5} />
               {itemCount > 0 && (
                 <span className="absolute -top-1.5 -right-2 bg-[#1E4D3B] text-white rounded-full text-[10px] font-bold w-4 h-4 flex items-center justify-center shadow-sm">
@@ -479,11 +479,11 @@ const Navbar: React.FC = () => {
             </Link>
 
             {/* User Icon Desktop */}
-            <div className="relative hidden md:block">
+            <div className="relative hidden md:flex items-center justify-center">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 aria-label="A minha conta"
-                className="hover:text-black transition-colors"
+                className="flex items-center justify-center hover:text-black transition-colors"
               >
                 <User className="h-6 w-6" strokeWidth={1.5} />
               </button>
@@ -493,7 +493,7 @@ const Navbar: React.FC = () => {
             <button
               onClick={() => isOpen ? handleCloseMenu() : setIsOpen(true)}
               aria-label={isOpen ? 'Fechar menu' : 'Abrir menu'}
-              className="md:hidden hover:text-black transition-colors"
+              className="md:hidden flex items-center justify-center hover:text-black transition-colors"
             >
               {isOpen ? <X className="h-6 w-6" strokeWidth={1.5} /> : <Menu className="h-6 w-6" strokeWidth={1.5} />}
             </button>
