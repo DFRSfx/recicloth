@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import { getCached, setCached, clearCachedByPrefix } from '../utils/apiCache.js';
 import { warmCaches } from '../utils/dataWarmer.js';
 import { uploadToS3, deleteFromS3 } from '../utils/s3Upload.js';
+import { saveProductTranslations, saveColorTranslations } from '../utils/saveTranslations.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -104,6 +105,47 @@ const parseImages = (images: any): string[] => {
   return [];
 };
 
+// 🌍 i18n: Substitui os nomes das cores pelo valor traduzido para o lang pedido
+async function applyColorTranslations(
+  products: any[],
+  lang: string
+): Promise<any[]> {
+  if (!products.length) return products;
+
+  const productIdsWithColors = products
+    .filter(p => Array.isArray(p.colors) && p.colors.length > 0)
+    .map(p => Number(p.id));
+
+  if (!productIdsWithColors.length) return products;
+
+  // Build IN clause with correct number of placeholders
+  const placeholders = productIdsWithColors.map(() => '?').join(', ');
+  const [colorRows]: any = await pool.query(
+    `SELECT product_id, hex, name
+     FROM color_translations
+     WHERE product_id IN (${placeholders}) AND lang = ?`,
+    [...productIdsWithColors, lang]
+  );
+
+  // Agrupa por product_id → hex → name
+  const colorMap: Record<number, Record<string, string>> = {};
+  for (const row of colorRows) {
+    if (!colorMap[row.product_id]) colorMap[row.product_id] = {};
+    colorMap[row.product_id][row.hex] = row.name;
+  }
+
+  return products.map(p => {
+    if (!Array.isArray(p.colors) || !colorMap[p.id]) return p;
+    return {
+      ...p,
+      colors: p.colors.map((c: any) => ({
+        ...c,
+        name: colorMap[p.id]?.[c.hex] ?? c.name, // fallback ao nome original
+      })),
+    };
+  });
+}
+
 // ── GET all products (public) ─────────────────────────────────────────────────
 
 router.get('/', async (req, res) => {
@@ -111,7 +153,8 @@ router.get('/', async (req, res) => {
     // Lazy cache warming on first request (prevents startup connection exhaustion on serverless)
     warmCaches().catch(err => console.error('Lazy cache warm failed:', err));
 
-    const cacheKey = 'products:list';
+    const lang = (req.query.lang as string) || 'pt'; // 🌍 i18n
+    const cacheKey = `products:list:${lang}`;         // 🌍 cache por língua
     const cached = getCached<any[]>(cacheKey);
     if (cached) {
       res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
@@ -120,17 +163,26 @@ router.get('/', async (req, res) => {
       return;
     }
 
+    // 🌍 JOIN com tabelas de tradução — COALESCE garante fallback ao original
     const [rows]: any = await pool.query(
-      `SELECT p.*, c.name as category_name, c.slug as category_slug
+      `SELECT
+         p.id, p.price, p.weight, p.stock, p.stock_mode, p.size_stock,
+         p.featured, p.images, p.colors, p.created_at, p.updated_at,
+         p.category_id,
+         COALESCE(pt.name,        p.name)        AS name,
+         COALESCE(pt.description, p.description) AS description,
+         COALESCE(ct.name,        c.name)        AS category_name,
+         c.slug                                  AS category_slug
        FROM products p
        LEFT JOIN categories c ON p.category_id = c.id
-       ORDER BY p.created_at DESC`
+       LEFT JOIN product_translations pt  ON pt.product_id  = p.id  AND pt.lang  = ?
+       LEFT JOIN category_translations ct ON ct.category_id = c.id  AND ct.lang  = ?
+       ORDER BY p.created_at DESC`,
+      [lang, lang]
     );
 
-    const products = rows.map((product: any) => ({
-      ...product,
-      images: parseImages(product.images),
-    }));
+    let products = rows.map((p: any) => ({ ...p, images: parseImages(p.images) }));
+    products = await applyColorTranslations(products, lang); // 🌍 i18n cores
 
     setCached(cacheKey, products, 60_000);
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
@@ -146,12 +198,24 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
+    const lang = (req.query.lang as string) || 'pt'; // 🌍 i18n
+
+    // 🌍 JOIN com tabelas de tradução
     const [rows]: any = await pool.query(
-      `SELECT p.*, c.name as category_name, c.slug as category_slug
+      `SELECT
+         p.id, p.price, p.weight, p.stock, p.stock_mode, p.size_stock,
+         p.featured, p.images, p.colors, p.created_at, p.updated_at,
+         p.category_id,
+         COALESCE(pt.name,        p.name)        AS name,
+         COALESCE(pt.description, p.description) AS description,
+         COALESCE(ct.name,        c.name)        AS category_name,
+         c.slug                                  AS category_slug
        FROM products p
        LEFT JOIN categories c ON p.category_id = c.id
+       LEFT JOIN product_translations pt  ON pt.product_id  = p.id  AND pt.lang  = ?
+       LEFT JOIN category_translations ct ON ct.category_id = c.id  AND ct.lang  = ?
        WHERE p.id = ?`,
-      [req.params.id]
+      [lang, lang, req.params.id]
     );
 
     if (rows.length === 0) {
@@ -159,7 +223,9 @@ router.get('/:id', async (req, res) => {
       return;
     }
 
-    res.json({ ...rows[0], images: parseImages(rows[0].images) });
+    let products = [{ ...rows[0], images: parseImages(rows[0].images) }];
+    products = await applyColorTranslations(products, lang); // 🌍 i18n cores
+    res.json(products[0]);
   } catch (error) {
     console.error('Error fetching product:', error);
     res.status(500).json({ error: 'Failed to fetch product' });
@@ -192,7 +258,7 @@ router.post(
         return;
       }
 
-      let colorsArray: string[] = [];
+      let colorsArray: any[] = [];
       if (colors) {
         try {
           colorsArray = typeof colors === 'string' ? JSON.parse(colors) : colors;
@@ -264,6 +330,13 @@ router.post(
       );
 
       clearCachedByPrefix('products:');
+
+      // 🌍 i18n: Guarda traduções em background (não atrasa a resposta ao admin)
+      saveProductTranslations(productId, name, description, 'en').catch(console.error);
+      if (colorsArray.length > 0) {
+        saveColorTranslations(productId, colorsArray, 'en').catch(console.error);
+      }
+
       res.status(201).json({ ...newProduct[0], images: imagePaths });
     } catch (error) {
       console.error('Error creating product:', error);
@@ -417,6 +490,22 @@ router.put(
       }
 
       clearCachedByPrefix('products:');
+
+      // 🌍 i18n: Re-traduz se name, description ou colors foram alterados
+      if (name !== undefined || description !== undefined) {
+        const currentName = name ?? updatedProduct[0].name;
+        const currentDesc = description ?? updatedProduct[0].description;
+        saveProductTranslations(productId, currentName, currentDesc, 'en').catch(console.error);
+      }
+      if (colors !== undefined) {
+        try {
+          const colorsForTranslation = typeof colors === 'string' ? JSON.parse(colors) : colors;
+          if (Array.isArray(colorsForTranslation) && colorsForTranslation.length > 0) {
+            saveColorTranslations(productId, colorsForTranslation, 'en').catch(console.error);
+          }
+        } catch (e) { /* já validado acima */ }
+      }
+
       res.json({ ...updatedProduct[0], images: finalImages });
     } catch (error) {
       console.error('❌ Error updating product:', error);

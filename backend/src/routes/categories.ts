@@ -3,13 +3,15 @@ import { body, validationResult } from 'express-validator';
 import pool from '../config/database.js';
 import { requireAdmin, AuthRequest } from '../middleware/auth.js';
 import { getCached, setCached, clearCachedByPrefix } from '../utils/apiCache.js';
+import { saveCategoryTranslations } from '../utils/saveTranslations.js';
 
 const router = express.Router();
 
 // Get all categories (public)
 router.get('/', async (req, res) => {
   try {
-    const cacheKey = 'categories:list';
+    const lang = (req.query.lang as string) || 'pt'; // 🌍 i18n
+    const cacheKey = `categories:list:${lang}`;       // 🌍 cache por língua
     const cached = getCached<any[]>(cacheKey);
     if (cached) {
       res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
@@ -18,8 +20,16 @@ router.get('/', async (req, res) => {
       return;
     }
 
-    const [rows] = await pool.query(
-      'SELECT * FROM categories ORDER BY name ASC'
+    // 🌍 JOIN com tabela de tradução
+    const [rows]: any = await pool.query(
+      `SELECT
+         c.id, c.slug, c.image, c.created_at,
+         COALESCE(ct.name,        c.name)        AS name,
+         COALESCE(ct.description, c.description) AS description
+       FROM categories c
+       LEFT JOIN category_translations ct ON ct.category_id = c.id AND ct.lang = ?
+       ORDER BY c.name ASC`,
+      [lang]
     );
 
     setCached(cacheKey, rows, 60_000);
@@ -35,9 +45,17 @@ router.get('/', async (req, res) => {
 // Get single category (public)
 router.get('/:id', async (req, res) => {
   try {
+    const lang = (req.query.lang as string) || 'pt'; // 🌍 i18n
+
     const [rows]: any = await pool.query(
-      'SELECT * FROM categories WHERE id = ?',
-      [req.params.id]
+      `SELECT
+         c.id, c.slug, c.image, c.created_at,
+         COALESCE(ct.name,        c.name)        AS name,
+         COALESCE(ct.description, c.description) AS description
+       FROM categories c
+       LEFT JOIN category_translations ct ON ct.category_id = c.id AND ct.lang = ?
+       WHERE c.id = ?`,
+      [lang, req.params.id]
     );
 
     if (rows.length === 0) {
@@ -89,6 +107,11 @@ router.post(
       );
 
       clearCachedByPrefix('categories:');
+
+      // 🌍 i18n: Guarda traduções em background
+      saveCategoryTranslations(result.insertId, name, description || null, 'en')
+        .catch(console.error);
+
       res.status(201).json(newCategory[0]);
     } catch (error: any) {
       console.error('Error creating category:', error);
@@ -164,6 +187,19 @@ router.put(
       }
 
       clearCachedByPrefix('categories:');
+
+      // 🌍 i18n: Re-traduz se name ou description mudaram
+      if (name !== undefined || description !== undefined) {
+        const currentName = name ?? updatedCategory[0].name;
+        const currentDesc = description !== undefined ? description : updatedCategory[0].description;
+        saveCategoryTranslations(
+          Number(req.params.id),
+          currentName,
+          currentDesc || null,
+          'en'
+        ).catch(console.error);
+      }
+
       res.json(updatedCategory[0]);
     } catch (error: any) {
       console.error('Error updating category:', error);
