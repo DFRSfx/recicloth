@@ -5,6 +5,7 @@ import { productsApi } from '../../utils/apiHelpers';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import AdminSelect from '../components/AdminSelect';
 import { useToast } from '../../context/ToastContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { getAbsoluteImageUrl, imgVariant } from '../../utils/imageUtils';
 
 interface Product {
@@ -28,10 +29,11 @@ export default function ProductsList() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
   const { error: showError } = useToast();
+  const { lang } = useLanguage();
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     filterProducts();
@@ -39,7 +41,8 @@ export default function ProductsList() {
 
   const loadProducts = async () => {
     try {
-      const data = await productsApi.getAll();
+      setLoading(true);
+      const data = await productsApi.getAll(lang);
       setProducts(data || []);
     } catch (error) {
       console.error('Error loading products:', error);

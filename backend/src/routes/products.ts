@@ -199,7 +199,42 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
+    const raw = req.query.raw === 'true';
     const lang = (req.query.lang as string) || 'pt'; // 🌍 i18n
+
+    if (raw) {
+      const [rows]: any = await pool.query(
+        `SELECT
+           p.*,
+           c.name AS category_name,
+           c.slug AS category_slug
+         FROM products p
+         LEFT JOIN categories c ON p.category_id = c.id
+         WHERE p.id = ?`,
+        [req.params.id]
+      );
+
+      if (rows.length === 0) {
+        res.status(404).json({ error: 'Product not found' });
+        return;
+      }
+
+      let parsedColors = [];
+      try {
+        parsedColors = typeof rows[0].colors === 'string' ? JSON.parse(rows[0].colors) : rows[0].colors;
+      } catch (e) {
+        // ignore
+      }
+
+      const product = { 
+        ...rows[0], 
+        images: parseImages(rows[0].images),
+        colors: parsedColors
+      };
+      
+      res.json(product);
+      return;
+    }
 
     // 🌍 JOIN com tabelas de tradução
     const [rows]: any = await pool.query(

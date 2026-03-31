@@ -112,7 +112,7 @@ export default function ProductForm() {
 
   const loadProduct = async () => {
     try {
-      const data = await productsApi.getOne(Number(id));
+      const data = await productsApi.getOne(Number(id), undefined, true);
       if (data) {
         const parsedSizeStock: SizeStockItem[] = data.size_stock
           ? (Array.isArray(data.size_stock) ? data.size_stock : JSON.parse(data.size_stock))

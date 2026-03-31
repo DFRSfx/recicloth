@@ -169,7 +169,7 @@ export default function TranslationsModal({ productId, onClose, onSuccess }: Tra
             />
           </div>
 
-          <div>
+          <div key={activeLang}>
             <RichTextEditor
               label={`Descrição (${activeLang.toUpperCase()})`}
               value={currentData?.description || ''}

@@ -33,7 +33,13 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 // Products
 export const productsApi = {
   getAll: (lang?: string) => fetchWithAuth(`/products${lang ? `?lang=${lang}` : ''}`),
-  getOne: (id: number, lang?: string) => fetchWithAuth(`/products/${id}${lang ? `?lang=${lang}` : ''}`),
+  getOne: (id: number, lang?: string, raw?: boolean) => {
+    const params = new URLSearchParams();
+    if (lang) params.append('lang', lang);
+    if (raw) params.append('raw', 'true');
+    const qs = params.toString();
+    return fetchWithAuth(`/products/${id}${qs ? `?${qs}` : ''}`);
+  },
   create: (data: any) => {
     // If data is FormData, send as-is. Otherwise, stringify it
     const body = data instanceof FormData ? data : JSON.stringify(data);
