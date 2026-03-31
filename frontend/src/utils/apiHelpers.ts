@@ -32,8 +32,8 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 
 // Products
 export const productsApi = {
-  getAll: () => fetchWithAuth('/products'),
-  getOne: (id: number) => fetchWithAuth(`/products/${id}`),
+  getAll: (lang?: string) => fetchWithAuth(`/products${lang ? `?lang=${lang}` : ''}`),
+  getOne: (id: number, lang?: string) => fetchWithAuth(`/products/${id}${lang ? `?lang=${lang}` : ''}`),
   create: (data: any) => {
     // If data is FormData, send as-is. Otherwise, stringify it
     const body = data instanceof FormData ? data : JSON.stringify(data);
@@ -57,8 +57,8 @@ export const productsApi = {
 
 // Categories
 export const categoriesApi = {
-  getAll: () => fetchWithAuth('/categories'),
-  getOne: (id: number) => fetchWithAuth(`/categories/${id}`),
+  getAll: (lang?: string) => fetchWithAuth(`/categories${lang ? `?lang=${lang}` : ''}`),
+  getOne: (id: number, lang?: string) => fetchWithAuth(`/categories/${id}${lang ? `?lang=${lang}` : ''}`),
   create: (data: any) => fetchWithAuth('/categories', {
     method: 'POST',
     body: JSON.stringify(data),

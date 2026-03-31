@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { productsApi } from '../utils/apiHelpers';
 import { adaptProductsToFrontend, BackendProduct } from '../utils/adapters';
+import { useLanguage } from '../context/LanguageContext';
 
 interface UseProductsResult {
   products: Product[];
@@ -14,12 +15,13 @@ export function useProducts(): UseProductsResult {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { lang } = useLanguage();
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await productsApi.getAll();
+      const response = await productsApi.getAll(lang);
 
       if (response && Array.isArray(response)) {
         const adaptedProducts = adaptProductsToFrontend(response as BackendProduct[]);
@@ -38,7 +40,7 @@ export function useProducts(): UseProductsResult {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [lang]); // re-fetch when language changes
 
   return {
     products,
@@ -59,6 +61,7 @@ export function useProduct(id: string): UseProductResult {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { lang } = useLanguage();
 
   const fetchProduct = async () => {
     try {
@@ -70,7 +73,7 @@ export function useProduct(id: string): UseProductResult {
         throw new Error('Invalid product ID');
       }
 
-      const response = await productsApi.getOne(productId);
+      const response = await productsApi.getOne(productId, lang);
 
       if (response) {
         const adaptedProducts = adaptProductsToFrontend([response as BackendProduct]);
@@ -91,7 +94,7 @@ export function useProduct(id: string): UseProductResult {
     if (id) {
       fetchProduct();
     }
-  }, [id]);
+  }, [id, lang]); // re-fetch when language or id changes
 
   return {
     product,

@@ -10,6 +10,7 @@ import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import { Product } from '../types';
 import AuthModal from './AuthModal';
+import LanguageSwitcher from './LanguageSwitcher';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -489,6 +490,11 @@ const Navbar: React.FC = () => {
               </button>
             </div>
 
+            {/* Language Switcher Desktop */}
+            <div className="hidden md:flex items-center">
+              <LanguageSwitcher />
+            </div>
+
             {/* Hamburger/Close Menu Mobile */}
             <button
               onClick={() => isOpen ? handleCloseMenu() : setIsOpen(true)}
@@ -589,6 +595,14 @@ const Navbar: React.FC = () => {
               >
                 <User className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> Minha Conta
               </button>
+
+              <div className="border-t border-gray-100 my-2 mx-2"></div>
+
+              {/* Language Switcher Mobile */}
+              <div className="px-4 py-3 flex items-center gap-3">
+                <span className="text-[15px] text-gray-500">Idioma:</span>
+                <LanguageSwitcher />
+              </div>
             </div>
           </div>
         )}

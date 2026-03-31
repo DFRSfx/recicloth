@@ -4,6 +4,7 @@ import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { FavoritesProvider } from './context/FavoritesContext';
+import { LanguageProvider } from './context/LanguageContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
@@ -37,6 +38,7 @@ const CheckoutFail = lazy(() => import('./pages/CheckoutFail'));
 
 function App() {
   return (
+    <LanguageProvider>
     <AuthProvider>
       <ToastProvider>
         <FavoritesProvider>
@@ -100,6 +102,7 @@ function App() {
         </FavoritesProvider>
       </ToastProvider>
     </AuthProvider>
+    </LanguageProvider>
   );
 }
 
