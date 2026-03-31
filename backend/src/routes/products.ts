@@ -141,6 +141,7 @@ async function applyColorTranslations(
       colors: p.colors.map((c: any) => ({
         ...c,
         name: colorMap[p.id]?.[c.hex] ?? c.name, // fallback ao nome original
+        original_name: c.name, // 🌍 Keep original English name for admin slug-matching
       })),
     };
   });
@@ -229,6 +230,96 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching product:', error);
     res.status(500).json({ error: 'Failed to fetch product' });
+  }
+});
+
+// ── GET /:id/translations (admin) ───────────────────────────────────────────
+
+router.get('/:id/translations', ...requireAdmin, async (req: AuthRequest, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+
+    // Fetch product translations
+    const [ptRows]: any = await pool.query(
+      'SELECT lang, name, description FROM product_translations WHERE product_id = ?',
+      [productId]
+    );
+
+    // Fetch color translations
+    const [ctRows]: any = await pool.query(
+      'SELECT hex, lang, name FROM color_translations WHERE product_id = ?',
+      [productId]
+    );
+
+    // Group by language
+    const translations: Record<string, { name: string; description: string; colors: { hex: string; name: string }[] }> = {};
+    for (const row of ptRows) {
+      translations[row.lang] = {
+        name: row.name,
+        description: row.description,
+        colors: [],
+      };
+    }
+
+    for (const row of ctRows) {
+      if (!translations[row.lang]) {
+        translations[row.lang] = { name: '', description: '', colors: [] };
+      }
+      translations[row.lang].colors.push({ hex: row.hex, name: row.name });
+    }
+
+    res.json(translations);
+  } catch (error) {
+    console.error('Error fetching translations:', error);
+    res.status(500).json({ error: 'Failed to fetch translations' });
+  }
+});
+
+// ── PUT /:id/translations (admin) ───────────────────────────────────────────
+
+router.put('/:id/translations', ...requireAdmin, async (req: AuthRequest, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    const { translations } = req.body; 
+    // Format expected: { [lang]: { name, description, colors: [{hex, name}] } }
+
+    if (!translations || typeof translations !== 'object') {
+       res.status(400).json({ error: 'Missing translations object' });
+       return;
+    }
+
+    // Process each language
+    for (const [lang, data] of Object.entries(translations)) {
+      const { name, description, colors } = data as any;
+
+      if (name !== undefined || description !== undefined) {
+        await pool.query(
+          `INSERT INTO product_translations (product_id, lang, name, description)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT (product_id, lang) DO UPDATE
+             SET name = EXCLUDED.name, description = EXCLUDED.description`,
+          [productId, lang, name || '', description || '']
+        );
+      }
+
+      if (Array.isArray(colors)) {
+        for (const color of colors) {
+          if (!color.hex || !color.name) continue;
+          await pool.query(
+            `INSERT INTO color_translations (product_id, hex, lang, name)
+             VALUES (?, ?, ?, ?)
+             ON CONFLICT (product_id, hex, lang) DO UPDATE SET name = EXCLUDED.name`,
+            [productId, color.hex, lang, color.name]
+          );
+        }
+      }
+    }
+
+    clearCachedByPrefix('products:');
+    res.json({ message: 'Translations updated successfully' });
+  } catch (error) {
+    console.error('Error updating translations:', error);
+    res.status(500).json({ error: 'Failed to update translations' });
   }
 });
 

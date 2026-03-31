@@ -3,10 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { productsApi } from '../../utils/apiHelpers';
 import { useCategories } from '../../hooks/useCategories';
 import { getAbsoluteImageUrl } from '../../utils/imageUtils';
-import { Save, ArrowLeft, X, Upload, GripVertical } from 'lucide-react';
+import { Save, ArrowLeft, X, Upload, GripVertical, Globe } from 'lucide-react';
 import ColorPicker, { ColorOption } from '../components/ColorPicker';
 import AdminSelect from '../components/AdminSelect';
 import RichTextEditor from '../components/RichTextEditor';
+import TranslationsModal from '../components/TranslationsModal';
 
 interface SizeStockItem {
   size: string;
@@ -57,6 +58,7 @@ export default function ProductForm() {
   const [error, setError] = useState('');
   const [customSizeInput, setCustomSizeInput] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [showTranslations, setShowTranslations] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -160,7 +162,8 @@ export default function ProductForm() {
             
             // 3. Procurar a cor cujo slug coincida com o final do nome do ficheiro
             const found = sortedColors.find((c: any) => {
-              const nameSlug = c.name
+              const baseName = c.original_name || c.name;
+              const nameSlug = baseName
                 .toLowerCase()
                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove acentos
                 .replace(/[^a-z0-9]+/g, '-') // caracteres especiais viram hífen
@@ -477,17 +480,29 @@ export default function ProductForm() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-4">
-        <button
-          onClick={() => navigate('/admin/produtos')}
-          className="p-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
-          aria-label="Voltar"
-        >
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="text-3xl font-bold text-gray-800">
-          {isEdit ? 'Editar Produto' : 'Adicionar Novo Produto'}
-        </h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate('/admin/produtos')}
+            className="p-3 text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="Voltar"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-3xl font-bold text-gray-800">
+            {isEdit ? 'Editar Produto' : 'Adicionar Novo Produto'}
+          </h1>
+        </div>
+
+        {isEdit && (
+          <button
+            onClick={() => setShowTranslations(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors font-medium border border-indigo-200"
+          >
+            <Globe size={18} />
+            <span className="hidden sm:inline">Gerir Traduções</span>
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -1082,6 +1097,17 @@ export default function ProductForm() {
           </div>
         </form>
       </div>
+
+      {showTranslations && isEdit && (
+        <TranslationsModal
+          productId={Number(id)}
+          onClose={() => setShowTranslations(false)}
+          onSuccess={() => {
+            setShowTranslations(false);
+            loadProduct();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   Image,
   Users
 } from 'lucide-react';
+import LanguageSwitcher from '../../components/LanguageSwitcher';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -75,11 +76,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="p-4 border-b border-secondary-200 flex-shrink-0">
           <Link
             to="/"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-primary-600 hover:bg-primary-50 transition-colors font-medium"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-primary-600 hover:bg-primary-50 transition-colors font-medium mb-2"
           >
             <ArrowLeft size={20} />
             <span>Voltar ao Website</span>
           </Link>
+          <div className="px-4 flex items-center justify-between text-sm text-gray-600 lg:hidden">
+            <span>Idioma:</span>
+            <LanguageSwitcher />
+          </div>
         </div>
 
         {/* Navigation */}
@@ -141,6 +146,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </button>
 
           <div className="flex-1"></div>
+
+          <div className="hidden lg:flex items-center gap-4">
+            <span className="text-sm font-medium text-gray-600">Idioma:</span>
+            <LanguageSwitcher />
+          </div>
         </header>
 
         {/* Page content */}
