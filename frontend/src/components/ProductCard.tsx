@@ -16,7 +16,6 @@ interface ProductCardProps {
   viewMode?: 'grid' | 'fullscreen';
 }
 
-// Converte "Shore Blue" em "shore-blue" para cruzar com o nome do ficheiro da imagem
 const toColorSlug = (value: string): string =>
   value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 
@@ -26,18 +25,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
   const { lang, t } = useLanguage();
   const productPath = getProductPath(lang, product.id);
 
-  const carouselImages = product.images && product.images.length > 0 ? product.images : ['placeholder.jpg'];
-
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // Estados de Interação
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [isAdded, setIsAdded] = useState(false);
 
-  const [activeColor, setActiveColor] = useState<string | undefined>(
-    product.colors?.[0]?.name
-  );
+  // O ÚNICO ESTADO DE ÍNDICE: Controla a imagem, o dot e a cor em simultâneo
+  const [currentIndex, setCurrentIndex] = useState(0);
 
+  // 1. Define as cores a apresentar (máx 4)
   const displayColors = useMemo(() => {
     const allColors = product.colors ?? [];
     const base = allColors.slice(0, 4);
@@ -51,45 +48,30 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
     return [...base.slice(0, 3), selected];
   }, [product.colors, selectedColorHex]);
 
-  // 1. Quando o componente carrega ou via Filtros da Loja (Props)
+  // 2. Mapeamento 1:1 - Constrói um array de imagens exatamente na mesma ordem que as cores
+  const carouselImages = useMemo(() => {
+    const images = product.images && product.images.length > 0 ? product.images : ['placeholder.jpg'];
+
+    if (displayColors.length === 0) return images;
+
+    return displayColors.map((color, index) => {
+      const slug = toColorSlug(color.name);
+      const match = images.find(img => img.toLowerCase().includes(slug));
+      // Se encontrar a imagem da cor, usa-a. Senão, faz fallback para a imagem na mesma posição.
+      return match || images[index] || images[0];
+    });
+  }, [displayColors, product.images]);
+
+  // Deriva a cor ativa a partir do índice atual
+  const activeColor = displayColors[currentIndex]?.name || '';
+
+  // Sincroniza via Filtros da Loja (Props)
   useEffect(() => {
     if (selectedColorHex) {
-      const colorObj = product.colors?.find(c => c.hex === selectedColorHex);
-      if (colorObj) {
-        setActiveColor(colorObj.name);
-        const slug = toColorSlug(colorObj.name);
-        const idx = carouselImages.findIndex(img => img.toLowerCase().includes(slug));
-        if (idx >= 0) setCurrentImageIndex(idx);
-      }
+      const idx = displayColors.findIndex(c => c.hex === selectedColorHex);
+      if (idx >= 0) setCurrentIndex(idx);
     }
-  }, [selectedColorHex, product.colors, carouselImages]);
-
-  // 2. Quando o carrossel desliza (swipe ou setas), descobre a cor ativa através do nome da imagem atual
-  useEffect(() => {
-    const currentImg = carouselImages[currentImageIndex];
-    if (!currentImg || !product.colors) return;
-
-    const matchedColor = product.colors.find(color =>
-      currentImg.toLowerCase().includes(toColorSlug(color.name))
-    );
-
-    if (matchedColor) {
-      setActiveColor(matchedColor.name);
-    }
-  }, [currentImageIndex, carouselImages, product.colors]);
-
-  // 3. Quando clica na cor, procura a imagem que tem o nome dessa cor (slug) no URL
-  const handleColorSelect = (colorName: string) => {
-    setActiveColor(colorName);
-    const slug = toColorSlug(colorName);
-
-    // Procura no array de imagens qual delas contém o slug da cor
-    const idx = carouselImages.findIndex(img => img.toLowerCase().includes(slug));
-
-    if (idx >= 0) {
-      setCurrentImageIndex(idx); // Vai exatamente para a imagem correta
-    }
-  };
+  }, [selectedColorHex, displayColors]);
 
   const isFavorite = favorites.some(fav => fav.product_id === product.id);
 
@@ -109,7 +91,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
 
     addItem(product, activeColor);
 
-    const previewImage = imgVariant(carouselImages[currentImageIndex] || carouselImages[0], 'sm');
+    const previewImage = imgVariant(carouselImages[currentIndex] || carouselImages[0], 'sm');
     fireCartToast({ productId: product.id, colorName: activeColor, productName: product.name, image: previewImage, type: 'added' });
 
     setIsAdded(true);
@@ -120,13 +102,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
   const handlePrevImage = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : carouselImages.length - 1));
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : carouselImages.length - 1));
   };
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev < carouselImages.length - 1 ? prev + 1 : 0));
+    setCurrentIndex((prev) => (prev < carouselImages.length - 1 ? prev + 1 : 0));
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -144,9 +126,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
     const threshold = 50;
     if (Math.abs(dragOffset) > threshold) {
       if (dragOffset > 0) {
-        setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : carouselImages.length - 1));
+        setCurrentIndex((prev) => (prev > 0 ? prev - 1 : carouselImages.length - 1));
       } else {
-        setCurrentImageIndex((prev) => (prev < carouselImages.length - 1 ? prev + 1 : 0));
+        setCurrentIndex((prev) => (prev < carouselImages.length - 1 ? prev + 1 : 0));
       }
     }
     setDragOffset(0);
@@ -215,7 +197,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
               <div
                 className="flex w-full h-full"
                 style={{
-                  transform: `translateX(calc(-${currentImageIndex * 100}% + ${dragOffset}px))`,
+                  transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`,
                   transition: isDragging ? 'none' : 'transform 0.3s ease-out',
                 }}
               >
@@ -249,12 +231,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
                 <ChevronRight className="h-5 w-5 text-black" />
               </button>
 
-              {/* Pagination Dots */}
+              {/* Pagination Dots (Sincronizado com currentIndex) */}
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
                 {carouselImages.map((_, index) => (
                   <div
                     key={index}
-                    className={`h-1 rounded-full transition-all ${index === currentImageIndex ? 'bg-black w-4' : 'bg-gray-400 w-1'}`}
+                    className={`h-1 rounded-full transition-all ${index === currentIndex ? 'bg-black w-4' : 'bg-gray-400 w-1'}`}
                   />
                 ))}
               </div>
@@ -284,14 +266,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
         {/* --- PRODUCT INFO SECTION --- */}
         <div className="flex flex-col flex-1 px-1 relative">
 
-          {/* Color Swatches — clickable */}
+          {/* Color Swatches (Clica e muda o currentIndex) */}
           <div className="flex gap-1.5 mb-2 items-center h-6">
             {displayColors.map((color, idx) => (
               <button
                 key={idx}
                 type="button"
-                onClick={(e) => { e.preventDefault(); handleColorSelect(color.name); }}
-                className={`w-[18px] h-[18px] rounded-full border shadow-sm transition-transform hover:scale-110 ${activeColor === color.name ? 'ring-2 ring-black ring-offset-1' : 'border-gray-300'}`}
+                onClick={(e) => { e.preventDefault(); setCurrentIndex(idx); }}
+                className={`w-[18px] h-[18px] rounded-full border shadow-sm transition-transform hover:scale-110 ${idx === currentIndex ? 'ring-2 ring-black ring-offset-1' : 'border-gray-300'}`}
                 style={{ backgroundColor: color.hex || '#D1D5DB' }}
                 title={color.name}
               />
