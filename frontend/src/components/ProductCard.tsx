@@ -16,9 +16,6 @@ interface ProductCardProps {
   viewMode?: 'grid' | 'fullscreen';
 }
 
-const toColorSlug = (value: string): string =>
-  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
-
 const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false, selectedColorHex }) => {
   const { addItem } = useCart();
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
@@ -56,29 +53,39 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
     return [...base.slice(0, 3), selected];
   }, [product.colors, selectedColorHex]);
 
-  // Efeito para sincronizar a cor selecionada via Props (Filtros da Loja)
+  // 1. Sincroniza via Filtros da Loja (Props)
   useEffect(() => {
     if (selectedColorHex) {
       const colorObj = product.colors?.find(c => c.hex === selectedColorHex);
       if (colorObj) {
         setActiveColor(colorObj.name);
-        const slug = toColorSlug(colorObj.name);
-        const idx = carouselImages.findIndex(img => img.toLowerCase().includes(slug));
-        if (idx >= 0) setCurrentImageIndex(idx);
+        // Encontra o índice da cor e força a imagem correspondente
+        const colorIndex = product.colors?.findIndex(c => c.name === colorObj.name);
+        if (colorIndex >= 0 && colorIndex < carouselImages.length) {
+          setCurrentImageIndex(colorIndex);
+        }
       }
     }
-  }, [selectedColorHex, product.colors, carouselImages]);
+  }, [selectedColorHex, product.colors, carouselImages.length]);
 
-  // Handler para clicar nas bolinhas de cor
-  const handleColorSelect = (colorName: string) => {
+  // 2. Quando o carrossel desliza (swipe/setas), atualiza a cor ativa (Mapeamento 1:1)
+  useEffect(() => {
+    if (product.colors && product.colors[currentImageIndex]) {
+      setActiveColor(product.colors[currentImageIndex].name);
+    }
+  }, [currentImageIndex, product.colors]);
+
+  // 3. Quando clica na cor, muda a imagem (Mapeamento 1:1)
+  const handleColorSelect = (colorName: string, idx: number) => {
     setActiveColor(colorName);
-    const slug = toColorSlug(colorName);
 
-    // Encontra o índice da imagem que contém o slug da cor no nome do ficheiro
-    const idx = carouselImages.findIndex(img => img.toLowerCase().includes(slug));
+    // Encontra a posição real da cor no array total do produto
+    const colorIndexInProduct = product.colors?.findIndex(c => c.name === colorName) ?? idx;
 
-    // Se a imagem existir, desliza o carrossel para ela
-    if (idx >= 0) {
+    // Desliza para a imagem com o mesmo índice
+    if (colorIndexInProduct >= 0 && colorIndexInProduct < carouselImages.length) {
+      setCurrentImageIndex(colorIndexInProduct);
+    } else if (idx < carouselImages.length) {
       setCurrentImageIndex(idx);
     }
   };
@@ -282,7 +289,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
               <button
                 key={idx}
                 type="button"
-                onClick={(e) => { e.preventDefault(); handleColorSelect(color.name); }}
+                onClick={(e) => { e.preventDefault(); handleColorSelect(color.name, idx); }}
                 className={`w-[18px] h-[18px] rounded-full border shadow-sm transition-transform hover:scale-110 ${activeColor === color.name ? 'ring-2 ring-black ring-offset-1' : 'border-gray-300'}`}
                 style={{ backgroundColor: color.hex || '#D1D5DB' }}
                 title={color.name}
@@ -332,7 +339,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
         </button>
 
       </div>
-
     </>
   );
 };
