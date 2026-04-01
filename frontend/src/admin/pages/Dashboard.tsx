@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { statsApi } from '../../utils/apiHelpers';
 import { Euro, ShoppingCart, Package, AlertTriangle, Users } from 'lucide-react';
 import { getAbsoluteImageUrl, imgVariant } from '../../utils/imageUtils';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface Stats {
   totalOrders: number;
@@ -18,6 +19,7 @@ interface Stats {
 export default function Dashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadStats();
@@ -36,11 +38,11 @@ export default function Dashboard() {
 
   const getStatusLabel = (status: string) => {
     const statusMap: Record<string, string> = {
-      pending: 'Pendente',
-      processing: 'A Processar',
-      shipped: 'Enviado',
-      delivered: 'Entregue',
-      cancelled: 'Cancelado'
+      pending: t('orders.status.pending'),
+      processing: t('orders.status.processing'),
+      shipped: t('orders.status.shipped'),
+      delivered: t('orders.status.delivered'),
+      cancelled: t('orders.status.cancelled'),
     };
     return statusMap[status] || status;
   };
@@ -49,7 +51,7 @@ export default function Dashboard() {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4" role="status">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" aria-hidden="true"></div>
-        <span className="sr-only">A carregar estatísticas do dashboard...</span>
+        <span className="sr-only">{t('admin.dashboard.loading')}</span>
       </div>
     );
   }
@@ -58,8 +60,8 @@ export default function Dashboard() {
     <main className="space-y-6 sm:space-y-8 pb-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#1A1A1A]">Dashboard</h1>
-        <p className="text-sm sm:text-base text-gray-600 mt-1">Bem-vindo à sua visão geral da loja</p>
+        <h1 className="text-2xl font-bold text-[#1A1A1A]">{t('admin.dashboard.title')}</h1>
+        <p className="text-sm sm:text-base text-gray-600 mt-1">{t('admin.dashboard.welcome')}</p>
       </div>
 
       {/* Stats Cards - Layout agora é 100% consistente em todas as resoluções */}
@@ -69,7 +71,7 @@ export default function Dashboard() {
         <div className="col-span-2 lg:col-span-1 bg-white p-4 sm:p-5 rounded-xl border border-secondary-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-gray-600 truncate">Receita Total</p>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">{t('admin.dashboard.totalRevenue')}</p>
               <p className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mt-1 truncate">
                 €{stats?.totalRevenue || '0.00'}
               </p>
@@ -84,7 +86,7 @@ export default function Dashboard() {
         <div className="bg-white p-4 sm:p-5 rounded-xl border border-secondary-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-gray-600 truncate">Encomendas</p>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">{t('admin.dashboard.orders')}</p>
               <p className="text-xl sm:text-2xl font-bold text-[#1A1A1A] mt-1 truncate">
                 {stats?.totalOrders || 0}
               </p>
@@ -98,7 +100,7 @@ export default function Dashboard() {
         <div className="bg-white p-4 sm:p-5 rounded-xl border border-secondary-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-gray-600 truncate">Produtos</p>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">{t('admin.dashboard.products')}</p>
               <p className="text-xl sm:text-2xl font-bold text-[#1A1A1A] mt-1 truncate">
                 {stats?.totalProducts || 0}
               </p>
@@ -112,7 +114,7 @@ export default function Dashboard() {
         <div className="bg-white p-4 sm:p-5 rounded-xl border border-secondary-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-gray-600 truncate">Pendentes</p>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">{t('admin.dashboard.pendingOrders')}</p>
               <p className="text-xl sm:text-2xl font-bold text-[#1A1A1A] mt-1 truncate">
                 {stats?.pendingOrders || 0}
               </p>
@@ -126,7 +128,7 @@ export default function Dashboard() {
         <div className="bg-white p-4 sm:p-5 rounded-xl border border-secondary-200 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-gray-600 truncate">Utilizadores</p>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">{t('admin.dashboard.users')}</p>
               <p className="text-xl sm:text-2xl font-bold text-[#1A1A1A] mt-1 truncate">
                 {stats?.totalUsers || 0}
               </p>
@@ -144,7 +146,7 @@ export default function Dashboard() {
         {/* Encomendas Recentes */}
         <section className="bg-white rounded-xl border border-secondary-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-secondary-200 bg-tertiary-100/50">
-            <h2 className="font-semibold text-[#1A1A1A] text-sm sm:text-base">Encomendas Recentes</h2>
+            <h2 className="font-semibold text-[#1A1A1A] text-sm sm:text-base">{t('admin.dashboard.recentOrders')}</h2>
           </div>
           <div className="p-4 sm:p-5">
             {stats?.recentOrders && stats.recentOrders.length > 0 ? (
@@ -153,12 +155,14 @@ export default function Dashboard() {
                   <Link
                     key={order.id}
                     to={`/admin/encomendas/${order.id}`}
-                    aria-label={`Ver detalhes da encomenda número ${order.id} de ${order.customer_name}`}
+                    aria-label={`${t('admin.dashboard.viewOrderAriaPrefix')} ${order.id} ${t('admin.dashboard.viewOrderAriaFor')} ${order.customer_name}`}
                     className="block p-3 sm:p-4 border border-gray-100 rounded-xl hover:border-primary-300 hover:bg-primary-50/50 transition-all focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <div className="flex items-center justify-between gap-2 sm:gap-4">
                       <div className="min-w-0">
-                        <p className="font-medium text-[#1A1A1A] text-sm sm:text-base truncate">Encomenda #{order.id}</p>
+                        <p className="font-medium text-[#1A1A1A] text-sm sm:text-base truncate">
+                          {t('orders.orderLabel')} #{order.id}
+                        </p>
                         <p className="text-xs sm:text-sm text-gray-500 truncate mt-0.5">{order.customer_name}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
@@ -178,7 +182,7 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm text-center py-6">Sem encomendas recentes</p>
+              <p className="text-gray-500 text-sm text-center py-6">{t('admin.dashboard.noRecentOrders')}</p>
             )}
           </div>
         </section>
@@ -186,7 +190,7 @@ export default function Dashboard() {
         {/* Alertas de Stock */}
         <section className="bg-white rounded-xl border border-secondary-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-secondary-200 bg-tertiary-100/50">
-            <h2 className="font-semibold text-[#1A1A1A] text-sm sm:text-base">Alerta de Stock Baixo</h2>
+            <h2 className="font-semibold text-[#1A1A1A] text-sm sm:text-base">{t('admin.dashboard.lowStockAlert')}</h2>
           </div>
           <div className="p-4 sm:p-5">
             {stats?.lowStockProducts && stats.lowStockProducts.length > 0 ? (
@@ -195,13 +199,13 @@ export default function Dashboard() {
                   <Link
                     key={product.id}
                     to={`/admin/produtos/editar/${product.id}`}
-                    aria-label={`Editar stock do produto ${product.name}. Apenas ${product.stock} em stock.`}
+                    aria-label={`${t('admin.dashboard.editStockAriaPrefix')} ${product.name}. ${t('admin.dashboard.editStockAriaOnly')} ${product.stock} ${t('admin.dashboard.inStock')}.`}
                     className="block p-3 sm:p-4 border border-red-100 bg-red-50/30 rounded-xl hover:border-red-300 hover:bg-red-50 transition-all focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
                     <div className="flex items-center gap-3 sm:gap-4">
                       <img
                         src={product.images && product.images.length > 0 ? getAbsoluteImageUrl(imgVariant(product.images[0], 'sm')) : '/placeholder.png'}
-                        alt={`Imagem de ${product.name}`}
+                        alt={`${t('admin.dashboard.productImageAlt')} ${product.name}`}
                         className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0 border border-gray-100"
                       />
                       <div className="flex-1 min-w-0">
@@ -210,14 +214,14 @@ export default function Dashboard() {
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="text-base sm:text-lg font-bold text-red-600">{product.stock}</p>
-                        <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider font-medium">em stock</p>
+                        <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider font-medium">{t('admin.dashboard.inStock')}</p>
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm text-center py-6">Todos os produtos bem abastecidos</p>
+              <p className="text-gray-500 text-sm text-center py-6">{t('admin.dashboard.allStockOk')}</p>
             )}
           </div>
         </section>
