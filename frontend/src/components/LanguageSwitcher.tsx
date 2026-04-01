@@ -47,7 +47,7 @@ const LanguageSwitcher: React.FC = () => {
         <img
           src={current.flag}
           alt={current.label}
-          className="w-6 h-6 rounded-full object-cover shadow-sm ring-1 ring-gray-200 group-hover:ring-[#1E4D3B] transition-all"
+          className="w-6 h-4 object-cover shadow-sm transition-all"
         />
       </button>
 
@@ -70,7 +70,7 @@ const LanguageSwitcher: React.FC = () => {
               <img
                 src={l.flag}
                 alt={l.label}
-                className="w-5 h-5 rounded-full object-cover shadow-sm"
+                className="w-5 h-3.5 object-cover shadow-sm"
               />
               {l.label}
               {lang === l.code && (

@@ -96,8 +96,8 @@ export default function CategoriesList() {
 
     try {
       await categoriesApi.delete(deleteConfirm.id);
+      setCategories(prev => prev.filter(c => c.id !== deleteConfirm.id));
       setDeleteConfirm(null);
-      loadCategories();
     } catch (error) {
       console.error('Error deleting category:', error);
       showError('Erro ao eliminar categoria');

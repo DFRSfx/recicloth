@@ -23,8 +23,18 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Request failed' }));
+    const text = await response.text();
+    let error;
+    try {
+      error = JSON.parse(text);
+    } catch {
+      error = { error: text || 'Request failed' };
+    }
     throw new Error(error.error || `HTTP error! status: ${response.status}`);
+  }
+
+  if (response.status === 204) {
+    return null;
   }
 
   return response.json();
@@ -68,7 +78,7 @@ export const productsApi = {
 
 // Categories
 export const categoriesApi = {
-  getAll: (lang?: string) => fetchWithAuth(`/categories${lang ? `?lang=${lang}` : ''}`),
+  getAll: (lang?: string) => fetchWithAuth(`/categories${lang ? `?lang=${lang}&` : '?'}t=${Date.now()}`),
   getOne: (id: number, lang?: string) => fetchWithAuth(`/categories/${id}${lang ? `?lang=${lang}` : ''}`),
   create: (data: any) => fetchWithAuth('/categories', {
     method: 'POST',

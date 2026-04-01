@@ -109,7 +109,7 @@ router.post(
       clearCachedByPrefix('categories:');
 
       // 🌍 i18n: Guarda traduções em background
-      saveCategoryTranslations(result.insertId, name, description || null, 'en')
+      saveCategoryTranslations(result.insertId, name, description || null, 'pt')
         .catch(console.error);
 
       res.status(201).json(newCategory[0]);
@@ -196,7 +196,7 @@ router.put(
           Number(req.params.id),
           currentName,
           currentDesc || null,
-          'en'
+          'pt'
         ).catch(console.error);
       }
 
