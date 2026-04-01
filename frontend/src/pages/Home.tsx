@@ -54,7 +54,7 @@ const Home: React.FC = () => {
             <strong>acessórios upcycled</strong> e peças únicas que respeitam o
             planeta sem abdicar do estilo. Tem dúvidas?{' '}
             <Link to="/contacto" className="text-primary-600 hover:underline font-medium">
-              Fale connosco
+              {t('home.hero.cta')}
             </Link>
             .
           </p>

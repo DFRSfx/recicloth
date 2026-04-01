@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, MapPin, Save, Edit2, Lock, Shield, KeyRound, Plus, Trash2, Star, X } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ShippingAddress {
   id: number;
@@ -19,6 +20,7 @@ const emptyAddressForm = { name: '', address: '', city: '', postal_code: '', pho
 const Profile: React.FC = () => {
   const { user, token, isAuthenticated } = useAuth();
   const { error, success } = useToast();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -119,8 +121,8 @@ const Profile: React.FC = () => {
     e.preventDefault();
 
     const errors: Record<string, string> = {};
-    if (!formData.name.trim()) errors.name = 'Campo obrigatório';
-    if (!formData.email.trim()) errors.email = 'Campo obrigatório';
+    if (!formData.name.trim()) errors.name = t('common.required');
+    if (!formData.email.trim()) errors.email = t('common.required');
 
     if (Object.keys(errors).length > 0) {
       setProfileFieldErrors(errors);
@@ -143,9 +145,9 @@ const Profile: React.FC = () => {
     e.preventDefault();
 
     const errors: Record<string, string> = {};
-    if (!passwordData.currentPassword) errors.currentPassword = 'Campo obrigatório';
-    if (!passwordData.newPassword) errors.newPassword = 'Campo obrigatório';
-    if (!passwordData.confirmPassword) errors.confirmPassword = 'Campo obrigatório';
+    if (!passwordData.currentPassword) errors.currentPassword = t('common.required');
+    if (!passwordData.newPassword) errors.newPassword = t('common.required');
+    if (!passwordData.confirmPassword) errors.confirmPassword = t('common.required');
 
     if (Object.keys(errors).length > 0) {
       setPasswordFieldErrors(errors);
@@ -443,7 +445,7 @@ const Profile: React.FC = () => {
         <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 sm:px-8 py-5 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Dados Pessoais</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('profile.personalInfo')}</h2>
               <p className="text-sm text-gray-500 mt-1">Gerencie as suas informações de contacto.</p>
             </div>
             {!isEditing && (
@@ -452,7 +454,7 @@ const Profile: React.FC = () => {
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 transition-colors font-medium text-sm w-full sm:w-auto shadow-sm"
               >
                 <Edit2 className="h-4 w-4 text-gray-500" />
-                Editar Perfil
+                {t('common.edit')}
               </button>
             )}
           </div>
@@ -461,7 +463,7 @@ const Profile: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
               <InputField
                 id="name"
-                label="Nome Completo *"
+                label={t('form.name') + ' *'}
                 value={formData.name}
                 onChange={handleChange}
                 disabled={!isEditing}
@@ -472,7 +474,7 @@ const Profile: React.FC = () => {
               <InputField
                 id="email"
                 type="email"
-                label="Email *"
+                label={t('form.email') + ' *'}
                 value={formData.email}
                 onChange={handleChange}
                 disabled={!isEditing}
@@ -483,7 +485,7 @@ const Profile: React.FC = () => {
               <InputField
                 id="phone"
                 type="tel"
-                label="Telefone"
+                label={t('form.phone')}
                 value={formData.phone}
                 onChange={handleChange}
                 disabled={!isEditing}
@@ -494,11 +496,11 @@ const Profile: React.FC = () => {
             {isEditing && (
               <div className="flex flex-col-reverse sm:flex-row gap-3 mt-8 pt-6 border-t border-gray-50">
                 <button type="button" onClick={() => { setIsEditing(false); setProfileFieldErrors({}); }} className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                  Cancelar
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary-700 text-white font-medium rounded-lg hover:bg-primary-800 transition-colors shadow-sm">
                   <Save className="h-4 w-4" />
-                  Guardar Alterações
+                  {t('common.save')}
                 </button>
               </div>
             )}
@@ -511,7 +513,7 @@ const Profile: React.FC = () => {
             <div>
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-primary-600" />
-                Moradas de Entrega
+                {t('profile.shippingAddresses')}
               </h2>
               <p className="text-sm text-gray-500 mt-1">Guarde moradas para agilizar as suas encomendas.</p>
             </div>
@@ -521,7 +523,7 @@ const Profile: React.FC = () => {
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 transition-colors font-medium text-sm w-full sm:w-auto shadow-sm"
               >
                 <Plus className="h-4 w-4 text-gray-500" />
-                Adicionar Morada
+                {t('profile.addAddress')}
               </button>
             )}
           </div>
@@ -532,7 +534,7 @@ const Profile: React.FC = () => {
               <div className="border border-primary-200 bg-primary-50/30 rounded-xl p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-5">
                   <h3 className="font-semibold text-gray-900 text-sm">
-                    {editingAddress ? 'Editar Morada' : 'Nova Morada'}
+                    {editingAddress ? t('profile.editAddress') : t('profile.addAddress')}
                   </h3>
                   <button onClick={closeAddressForm} className="p-1 text-gray-400 hover:text-gray-700 transition-colors">
                     <X className="h-4 w-4" />
@@ -543,7 +545,7 @@ const Profile: React.FC = () => {
                     {/* Label */}
                     <div className="space-y-1.5">
                       <label className="block text-sm font-medium text-gray-700">
-                        Nome da Morada <span className="text-red-500">*</span>
+                        {t('form.name')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         ref={addrNameRef}
@@ -560,7 +562,7 @@ const Profile: React.FC = () => {
                     {/* Phone */}
                     <div className="space-y-1.5">
                       <label className="block text-sm font-medium text-gray-700">
-                        Telemóvel <span className="text-red-500">*</span>
+                        {t('form.phone')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         ref={addrPhoneRef}
@@ -577,7 +579,7 @@ const Profile: React.FC = () => {
                     {/* Address full width */}
                     <div className="sm:col-span-2 space-y-1.5">
                       <label className="block text-sm font-medium text-gray-700">
-                        Morada Completa <span className="text-red-500">*</span>
+                        {t('form.address')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         ref={addrAddressRef}
@@ -594,7 +596,7 @@ const Profile: React.FC = () => {
                     {/* City */}
                     <div className="space-y-1.5">
                       <label className="block text-sm font-medium text-gray-700">
-                        Cidade <span className="text-red-500">*</span>
+                        {t('form.city')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         ref={addrCityRef}
@@ -611,7 +613,7 @@ const Profile: React.FC = () => {
                     {/* Postal code */}
                     <div className="space-y-1.5">
                       <label className="block text-sm font-medium text-gray-700">
-                        Código Postal <span className="text-red-500">*</span>
+                        {t('form.postalCode')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         ref={addrPostalRef}
@@ -641,7 +643,7 @@ const Profile: React.FC = () => {
 
                   <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
                     <button type="button" onClick={closeAddressForm} className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors text-sm">
-                      Cancelar
+                      {t('common.cancel')}
                     </button>
                     <button
                       type="submit"
@@ -649,7 +651,7 @@ const Profile: React.FC = () => {
                       className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary-700 text-white font-medium rounded-lg hover:bg-primary-800 transition-colors shadow-sm text-sm disabled:opacity-60"
                     >
                       <Save className="h-4 w-4" />
-                      {addressSaving ? 'A guardar...' : 'Guardar Morada'}
+                      {t('common.save')}
                     </button>
                   </div>
                 </form>
@@ -709,7 +711,7 @@ const Profile: React.FC = () => {
                         className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 transition-colors font-medium ml-auto"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
-                        Editar
+                        {t('common.edit')}
                       </button>
                       <button
                         onClick={() => handleDeleteAddress(addr.id)}
@@ -717,7 +719,7 @@ const Profile: React.FC = () => {
                         className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-600 transition-colors font-medium disabled:opacity-40"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                        {deletingId === addr.id ? '...' : 'Eliminar'}
+                        {t('common.delete')}
                       </button>
                     </div>
                   </div>
@@ -734,7 +736,7 @@ const Profile: React.FC = () => {
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                   <Shield className="w-5 h-5 text-primary-600" />
-                  Segurança da Conta
+                  {t('profile.security')}
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">Mantenha a sua conta segura atualizando a password regularmente.</p>
               </div>
@@ -747,13 +749,13 @@ const Profile: React.FC = () => {
                   className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 transition-colors font-medium text-sm w-full sm:w-auto shadow-sm"
                 >
                   <KeyRound className="h-4 w-4 text-gray-500" />
-                  Alterar Password
+                  {t('profile.changePassword')}
                 </button>
               ) : (
                 <form onSubmit={handlePasswordSubmit} noValidate className="max-w-md space-y-5">
                   <PasswordField
                     id="currentPassword"
-                    label="Password Atual *"
+                    label={t('profile.currentPassword') + ' *'}
                     value={passwordData.currentPassword}
                     onChange={handlePasswordChange}
                     fieldError={passwordFieldErrors.currentPassword}
@@ -761,7 +763,7 @@ const Profile: React.FC = () => {
                   />
                   <PasswordField
                     id="newPassword"
-                    label="Nova Password *"
+                    label={t('profile.newPassword') + ' *'}
                     value={passwordData.newPassword}
                     onChange={handlePasswordChange}
                     fieldError={passwordFieldErrors.newPassword}
@@ -769,7 +771,7 @@ const Profile: React.FC = () => {
                   />
                   <PasswordField
                     id="confirmPassword"
-                    label="Confirmar Nova Password *"
+                    label={t('profile.confirmPassword') + ' *'}
                     value={passwordData.confirmPassword}
                     onChange={handlePasswordChange}
                     fieldError={passwordFieldErrors.confirmPassword}
@@ -786,7 +788,7 @@ const Profile: React.FC = () => {
                       }}
                       className="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      Cancelar
+                      {t('common.cancel')}
                     </button>
                     <button
                       type="submit"

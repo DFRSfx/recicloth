@@ -426,7 +426,7 @@ const Navbar: React.FC = () => {
                     </div>
                   ) : (
                     <div className="px-4 py-8 text-center text-gray-500">
-                      <p>Nenhum produto encontrado</p>
+                      <p>{t('common.noProductsFound')}</p>
                     </div>
                   )}
                 </div>
@@ -440,14 +440,14 @@ const Navbar: React.FC = () => {
             <button
               ref={searchButtonRef}
               onClick={handleSearchToggle}
-              aria-label={searchOpen ? 'Fechar pesquisa' : 'Pesquisar'}
+              aria-label={searchOpen ? t('common.close') : t('common.searchProducts')}
               className="md:hidden flex items-center justify-center hover:text-black transition-colors"
             >
               <Search className="h-6 w-6" strokeWidth={1.5} />
             </button>
 
             {/* Heart Icon Desktop */}
-            <Link to="/favoritos" aria-label="Favoritos" className="hidden md:flex items-center justify-center hover:text-black transition-colors relative">
+            <Link to="/favoritos" aria-label={t('nav.favorites')} className="hidden md:flex items-center justify-center hover:text-black transition-colors relative">
               <Heart className="h-6 w-6" strokeWidth={1.5} />
               {favorites.length > 0 && (
                 <span className="absolute -top-1.5 -right-2 bg-[#1E4D3B] text-white rounded-full text-[10px] font-bold w-4 h-4 flex items-center justify-center shadow-sm">
@@ -457,7 +457,7 @@ const Navbar: React.FC = () => {
             </Link>
 
             {/* Cart Icon Mobile & Desktop */}
-            <Link to="/carrinho" aria-label="Carrinho" className="flex items-center justify-center hover:text-black transition-colors relative">
+            <Link to="/carrinho" aria-label={t('nav.cart')} className="flex items-center justify-center hover:text-black transition-colors relative">
               <ShoppingCart className="h-6 w-6" strokeWidth={1.5} />
               {itemCount > 0 && (
                 <span className="absolute -top-1.5 -right-2 bg-[#1E4D3B] text-white rounded-full text-[10px] font-bold w-4 h-4 flex items-center justify-center shadow-sm">
@@ -470,7 +470,7 @@ const Navbar: React.FC = () => {
             <div className="relative hidden md:flex items-center justify-center">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                aria-label="A minha conta"
+                aria-label={t('nav.myAccount')}
                 className="flex items-center justify-center hover:text-black transition-colors"
               >
                 <User className="h-6 w-6" strokeWidth={1.5} />
@@ -485,7 +485,7 @@ const Navbar: React.FC = () => {
             {/* Hamburger/Close Menu Mobile */}
             <button
               onClick={() => isOpen ? handleCloseMenu() : setIsOpen(true)}
-              aria-label={isOpen ? 'Fechar menu' : 'Abrir menu'}
+              aria-label={isOpen ? t('nav.closeMenu') : t('nav.openMenu')}
               className="md:hidden flex items-center justify-center hover:text-black transition-colors"
             >
               {isOpen ? <X className="h-6 w-6" strokeWidth={1.5} /> : <Menu className="h-6 w-6" strokeWidth={1.5} />}
@@ -500,7 +500,7 @@ const Navbar: React.FC = () => {
               <input
                 type="text"
                 name="search"
-                placeholder="Procurar produtos..."
+                placeholder={t('common.searchProducts')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-[#1E4D3B] focus:border-[#1E4D3B] text-sm"
@@ -528,7 +528,7 @@ const Navbar: React.FC = () => {
                     </div>
                   ) : (
                     <div className="px-4 py-8 text-center text-gray-500">
-                      <p>Nenhum produto encontrado</p>
+                      <p>{t('common.noProductsFound')}</p>
                     </div>
                   )}
                 </div>
@@ -560,13 +560,13 @@ const Navbar: React.FC = () => {
 
               {/* Favorites - Mobile */}
               <Link to="/favoritos" onClick={handleCloseMenu} className="w-full flex items-center justify-between px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-3"><Heart className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> Favoritos</div>
+                <div className="flex items-center gap-3"><Heart className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> {t('nav.favorites')}</div>
                 {favorites.length > 0 && <span className="bg-[#1E4D3B] text-white rounded-full text-xs font-bold w-5 h-5 flex items-center justify-center">{favorites.length}</span>}
               </Link>
 
               {/* Cart - Mobile */}
               <Link to="/carrinho" onClick={handleCloseMenu} className="w-full flex items-center justify-between px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-3"><ShoppingCart className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> Carrinho</div>
+                <div className="flex items-center gap-3"><ShoppingCart className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> {t('nav.cart')}</div>
                 {itemCount > 0 && <span className="bg-[#1E4D3B] text-white rounded-full text-xs font-bold w-5 h-5 flex items-center justify-center">{itemCount}</span>}
               </Link>
 
@@ -580,14 +580,14 @@ const Navbar: React.FC = () => {
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
               >
-                <User className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> Minha Conta
+                <User className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> {t('nav.myAccount')}
               </button>
 
               <div className="border-t border-gray-100 my-2 mx-2"></div>
 
               {/* Language Switcher Mobile */}
               <div className="px-4 py-3 flex items-center gap-3">
-                <span className="text-[15px] text-gray-500">Idioma:</span>
+                <span className="text-[15px] text-gray-500">{t('nav.language')}</span>
                 <LanguageSwitcher />
               </div>
             </div>
@@ -683,7 +683,7 @@ const Navbar: React.FC = () => {
             <button
               onClick={handleCloseUserMenu}
               className="p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-gray-100 transition-all shadow-md"
-              aria-label="Fechar menu"
+              aria-label={t('nav.closeMenu')}
             >
               <X className="h-6 w-6 text-gray-700" />
             </button>
@@ -701,23 +701,23 @@ const Navbar: React.FC = () => {
                   <div className="inline-block p-3 bg-white/20 backdrop-blur-sm rounded-full mb-4">
                     <User className="h-8 w-8 text-white" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Olá!</h2>
+                  <h2 className="text-2xl font-bold text-white mb-2">{t('auth.welcomeBack').split(',')[0]}!</h2>
                   <p className="text-white/90 text-sm mb-6">
-                    Ainda não és cliente da Recicloth?<br />
-                    <span className="text-white/70 text-xs">O registo é fácil e grátis!</span>
+                    {t('auth.noAccount')}<br />
+                    <span className="text-white/70 text-xs">{t('auth.signUp')}</span>
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => handleOpenAuthModal('register')}
                       className="flex-1 flex items-center justify-center px-6 py-3 border-2 border-white text-white rounded-lg hover:bg-white hover:text-[#1E4D3B] hover:scale-105 transition-all duration-200 font-semibold text-sm shadow-lg hover:shadow-xl"
                     >
-                      CRIAR CONTA
+                      {t('auth.signUp').toUpperCase()}
                     </button>
                     <button
                       onClick={() => handleOpenAuthModal('login')}
                       className="flex-1 flex items-center justify-center px-6 py-3 bg-white text-[#1E4D3B] rounded-lg hover:bg-gray-50 hover:scale-105 transition-all duration-200 font-semibold text-sm shadow-lg hover:shadow-xl"
                     >
-                      INICIAR SESSÃO
+                      {t('auth.signIn').toUpperCase()}
                     </button>
                   </div>
                 </div>
@@ -726,7 +726,7 @@ const Navbar: React.FC = () => {
               {/* Benefits Section */}
               <div className="p-6">
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                  Benefícios de Cliente
+                  {t('nav.myAccount')}
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
@@ -734,8 +734,8 @@ const Navbar: React.FC = () => {
                       <Package className="h-5 w-5 text-[#1E4D3B]" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 text-sm">Produtos Exclusivos</h4>
-                      <p className="text-xs text-gray-600 mt-1">Acesso a novos produtos em primeira mão</p>
+                      <h4 className="font-semibold text-gray-900 text-sm">{t('common.exploreProducts')}</h4>
+                      <p className="text-xs text-gray-600 mt-1">{t('home.featured.subtitle')}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
@@ -743,8 +743,8 @@ const Navbar: React.FC = () => {
                       <Heart className="h-5 w-5 text-[#1E4D3B]" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 text-sm">Promoções Especiais</h4>
-                      <p className="text-xs text-gray-600 mt-1">Descontos e ofertas personalizadas</p>
+                      <h4 className="font-semibold text-gray-900 text-sm">{t('nav.favorites')}</h4>
+                      <p className="text-xs text-gray-600 mt-1">{t('favorites.empty.desc')}</p>
                     </div>
                   </div>
                 </div>
@@ -762,14 +762,14 @@ const Navbar: React.FC = () => {
                     <User className="h-8 w-8 text-white" />
                   </div>
                   <h2 className="text-2xl font-bold text-white mb-2">
-                    Olá, {user?.name?.split(' ')[0]}!
+                    {t('auth.hello')}, {user?.name?.split(' ')[0]}!
                   </h2>
                   <p className="text-white/90 text-sm">
                     {user?.email}
                   </p>
                   {user?.role === 'admin' && (
                     <span className="inline-block mt-3 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium text-white">
-                      Administrador
+                      {t('auth.admin')}
                     </span>
                   )}
                 </div>
@@ -778,7 +778,7 @@ const Navbar: React.FC = () => {
               {/* Menu Items - Authenticated */}
               <div className="p-6">
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                  A Minha Conta
+                  {t('nav.myAccount')}
                 </h3>
                 <div className="flex flex-col gap-2">
                   <Link to="/perfil" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200">
@@ -786,8 +786,8 @@ const Navbar: React.FC = () => {
                       <UserCircle className="h-5 w-5 text-[#1E4D3B]" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">Dados Pessoais</h4>
-                      <p className="text-xs text-gray-500">Gerir informação da conta</p>
+                      <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">{t('profile.title')}</h4>
+                      <p className="text-xs text-gray-500">{t('profile.personalInfo')}</p>
                     </div>
                     <svg className="h-5 w-5 text-gray-400 group-hover:text-[#1E4D3B] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                   </Link>
@@ -797,8 +797,8 @@ const Navbar: React.FC = () => {
                       <Package className="h-5 w-5 text-[#1E4D3B]" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">As Minhas Encomendas</h4>
-                      <p className="text-xs text-gray-500">Ver histórico de compras</p>
+                      <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">{t('checkout.success.viewOrders')}</h4>
+                      <p className="text-xs text-gray-500">{t('checkout.success.orderHistoryDesc')}</p>
                     </div>
                     <svg className="h-5 w-5 text-gray-400 group-hover:text-[#1E4D3B] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                   </Link>
@@ -809,8 +809,8 @@ const Navbar: React.FC = () => {
                       {favorites.length > 0 && <span className="absolute -top-1 -right-1 bg-[#1E4D3B] text-white rounded-full text-[10px] w-4 h-4 flex items-center justify-center">{favorites.length}</span>}
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">Favoritos</h4>
-                      <p className="text-xs text-gray-500">{favorites.length === 0 ? 'Produtos guardados' : `${favorites.length} ${favorites.length === 1 ? 'produto' : 'produtos'}`}</p>
+                      <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">{t('nav.favorites')}</h4>
+                      <p className="text-xs text-gray-500">{favorites.length === 0 ? t('favorites.productSingular') : `${favorites.length} ${favorites.length === 1 ? t('favorites.productSingular') : t('favorites.productPlural')}`}</p>
                     </div>
                     <svg className="h-5 w-5 text-gray-400 group-hover:text-[#1E4D3B] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                   </Link>
@@ -823,8 +823,8 @@ const Navbar: React.FC = () => {
                           <Settings className="h-5 w-5 text-[#1E4D3B]" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-[#1E4D3B]">Painel de Administrador</h4>
-                          <p className="text-xs text-gray-600">Gerir loja e produtos</p>
+                          <h4 className="font-semibold text-[#1E4D3B]">{t('admin.nav.dashboard')}</h4>
+                          <p className="text-xs text-gray-600">{t('admin.dashboard.welcome')}</p>
                         </div>
                         <svg className="h-5 w-5 text-[#1E4D3B]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </Link>
@@ -837,12 +837,12 @@ const Navbar: React.FC = () => {
                   <button
                     onClick={() => {
                       logout();
-                      info('Sessão terminada. Até breve!');
+                      info(t('auth.logoutMessage'));
                       handleCloseUserMenu();
                     }}
                     className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium"
                   >
-                    <LogOut className="h-5 w-5" /> Terminar Sessão
+                    <LogOut className="h-5 w-5" /> {t('admin.logout')}
                   </button>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, Check } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface FilterModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
   onPriceRangeChange = () => undefined,
   onClearFilters = () => undefined,
 }) => {
+  const { t } = useLanguage();
   const [isAnimating, setIsAnimating] = useState(false);
 
   // Lock body scroll when open
@@ -63,11 +65,11 @@ const FilterModal: React.FC<FilterModalProps> = ({
   };
 
   const sortOptions = [
-    { value: 'name', label: 'Alfabética A-Z' },
-    { value: 'name_desc', label: 'Alfabética Z-A' },
-    { value: 'price_asc', label: 'Preço Asc.' },
-    { value: 'price_desc', label: 'Preço Desc.' },
-    { value: 'newest', label: 'Os mais recentes' },
+    { value: 'name', label: t('filter.sort.alphaAZ') },
+    { value: 'name_desc', label: t('filter.sort.alphaZA') },
+    { value: 'price_asc', label: t('filter.sort.priceAsc') },
+    { value: 'price_desc', label: t('filter.sort.priceDesc') },
+    { value: 'newest', label: t('filter.sort.newest') },
   ];
 
   return (
@@ -99,7 +101,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
           
           {/* SORT BY */}
           <section>
-            <h3 className="text-lg font-bold text-[#1a1a1a] mb-5">Ordenar</h3>
+            <h3 className="text-lg font-bold text-[#1a1a1a] mb-5">{t('common.sort')}</h3>
             <div className="space-y-4">
               {sortOptions.map((option) => (
                 <label key={option.value} className="flex items-center gap-4 cursor-pointer group">
@@ -127,7 +129,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
           {/* COLOR */}
           <section>
-            <h3 className="text-lg font-bold text-[#1a1a1a] mb-5">Cor</h3>
+            <h3 className="text-lg font-bold text-[#1a1a1a] mb-5">{t('common.color')}</h3>
             <div className="space-y-4">
               {colors.map((color) => (
                 <label key={color} className="flex items-center gap-4 cursor-pointer group">
@@ -160,7 +162,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
           {/* CATEGORY */}
           <section>
-            <h3 className="text-lg font-bold text-[#1a1a1a] mb-5">Categoria</h3>
+            <h3 className="text-lg font-bold text-[#1a1a1a] mb-5">{t('filter.category')}</h3>
             <div className="space-y-4">
               {categories.map((category) => (
                 <label key={category} className="flex items-center gap-4 cursor-pointer group">
@@ -186,7 +188,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
           {/* PRICE SLIDER */}
           <section>
-            <h3 className="text-lg font-bold text-[#1a1a1a] mb-8">Preço</h3>
+            <h3 className="text-lg font-bold text-[#1a1a1a] mb-8">{t('filter.priceRange')}</h3>
             <div className="px-3 pb-4">
               
               <div className="relative h-[4px] bg-gray-200 rounded-full mb-6 mx-1">
@@ -271,13 +273,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
             }}
             className="flex-1 py-3.5 bg-white text-[#1E4D3B] border border-[#1E4D3B] font-medium text-[15px] rounded hover:bg-gray-50 transition-colors"
           >
-            Limpar Filtros
+            {t('filter.clear')}
           </button>
           <button
             onClick={onClose}
             className="flex-1 py-3.5 bg-[#1E4D3B] text-white font-medium text-[15px] rounded hover:bg-[#163a2c] transition-colors"
           >
-            Ver produtos
+            {t('filter.apply')}
           </button>
         </div>
 

@@ -210,7 +210,7 @@ const Shop: React.FC = () => {
   const currentProducts = filteredProducts.slice(0, displayCount);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">{t('common.loading')}</div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center">Erro: {error}</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center">{t('common.error')} {error}</div>;
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-gray-900 font-sans relative pb-24 lg:pb-0">

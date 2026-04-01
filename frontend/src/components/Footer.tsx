@@ -1,8 +1,11 @@
 import React from 'react';
 import { Instagram, Mail, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 const Footer: React.FC = () => {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-primary-900 text-white"> {/* Usei bg-primary-900 para forçar um tom bem escuro como no print */}
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
@@ -14,21 +17,21 @@ const Footer: React.FC = () => {
           <div className="flex flex-col">
             <h3 className="text-2xl font-bold mb-4 tracking-tight">Recicloth</h3>
             <p className="text-primary-100 text-[15px] leading-relaxed mb-6 max-w-sm">
-              Moda que respeita o planeta. Curadoria de peças recicladas, segunda-mão e upcycled com estilo e consciência.
+              {t('footer.tagline')}
             </p>
             <div className="flex space-x-3">
               <a
                 href="https://www.instagram.com/recicloth.croche/"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Instagram da Recicloth"
+                aria-label={t('footer.instagramAria')}
                 className="flex items-center justify-center w-10 h-10 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
               >
                 <Instagram className="h-[18px] w-[18px]" strokeWidth={2} />
               </a>
               <a
                 href="mailto:recicloth1972@gmail.com"
-                aria-label="Enviar email para Recicloth"
+                aria-label={t('footer.emailAria')}
                 className="flex items-center justify-center w-10 h-10 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
               >
                 <Mail className="h-[18px] w-[18px]" strokeWidth={2} />
@@ -38,36 +41,36 @@ const Footer: React.FC = () => {
 
           {/* Coluna 2: Links Úteis */}
           <div className="flex flex-col">
-            <h4 className="text-lg font-bold mb-5 tracking-tight">Links Úteis</h4>
+            <h4 className="text-lg font-bold mb-5 tracking-tight">{t('footer.links.title')}</h4>
             <ul className="space-y-3.5 text-primary-100 text-[15px]">
               <li>
                 <Link to="/loja" className="hover:text-white transition-colors block">
-                  Todos os Produtos
+                  {t('footer.links.allProducts')}
                 </Link>
               </li>
               <li>
                 <Link to="/contacto" className="hover:text-white transition-colors block">
-                  Contacto
+                  {t('nav.contact')}
                 </Link>
               </li>
               <li>
                 <Link to="/politica-privacidade" className="hover:text-white transition-colors block">
-                  Política de Privacidade
+                  {t('footer.links.privacy')}
                 </Link>
               </li>
               <li>
                 <Link to="/politica-devolucao" className="hover:text-white transition-colors block">
-                  Política de Devolução
+                  {t('footer.links.returns')}
                 </Link>
               </li>
               <li>
                 <Link to="/termos-condicoes" className="hover:text-white transition-colors block">
-                  Termos e Condições
+                  {t('footer.links.terms')}
                 </Link>
               </li>
               <li className="pt-2">
                 <a href="https://www.livroreclamacoes.pt" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity inline-block">
-                  <img src="https://www.livroreclamacoes.pt/Inicio/img/LRE_Theme.Logo_White.png?05CfBRVXskp07svwn4m+4A" alt="Livro de Reclamações Eletrónico" className="h-8 w-auto" />
+                  <img src="https://www.livroreclamacoes.pt/Inicio/img/LRE_Theme.Logo_White.png?05CfBRVXskp07svwn4m+4A" alt={t('footer.links.complaints')} className="h-8 w-auto" />
                 </a>
               </li>
             </ul>
@@ -75,12 +78,12 @@ const Footer: React.FC = () => {
 
           {/* Coluna 3: Contacto */}
           <div className="flex flex-col">
-            <h4 className="text-lg font-bold mb-5 tracking-tight">Contacto</h4>
+            <h4 className="text-lg font-bold mb-5 tracking-tight">{t('nav.contact')}</h4>
             <ul className="space-y-3.5 text-primary-100 text-[15px]">
               <li>
                 <a href="tel:+351919626697" className="flex items-center hover:text-white transition-colors group">
                   <Phone className="h-[18px] w-[18px] mr-3 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-                  <span>+351 919 626 697</span>
+                  <span>{t('contact.info.phoneValue')}</span>
                 </a>
               </li>
               <li>
@@ -96,7 +99,7 @@ const Footer: React.FC = () => {
 
         {/* Copyright */}
         <div className="border-t border-white/10 mt-12 pt-8 text-center sm:text-left md:text-center text-primary-200 text-sm">
-          <p>&copy; {new Date().getFullYear()} Recicloth. Todos os direitos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} Recicloth. {t('footer.shipping')}</p>
         </div>
         
       </div>

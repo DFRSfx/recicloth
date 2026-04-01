@@ -4,6 +4,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import FloatingLabelInput from './FloatingLabelInput';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface AuthModalProps {
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
   const { isAuthenticated, login, register, setAuthState } = useAuth();
   const { success, error: showError } = useToast();
+  const { t } = useLanguage();
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({ name: '', email: '', password: '' });
@@ -125,7 +127,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     setError(null);
 
     const errors: Record<string, string> = {};
-    if (!forgotEmail.trim()) errors.forgotEmail = 'Campo obrigatório';
+    if (!forgotEmail.trim()) errors.forgotEmail = t('common.required');
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       forgotEmailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -167,8 +169,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     setUnverifiedEmail(null);
 
     const errors: Record<string, string> = {};
-    if (!loginData.email.trim()) errors.email = 'Campo obrigatório';
-    if (!loginData.password.trim()) errors.password = 'Campo obrigatório';
+    if (!loginData.email.trim()) errors.email = t('common.required');
+    if (!loginData.password.trim()) errors.password = t('common.required');
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -187,17 +189,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
     try {
       await login(loginData.email, loginData.password);
-      success(`Bem-vindo de volta! 👋`);
+      success(t('auth.welcomeBack'));
       // Login successful - modal will close via useEffect
     } catch (err: any) {
       // Verificar se é erro de email não verificado
       if (err.requiresEmailVerification) {
         setUnverifiedEmail(err.email || loginData.email);
-        setError(err.message || 'Por favor, verifique o seu email antes de fazer login');
+        setError(err.message || t('auth.verifyEmailFirst'));
         // NÃO mostrar toast - o aviso visual no modal é suficiente
       } else {
-        setError(err.message || 'Email ou password incorretos');
-        showError(err.message || 'Email ou password incorretos');
+        setError(err.message || t('auth.invalidCredentials'));
+        showError(err.message || t('auth.invalidCredentials'));
       }
     } finally {
       setIsLoading(false);
@@ -209,9 +211,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     setError(null);
 
     const errors: Record<string, string> = {};
-    if (!registerData.name.trim()) errors.name = 'Campo obrigatório';
-    if (!registerData.email.trim()) errors.email = 'Campo obrigatório';
-    if (!registerData.password.trim()) errors.password = 'Campo obrigatório';
+    if (!registerData.name.trim()) errors.name = t('common.required');
+    if (!registerData.email.trim()) errors.email = t('common.required');
+    if (!registerData.password.trim()) errors.password = t('common.required');
     if (!privacyPolicy) errors.privacyPolicy = 'Deve aceitar os Termos e a Política de Privacidade';
 
     if (Object.keys(errors).length > 0) {
@@ -360,7 +362,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           <button
             onClick={handleClose}
             className="p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-gray-100 transition-all shadow-md"
-            aria-label="Fechar"
+            aria-label={t('common.close')}
           >
             <X className="h-6 w-6 text-gray-700" />
           </button>
@@ -371,7 +373,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
           {/* Login Card */}
           <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Iniciar Sessão</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('auth.signIn')}</h2>
 
             {mode === 'login' ? (
               <form onSubmit={handleLoginSubmit} noValidate className="space-y-6 flex-1 flex flex-col">
@@ -413,7 +415,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     id="login_email"
                     name="email"
                     type="email"
-                    label="Email"
+                    label={t('form.email')}
                     value={loginData.email}
                     onChange={handleLoginChange}
                     autoComplete="email"
@@ -458,7 +460,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     onClick={() => switchMode('forgot')}
                     className="text-sm text-red-500 hover:text-red-600 hover:underline transition-all"
                   >
-                    Esqueceu a palavra-passe?
+                    {t('auth.forgotPassword')}
                   </button>
                 </div>
 
@@ -494,7 +496,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     disabled={isLoading}
                     className="w-full bg-primary-600 text-white py-4 px-6 rounded-lg font-semibold text-sm uppercase hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? 'A iniciar sessão...' : 'Iniciar Sessão'}
+                    {t('auth.signIn')}
                   </button>
                 </div>
               </form>
@@ -505,7 +507,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   className="self-start flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-4 transition-colors"
                 >
                   <ArrowLeft size={18} />
-                  <span className="text-sm font-medium">Voltar</span>
+                  <span className="text-sm font-medium">{t('auth.back')}</span>
                 </button>
 
                 {!forgotSuccess ? (
@@ -530,7 +532,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                         id="forgot_email"
                         name="forgotEmail"
                         type="email"
-                        label="Email"
+                        label={t('form.email')}
                         value={forgotEmail}
                         onChange={(e) => {
                           setForgotEmail(e.target.value);
@@ -563,10 +565,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       </div>
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                          Email Enviado!
+                          {t('auth.recoveryEmailSent')}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          Se existir uma conta com este email, receberá um link de recuperação.
+                          {t('auth.recoveryEmailSent')}
                         </p>
                       </div>
                     </div>
@@ -607,9 +609,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                 )}
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
-                <div className="space-y-3">
-                  <h3 className="text-xl font-semibold text-gray-800">Já tens conta?</h3>
+                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-semibold text-gray-800">{t('auth.alreadyHaveAccount')}</h3>
                   <p className="text-gray-600">
                     Inicia sessão para aceder à tua conta Recicloth e explorar as nossas coleções exclusivas.
                   </p>
@@ -640,7 +642,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   onClick={() => switchMode('login')}
                   className="w-full border-2 border-primary-600 text-primary-600 py-3 px-12 rounded-lg font-semibold text-sm uppercase hover:bg-primary-600 hover:text-white transition-all"
                 >
-                  Iniciar Sessão
+                  {t('auth.signIn')}
                 </button>
               </div>
             )}
@@ -648,7 +650,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
           {/* Register Card */}
           <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Criar Conta</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('auth.signUp')}</h2>
 
             {showVerificationNotice ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
@@ -734,7 +736,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     id="register_name"
                     name="name"
                     type="text"
-                    label="Nome e Apelido"
+                    label={t('form.name')}
                     value={registerData.name}
                     onChange={handleRegisterChange}
                     ref={registerNameRef}
@@ -749,7 +751,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     id="register_email"
                     name="email"
                     type="email"
-                    label="Email"
+                    label={t('form.email')}
                     value={registerData.email}
                     onChange={handleRegisterChange}
                     ref={registerEmailRef}
@@ -790,7 +792,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       ) : (
                         <span className="text-red-500 font-bold">✗</span>
                       )}
-                      Mínimo 6 caracteres
+                      {t('auth.passwordStrength.minChars')}
                     </li>
                     <li className={`flex items-center gap-2 ${passwordChecks.hasLowerCase ? 'text-green-600' : 'text-gray-500'}`}>
                       {passwordChecks.hasLowerCase ? (
@@ -798,7 +800,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       ) : (
                         <span className="text-red-500 font-bold">✗</span>
                       )}
-                      Caracter minúsculo
+                      {t('auth.passwordStrength.lowercase')}
                     </li>
                     <li className={`flex items-center gap-2 ${passwordChecks.hasUpperCase ? 'text-green-600' : 'text-gray-500'}`}>
                       {passwordChecks.hasUpperCase ? (
@@ -806,7 +808,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       ) : (
                         <span className="text-red-500 font-bold">✗</span>
                       )}
-                      Caracter maiúsculo
+                      {t('auth.passwordStrength.uppercase')}
                     </li>
                     <li className={`flex items-center gap-2 ${passwordChecks.hasSpecialChar ? 'text-green-600' : 'text-gray-500'}`}>
                       {passwordChecks.hasSpecialChar ? (
@@ -814,7 +816,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       ) : (
                         <span className="text-red-500 font-bold">✗</span>
                       )}
-                      Caracter especial
+                      {t('auth.passwordStrength.special')}
                     </li>
                     <li className={`flex items-center gap-2 ${passwordChecks.hasNumber ? 'text-green-600' : 'text-gray-500'}`}>
                       {passwordChecks.hasNumber ? (
@@ -822,7 +824,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       ) : (
                         <span className="text-red-500 font-bold">✗</span>
                       )}
-                      Número
+                      {t('auth.passwordStrength.number')}
                     </li>
                   </ul>
                 </div>
@@ -905,9 +907,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                 </div>
               </form>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
-                <div className="space-y-3">
-                  <h3 className="text-xl font-semibold text-gray-800">Novo por aqui?</h3>
+                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-semibold text-gray-800">{t('auth.noAccount')}</h3>
                   <p className="text-gray-600">
                     O registo é fácil e grátis! Cria a tua conta e começa a explorar.
                   </p>
@@ -938,7 +940,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                   onClick={() => switchMode('register')}
                   className="w-full border-2 border-primary-600 text-primary-600 py-3 px-12 rounded-lg font-semibold text-sm uppercase hover:bg-primary-600 hover:text-white transition-all"
                 >
-                  Criar Conta
+                  {t('auth.signUp')}
                 </button>
               </div>
             )}
