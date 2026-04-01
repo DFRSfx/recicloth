@@ -133,13 +133,13 @@ const Orders: React.FC = () => {
   const getPaymentStatusBadge = (paymentStatus: string) => {
     switch (paymentStatus) {
       case 'paid':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">{t('orders.status.paid') || 'Pago'}</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">{t('orders.status.paid')}</span>;
       case 'pending':
         return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">{t('orders.status.pending')}</span>;
       case 'failed':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">{t('orders.status.failed') || 'Falhado'}</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">{t('orders.status.failed')}</span>;
       case 'expired':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{t('orders.status.expired') || 'Expirado'}</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{t('orders.status.expired')}</span>;
       default:
         return null;
     }
@@ -176,7 +176,7 @@ const Orders: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">{t('admin.nav.orders')}</h1>
-          <p className="text-gray-600 mt-2">Acompanhe o estado das suas encomendas</p>
+          <p className="text-gray-600 mt-2">{t('orders.subtitle')}</p>
         </div>
 
         {error && (
@@ -189,8 +189,8 @@ const Orders: React.FC = () => {
         {orders.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Sem encomendas</h3>
-            <p className="text-gray-600 mb-6">Ainda não realizou nenhuma encomenda.</p>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('orders.empty.title')}</h3>
+            <p className="text-gray-600 mb-6">{t('orders.empty.desc')}</p>
             <button
               onClick={() => navigate('/loja')}
               className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -233,11 +233,11 @@ const Orders: React.FC = () => {
                         {/* Text Data (Grid ensures they align nicely on tiny screens) */}
                         <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                           <div>
-                            <p className="text-sm text-gray-500">Encomenda</p>
+                            <p className="text-sm text-gray-500">{t('orders.orderLabel')}</p>
                             <p className="font-semibold text-gray-900">#{order.id}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-500">Data</p>
+                            <p className="text-sm text-gray-500">{t('orders.dateLabel')}</p>
                             <p className="font-medium text-gray-900">
                               {new Date(order.created_at).toLocaleDateString('pt-PT')}
                             </p>
@@ -302,7 +302,7 @@ const Orders: React.FC = () => {
                                     {item.product.name}
                                   </Link>
                                   <p className="text-sm text-gray-600 mt-1">
-                                    Quantidade: {item.quantity} × {item.price.toFixed(2)}€
+                                    {t('orders.quantityLabel')}: {item.quantity} × {item.price.toFixed(2)}€
                                   </p>
                                 </div>
                                 <p className="font-semibold text-gray-900">
@@ -315,15 +315,15 @@ const Orders: React.FC = () => {
 
                         {/* Order Info */}
                         <div>
-                          <h4 className="font-semibold text-gray-900 mb-4">Informações</h4>
+                          <h4 className="font-semibold text-gray-900 mb-4">{t('orders.infoTitle')}</h4>
                           <div className="space-y-4">
                             <div className="bg-white p-4 rounded-lg">
-                              <p className="text-sm text-gray-500 mb-1">Morada de Envio</p>
+                              <p className="text-sm text-gray-500 mb-1">{t('orders.shippingAddress')}</p>
                               <p className="text-sm text-gray-900">{order.customer_address}</p>
                               <p className="text-sm text-gray-900">{order.customer_postal_code} {order.customer_city}</p>
                             </div>
                             <div className="bg-white p-4 rounded-lg">
-                              <p className="text-sm text-gray-500 mb-1">Método de Pagamento</p>
+                              <p className="text-sm text-gray-500 mb-1">{t('orders.paymentMethod')}</p>
                               <p className="text-sm text-gray-900 capitalize">{order.payment_method}</p>
                             </div>
                             <div className="bg-white p-4 rounded-lg">
@@ -349,7 +349,7 @@ const Orders: React.FC = () => {
                                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-primary-600 text-primary-700 rounded-lg hover:bg-primary-50 transition-colors font-medium"
                               >
                                 <FileText className="h-4 w-4" />
-                                Ver Fatura
+                                {t('orders.viewInvoice')}
                               </button>
                             )}
                           </div>

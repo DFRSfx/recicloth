@@ -1,6 +1,5 @@
 {
   "_comment": "pt.json — Português. Chaves partilhadas em common.* e form.* evitam duplicados entre componentes.",
-
   "common.close": "Fechar",
   "common.cancel": "Cancelar",
   "common.edit": "Editar",
@@ -21,14 +20,12 @@
   "common.faqTitle": "Perguntas Frequentes",
   "common.noProductsFound": "Nenhum produto encontrado",
   "common.searchProducts": "Procurar produtos...",
-
   "form.name": "Nome",
   "form.email": "Email",
   "form.phone": "Telefone",
   "form.address": "Morada",
   "form.city": "Cidade",
   "form.postalCode": "Código Postal",
-
   "nav.home": "Início",
   "nav.shop": "Loja",
   "nav.contact": "Contacto",
@@ -39,12 +36,11 @@
   "nav.changeLanguage": "Mudar idioma",
   "nav.closeMenu": "Fechar menu",
   "nav.openMenu": "Abrir menu",
-
   "megaMenu.exploreCategories": "Explorar Categorias",
   "megaMenu.allCategories": "Todas as Categorias",
+  "megaMenu.allLabel": "Todas",
   "megaMenu.viewAllProducts": "Ver todos os produtos",
   "megaMenu.exploreCategoryFallback": "Explorar produtos",
-
   "home.hero.tagline": "moda sustentável",
   "home.hero.description": "reciclado, upcycled ou de segunda mão",
   "home.hero.positiveImpact": "impacto ambiental positivo",
@@ -63,7 +59,6 @@
   "home.cta.desc": "Explore a nossa coleção completa de roupa reciclada, upcycled e de segunda mão",
   "home.cta.button": "Explorar Loja",
   "home.faq.subtitle": "Tudo o que precisa de saber sobre moda sustentável na Recicloth",
-
   "shop.title": "Comprar por Categoria",
   "shop.tagline": "Moda sustentável que respeita o planeta. Designs atemporais para o nosso futuro.",
   "shop.allItems": "Todos os Artigos",
@@ -73,7 +68,6 @@
   "shop.sort.priceLow": "Preço: Menor para Maior",
   "shop.sort.priceHigh": "Preço: Maior para Menor",
   "shop.filterSort": "Filtrar & Ordenar",
-
   "product.backToShop": "Voltar à Loja",
   "product.notFound": "Produto não encontrado",
   "product.soldOut": "Esgotado",
@@ -93,7 +87,6 @@
   "product.linkCopied": "Link copiado para a área de transferência!",
   "product.linkCopyError": "Erro ao copiar link",
   "product.shareError": "Erro ao partilhar produto",
-
   "cart.empty.title": "O seu carrinho está vazio",
   "cart.empty.desc": "Adicione alguns produtos à sua coleção e eles aparecerão aqui.",
   "cart.title": "Carrinho de Compras",
@@ -114,12 +107,10 @@
   "cart.clearConfirm.title": "Limpar Carrinho?",
   "cart.clearConfirm.desc": "Tem a certeza que deseja remover todos os itens do carrinho? Esta ação não pode ser desfeita.",
   "cart.clearConfirm.yes": "Sim, Limpar",
-
   "cartItem.perUnit": "/ unidade",
   "cartItem.colorLabel": "Cor:",
   "cartItem.decreaseQty": "Diminuir quantidade",
   "cartItem.remove": "Remover produto",
-
   "contact.title": "Entre em Contacto",
   "contact.subtitle": "Tem dúvidas sobre as nossas peças de roupa reciclada ou precisa de ajuda com o seu pedido? Estamos aqui para ajudar!",
   "contact.info.title": "Informações de Contacto",
@@ -159,7 +150,6 @@
   "contact.faq.a2": "Sim! Fazemos entregas em todos os países da União Europeia. Envios para Portugal continental e ilhas têm custos reduzidos.",
   "contact.faq.q3": "Qual é a política de devolução?",
   "contact.faq.a3": "Tem 14 dias para devolver qualquer artigo. As peças devem estar nas mesmas condições em que foram recebidas. Consulte a nossa política de devolução para mais detalhes.",
-
   "favorites.title": "Os Meus Favoritos",
   "favorites.productSingular": "produto guardado",
   "favorites.productPlural": "produtos guardados",
@@ -167,7 +157,6 @@
   "favorites.empty.title": "Ainda sem favoritos",
   "favorites.empty.desc": "Explore a nossa loja e adicione produtos à sua lista de favoritos para os encontrar facilmente mais tarde.",
   "favorites.removeAria": "Remover dos favoritos",
-
   "checkout.success.title": "Pagamento Concluído com Sucesso!",
   "checkout.success.desc": "O seu pagamento foi processado com sucesso e a sua encomenda está confirmada.",
   "checkout.success.orderNumber": "Número da Encomenda",
@@ -190,7 +179,6 @@
   "checkout.fail.note": "Nota:",
   "checkout.fail.orderNote": "A sua encomenda foi criada mas não foi paga. Pode tentar efetuar o pagamento novamente nas suas encomendas ou criar uma nova encomenda.",
   "checkout.fail.retry": "Tentar Novamente",
-
   "orders.status.pending": "Pendente",
   "orders.status.processing": "A Processar",
   "orders.status.shipped": "Enviado",
@@ -198,7 +186,6 @@
   "orders.status.cancelled": "Cancelado",
   "orders.error.noToken": "Sem token de autenticação",
   "orders.error.load": "Erro ao carregar encomendas",
-
   "trackOrder.notFound": "Encomenda não encontrada",
   "trackOrder.loadError": "Erro ao carregar encomenda",
   "trackOrder.status.pendingPayment": "Pagamento Pendente",
@@ -208,7 +195,6 @@
   "trackOrder.status.shippedDesc": "A sua encomenda está a caminho",
   "trackOrder.status.delivered": "Entregue",
   "trackOrder.status.deliveredDesc": "Encomenda entregue com sucesso",
-
   "verifyEmail.loading.title": "A verificar email...",
   "verifyEmail.loading.desc": "Por favor aguarde enquanto verificamos o seu email.",
   "verifyEmail.success.title": "Email Verificado com Sucesso!",
@@ -222,7 +208,6 @@
   "verifyEmail.error.resend": "Reenviar email de verificação",
   "verifyEmail.help": "Precisa de ajuda?",
   "verifyEmail.contactUs": "Entre em contacto",
-
   "auth.signIn": "Entrar",
   "auth.signUp": "Criar Conta",
   "auth.forgotPassword": "Esqueci a Password",
@@ -241,7 +226,6 @@
   "auth.noAccount": "Não tem conta?",
   "auth.back": "Voltar",
   "auth.recoveryEmailSent": "Email de recuperação enviado com sucesso",
-
   "profile.title": "Perfil",
   "profile.personalInfo": "Informações Pessoais",
   "profile.shippingAddresses": "Endereços de Envio",
@@ -255,7 +239,27 @@
   "profile.newPassword": "Nova Password",
   "profile.confirmPassword": "Confirmar Password",
   "profile.saveSuccess": "Alterações guardadas com sucesso!",
-
+  "profile.personalInfoDesc": "Gerencie as suas informações de contacto.",
+  "profile.shippingAddressesDesc": "Guarde moradas para agilizar as suas encomendas.",
+  "profile.addressPlaceholder.name": "ex: Casa, Trabalho",
+  "profile.addressPlaceholder.phone": "912 345 678",
+  "profile.addressPlaceholder.address": "Rua, número, andar",
+  "profile.addressPlaceholder.city": "Lisboa",
+  "profile.addressPlaceholder.postalCode": "1000-001",
+  "profile.setDefaultCheckbox": "Definir como morada predefinida",
+  "profile.addressesLoading": "A carregar moradas...",
+  "profile.addressesEmpty": "Ainda não tem moradas guardadas.",
+  "profile.defaultBadge": "Predefinida",
+  "profile.setDefaultAction": "Predefinir",
+  "profile.securityDesc": "Mantenha a sua conta segura atualizando a password regularmente.",
+  "profile.passwordMismatch": "As passwords não coincidem",
+  "profile.addressUpdated": "Morada atualizada",
+  "profile.addressAdded": "Morada adicionada",
+  "profile.addressSaveError": "Erro ao guardar morada",
+  "profile.addressDefaultUpdated": "Morada predefinida atualizada",
+  "profile.addressDefaultError": "Erro ao definir morada predefinida",
+  "profile.addressDeleted": "Morada eliminada",
+  "profile.addressDeleteError": "Erro ao eliminar morada",
   "filter.sort.alphaAZ": "Alfabética A-Z",
   "filter.sort.alphaZA": "Alfabética Z-A",
   "filter.sort.priceAsc": "Preço Asc.",
@@ -265,7 +269,6 @@
   "filter.priceRange": "Faixa de Preço",
   "filter.apply": "Aplicar Filtros",
   "filter.clear": "Limpar Filtros",
-
   "footer.tagline": "Moda que respeita o planeta. Curadoria de peças recicladas, segunda-mão e upcycled com estilo e consciência.",
   "footer.instagramAria": "Instagram da Recicloth",
   "footer.emailAria": "Enviar email para Recicloth",
@@ -276,19 +279,15 @@
   "footer.links.terms": "Termos e Condições",
   "footer.links.complaints": "Livro de Reclamações Eletrónico",
   "footer.shipping": "Enviamos para Portugal Continental e ilhas com custos reduzidos",
-
   "heroSlider.loading": "A carregar slides...",
   "heroSlider.goToSlide": "Ir para slide",
-
   "toast.ok": "OK",
   "toast.closeAria": "Fechar notificação",
-
   "marketing.emailPlaceholder": "Introduza o seu email",
   "marketing.mustAccept": "É necessário aceitar para subscrever",
   "marketing.acceptDesc": "Ao subscrever, aceita receber emails de marketing",
   "marketing.privacy": "Privacidade & Cookies",
   "marketing.cookiesDesc": "Usamos cookies e tecnologias similares para melhorar a sua experiência",
-
   "admin.nav.dashboard": "Painel",
   "admin.nav.heroSlides": "Hero Slides",
   "admin.nav.categories": "Categorias",

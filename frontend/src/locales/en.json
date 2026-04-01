@@ -1,6 +1,5 @@
 {
   "_comment": "en.json — English. Keys mirror pt.json exactly — same key = same UI location.",
-
   "common.close": "Close",
   "common.cancel": "Cancel",
   "common.edit": "Edit",
@@ -21,14 +20,12 @@
   "common.faqTitle": "Frequently Asked Questions",
   "common.noProductsFound": "No products found",
   "common.searchProducts": "Search products...",
-
   "form.name": "Name",
   "form.email": "Email",
   "form.phone": "Phone",
   "form.address": "Address",
   "form.city": "City",
   "form.postalCode": "Postal Code",
-
   "nav.home": "Home",
   "nav.shop": "Shop",
   "nav.contact": "Contact",
@@ -39,12 +36,11 @@
   "nav.changeLanguage": "Change language",
   "nav.closeMenu": "Close menu",
   "nav.openMenu": "Open menu",
-
   "megaMenu.exploreCategories": "Explore Categories",
   "megaMenu.allCategories": "All Categories",
+  "megaMenu.allLabel": "All",
   "megaMenu.viewAllProducts": "View all products",
   "megaMenu.exploreCategoryFallback": "Explore products",
-
   "home.hero.tagline": "sustainable fashion",
   "home.hero.description": "recycled, upcycled or second-hand",
   "home.hero.positiveImpact": "positive environmental impact",
@@ -63,7 +59,6 @@
   "home.cta.desc": "Explore our complete collection of recycled, upcycled and second-hand clothing",
   "home.cta.button": "Explore Shop",
   "home.faq.subtitle": "Everything you need to know about sustainable fashion at Recicloth",
-
   "shop.title": "Shop by Category",
   "shop.tagline": "Sustainable fashion that respects the planet. Timeless designs for our future.",
   "shop.allItems": "All Items",
@@ -73,7 +68,6 @@
   "shop.sort.priceLow": "Price: Low to High",
   "shop.sort.priceHigh": "Price: High to Low",
   "shop.filterSort": "Filter & Sort",
-
   "product.backToShop": "Back to Shop",
   "product.notFound": "Product not found",
   "product.soldOut": "Sold Out",
@@ -93,7 +87,6 @@
   "product.linkCopied": "Link copied to clipboard!",
   "product.linkCopyError": "Error copying link",
   "product.shareError": "Error sharing product",
-
   "cart.empty.title": "Your cart is empty",
   "cart.empty.desc": "Add some products to your collection and they will appear here.",
   "cart.title": "Shopping Cart",
@@ -114,12 +107,10 @@
   "cart.clearConfirm.title": "Clear Cart?",
   "cart.clearConfirm.desc": "Are you sure you want to remove all items from the cart? This action cannot be undone.",
   "cart.clearConfirm.yes": "Yes, Clear",
-
   "cartItem.perUnit": "/ unit",
   "cartItem.colorLabel": "Color:",
   "cartItem.decreaseQty": "Decrease quantity",
   "cartItem.remove": "Remove product",
-
   "contact.title": "Get in Touch",
   "contact.subtitle": "Have questions about our recycled clothing or need help with your order? We are here to help!",
   "contact.info.title": "Contact Information",
@@ -159,7 +150,6 @@
   "contact.faq.a2": "Yes! We deliver to all EU countries. Shipping to mainland Portugal and the islands has reduced costs.",
   "contact.faq.q3": "What is the returns policy?",
   "contact.faq.a3": "You have 14 days to return any item. Pieces must be in the same condition as received. Please see our returns policy for full details.",
-
   "favorites.title": "My Favourites",
   "favorites.productSingular": "saved product",
   "favorites.productPlural": "saved products",
@@ -167,7 +157,6 @@
   "favorites.empty.title": "No favourites yet",
   "favorites.empty.desc": "Browse our shop and add products to your favourites list to find them easily later.",
   "favorites.removeAria": "Remove from favourites",
-
   "checkout.success.title": "Payment Completed Successfully!",
   "checkout.success.desc": "Your payment has been processed successfully and your order is confirmed.",
   "checkout.success.orderNumber": "Order Number",
@@ -190,7 +179,6 @@
   "checkout.fail.note": "Note:",
   "checkout.fail.orderNote": "Your order was created but not paid. You can try to pay again in your orders or create a new order.",
   "checkout.fail.retry": "Try Again",
-
   "orders.status.pending": "Pending",
   "orders.status.processing": "Processing",
   "orders.status.shipped": "Shipped",
@@ -198,7 +186,6 @@
   "orders.status.cancelled": "Cancelled",
   "orders.error.noToken": "No authentication token",
   "orders.error.load": "Error loading orders",
-
   "trackOrder.notFound": "Order not found",
   "trackOrder.loadError": "Error loading order",
   "trackOrder.status.pendingPayment": "Payment Pending",
@@ -208,7 +195,6 @@
   "trackOrder.status.shippedDesc": "Your order is on its way",
   "trackOrder.status.delivered": "Delivered",
   "trackOrder.status.deliveredDesc": "Order delivered successfully",
-
   "verifyEmail.loading.title": "Verifying email...",
   "verifyEmail.loading.desc": "Please wait while we verify your email.",
   "verifyEmail.success.title": "Email Verified Successfully!",
@@ -222,7 +208,6 @@
   "verifyEmail.error.resend": "Resend verification email",
   "verifyEmail.help": "Need help?",
   "verifyEmail.contactUs": "Contact us",
-
   "auth.signIn": "Sign In",
   "auth.signUp": "Create Account",
   "auth.forgotPassword": "Forgot Password",
@@ -241,7 +226,6 @@
   "auth.noAccount": "Don't have an account?",
   "auth.back": "Back",
   "auth.recoveryEmailSent": "Recovery email sent successfully",
-
   "profile.title": "Profile",
   "profile.personalInfo": "Personal Information",
   "profile.shippingAddresses": "Shipping Addresses",
@@ -255,7 +239,27 @@
   "profile.newPassword": "New Password",
   "profile.confirmPassword": "Confirm Password",
   "profile.saveSuccess": "Changes saved successfully!",
-
+  "profile.personalInfoDesc": "Manage your contact information.",
+  "profile.shippingAddressesDesc": "Save addresses to speed up your orders.",
+  "profile.addressPlaceholder.name": "e.g., Home, Work",
+  "profile.addressPlaceholder.phone": "123 456 789",
+  "profile.addressPlaceholder.address": "Street, number, floor",
+  "profile.addressPlaceholder.city": "Lisbon",
+  "profile.addressPlaceholder.postalCode": "1000-001",
+  "profile.setDefaultCheckbox": "Set as default address",
+  "profile.addressesLoading": "Loading addresses...",
+  "profile.addressesEmpty": "You don't have any saved addresses yet.",
+  "profile.defaultBadge": "Default",
+  "profile.setDefaultAction": "Set as default",
+  "profile.securityDesc": "Keep your account secure by updating your password regularly.",
+  "profile.passwordMismatch": "Passwords do not match",
+  "profile.addressUpdated": "Address updated",
+  "profile.addressAdded": "Address added",
+  "profile.addressSaveError": "Error saving address",
+  "profile.addressDefaultUpdated": "Default address updated",
+  "profile.addressDefaultError": "Error setting default address",
+  "profile.addressDeleted": "Address deleted",
+  "profile.addressDeleteError": "Error deleting address",
   "filter.sort.alphaAZ": "Alphabetical A-Z",
   "filter.sort.alphaZA": "Alphabetical Z-A",
   "filter.sort.priceAsc": "Price Asc.",
@@ -265,7 +269,6 @@
   "filter.priceRange": "Price Range",
   "filter.apply": "Apply Filters",
   "filter.clear": "Clear Filters",
-
   "footer.tagline": "Fashion that respects the planet. Curated recycled, second-hand and upcycled pieces with style and conscience.",
   "footer.instagramAria": "Recicloth on Instagram",
   "footer.emailAria": "Send email to Recicloth",
@@ -276,19 +279,15 @@
   "footer.links.terms": "Terms & Conditions",
   "footer.links.complaints": "Online Complaints Book",
   "footer.shipping": "We ship to Mainland Portugal and islands at reduced costs",
-
   "heroSlider.loading": "Loading slides...",
   "heroSlider.goToSlide": "Go to slide",
-
   "toast.ok": "OK",
   "toast.closeAria": "Close notification",
-
   "marketing.emailPlaceholder": "Enter your email",
   "marketing.mustAccept": "You must accept to subscribe",
   "marketing.acceptDesc": "By subscribing, you agree to receive marketing emails",
   "marketing.privacy": "Privacy & Cookies",
   "marketing.cookiesDesc": "We use cookies and similar technologies to improve your experience",
-
   "admin.nav.dashboard": "Dashboard",
   "admin.nav.heroSlides": "Hero Slides",
   "admin.nav.categories": "Categories",

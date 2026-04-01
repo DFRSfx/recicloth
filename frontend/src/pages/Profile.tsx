@@ -163,7 +163,7 @@ const Profile: React.FC = () => {
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordFieldErrors({ confirmPassword: 'As passwords não coincidem' });
+      setPasswordFieldErrors({ confirmPassword: t('profile.passwordMismatch') });
       confirmPasswordRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       confirmPasswordRef.current?.focus();
       return;
@@ -214,11 +214,11 @@ const Profile: React.FC = () => {
     e.preventDefault();
 
     const errors: Record<string, string> = {};
-    if (!addressForm.name.trim()) errors.name = 'Campo obrigatório';
-    if (!addressForm.phone.trim()) errors.phone = 'Campo obrigatório';
-    if (!addressForm.address.trim()) errors.address = 'Campo obrigatório';
-    if (!addressForm.city.trim()) errors.city = 'Campo obrigatório';
-    if (!addressForm.postal_code.trim()) errors.postal_code = 'Campo obrigatório';
+    if (!addressForm.name.trim()) errors.name = t('common.required');
+    if (!addressForm.phone.trim()) errors.phone = t('common.required');
+    if (!addressForm.address.trim()) errors.address = t('common.required');
+    if (!addressForm.city.trim()) errors.city = t('common.required');
+    if (!addressForm.postal_code.trim()) errors.postal_code = t('common.required');
 
     if (Object.keys(errors).length > 0) {
       setAddressFieldErrors(errors);
@@ -260,18 +260,18 @@ const Profile: React.FC = () => {
             return a.id === saved.id ? saved : a;
           })
         );
-        success('Morada atualizada');
+        success(t('profile.addressUpdated'));
       } else {
         setAddresses(prev => {
           const list = saved.is_default ? prev.map(a => ({ ...a, is_default: false })) : prev;
           return [saved, ...list];
         });
-        success('Morada adicionada');
+        success(t('profile.addressAdded'));
       }
 
       closeAddressForm();
     } catch {
-      error('Erro ao guardar morada');
+      error(t('profile.addressSaveError'));
     } finally {
       setAddressSaving(false);
     }
@@ -287,9 +287,9 @@ const Profile: React.FC = () => {
       });
       if (!res.ok) throw new Error();
       setAddresses(prev => prev.map(a => ({ ...a, is_default: a.id === addr.id })));
-      success('Morada predefinida atualizada');
+      success(t('profile.addressDefaultUpdated'));
     } catch {
-      error('Erro ao definir morada predefinida');
+      error(t('profile.addressDefaultError'));
     }
   };
 
@@ -302,9 +302,9 @@ const Profile: React.FC = () => {
       });
       if (!res.ok) throw new Error();
       setAddresses(prev => prev.filter(a => a.id !== id));
-      success('Morada eliminada');
+      success(t('profile.addressDeleted'));
     } catch {
-      error('Erro ao eliminar morada');
+      error(t('profile.addressDeleteError'));
     } finally {
       setDeletingId(null);
     }
@@ -432,7 +432,7 @@ const Profile: React.FC = () => {
                     <span className="hidden sm:inline text-gray-300">•</span>
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary-100/50 text-primary-800 border border-primary-200">
                       <Shield className="w-3.5 h-3.5" />
-                      Administrador
+                      {t('auth.admin')}
                     </span>
                   </>
                 )}
@@ -446,7 +446,7 @@ const Profile: React.FC = () => {
           <div className="px-6 sm:px-8 py-5 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">{t('profile.personalInfo')}</h2>
-              <p className="text-sm text-gray-500 mt-1">Gerencie as suas informações de contacto.</p>
+              <p className="text-sm text-gray-500 mt-1">{t('profile.personalInfoDesc')}</p>
             </div>
             {!isEditing && (
               <button
@@ -515,7 +515,7 @@ const Profile: React.FC = () => {
                 <MapPin className="w-5 h-5 text-primary-600" />
                 {t('profile.shippingAddresses')}
               </h2>
-              <p className="text-sm text-gray-500 mt-1">Guarde moradas para agilizar as suas encomendas.</p>
+              <p className="text-sm text-gray-500 mt-1">{t('profile.shippingAddressesDesc')}</p>
             </div>
             {!showAddressForm && (
               <button
@@ -552,7 +552,7 @@ const Profile: React.FC = () => {
                         name="name"
                         value={addressForm.name}
                         onChange={handleAddressFormChange}
-                        placeholder="ex: Casa, Trabalho"
+                        placeholder={t('profile.addressPlaceholder.name')}
                         className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none ${addressFieldErrors.name ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {addressFieldErrors.name && (
@@ -569,7 +569,7 @@ const Profile: React.FC = () => {
                         name="phone"
                         value={addressForm.phone}
                         onChange={handleAddressFormChange}
-                        placeholder="912 345 678"
+                        placeholder={t('profile.addressPlaceholder.phone')}
                         className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none ${addressFieldErrors.phone ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {addressFieldErrors.phone && (
@@ -586,7 +586,7 @@ const Profile: React.FC = () => {
                         name="address"
                         value={addressForm.address}
                         onChange={handleAddressFormChange}
-                        placeholder="Rua, número, andar"
+                        placeholder={t('profile.addressPlaceholder.address')}
                         className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none ${addressFieldErrors.address ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {addressFieldErrors.address && (
@@ -603,7 +603,7 @@ const Profile: React.FC = () => {
                         name="city"
                         value={addressForm.city}
                         onChange={handleAddressFormChange}
-                        placeholder="Lisboa"
+                        placeholder={t('profile.addressPlaceholder.city')}
                         className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none ${addressFieldErrors.city ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {addressFieldErrors.city && (
@@ -620,7 +620,7 @@ const Profile: React.FC = () => {
                         name="postal_code"
                         value={addressForm.postal_code}
                         onChange={handleAddressFormChange}
-                        placeholder="1000-001"
+                        placeholder={t('profile.addressPlaceholder.postalCode')}
                         className={`block w-full px-3 py-2.5 sm:text-sm rounded-lg border text-gray-900 bg-white shadow-sm focus:ring-2 focus:ring-primary-600 focus:border-primary-600 outline-none ${addressFieldErrors.postal_code ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {addressFieldErrors.postal_code && (
@@ -638,7 +638,7 @@ const Profile: React.FC = () => {
                       onChange={handleAddressFormChange}
                       className="w-4 h-4 rounded border-gray-300 text-primary-700 focus:ring-primary-600 cursor-pointer"
                     />
-                    <span className="text-sm text-gray-700">Definir como morada predefinida</span>
+                    <span className="text-sm text-gray-700">{t('profile.setDefaultCheckbox')}</span>
                   </label>
 
                   <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
@@ -660,11 +660,11 @@ const Profile: React.FC = () => {
 
             {/* Address list */}
             {addressesLoading ? (
-              <div className="text-center py-8 text-sm text-gray-400">A carregar moradas...</div>
+              <div className="text-center py-8 text-sm text-gray-400">{t('profile.addressesLoading')}</div>
             ) : addresses.length === 0 && !showAddressForm ? (
               <div className="text-center py-8">
                 <MapPin className="h-8 w-8 text-gray-200 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">Ainda não tem moradas guardadas.</p>
+                <p className="text-sm text-gray-400">{t('profile.addressesEmpty')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -680,7 +680,7 @@ const Profile: React.FC = () => {
                     {addr.is_default && (
                       <span className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary-100 text-primary-800 border border-primary-200">
                         <Star className="w-2.5 h-2.5 fill-primary-600 text-primary-600" />
-                        Predefinida
+                        {t('profile.defaultBadge')}
                       </span>
                     )}
                     <p className="font-semibold text-gray-900 text-sm mb-2 pr-20">{addr.name}</p>
@@ -703,7 +703,7 @@ const Profile: React.FC = () => {
                           className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-primary-700 transition-colors font-medium"
                         >
                           <Star className="w-3.5 h-3.5" />
-                          Predefinir
+                          {t('profile.setDefaultAction')}
                         </button>
                       )}
                       <button
@@ -738,7 +738,7 @@ const Profile: React.FC = () => {
                   <Shield className="w-5 h-5 text-primary-600" />
                   {t('profile.security')}
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">Mantenha a sua conta segura atualizando a password regularmente.</p>
+                <p className="text-sm text-gray-500 mt-1">{t('profile.securityDesc')}</p>
               </div>
             </div>
 
