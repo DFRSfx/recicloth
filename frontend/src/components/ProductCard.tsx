@@ -151,6 +151,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
 
   // Defensive check: ensure images array exists to prevent crashes
   const images = product.images && product.images.length > 0 ? product.images : ['placeholder.jpg'];
+  const visibleColors = product.colors ? product.colors.slice(0, 4) : [];
+  const activeColorIndex = visibleColors.findIndex(color => color.name === activeColor);
+  const dotItems = visibleColors.length > 0 ? visibleColors : images;
+  const activeDotIndex =
+    visibleColors.length > 0
+      ? (activeColorIndex >= 0 ? activeColorIndex : 0)
+      : currentImageIndex;
 
   return (
     <>
@@ -218,7 +225,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
         </Link>
 
         {/* Navigation Arrows (Visible on Desktop Hover) */}
-        {images.length > 1 && (
+        {dotItems.length > 1 && (
           <>
             <button
               onClick={handlePrevImage}
@@ -235,11 +242,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
             
             {/* Pagination Dots */}
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-              {images.map((_, index) => (
+              {dotItems.map((_, index) => (
                 <div
                   key={index}
                   className={`h-1 rounded-full transition-all ${
-                    index === currentImageIndex ? 'bg-black w-4' : 'bg-gray-400 w-1'
+                    index === activeDotIndex ? 'bg-black w-4' : 'bg-gray-400 w-1'
                   }`}
                 />
               ))}
@@ -273,7 +280,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
         
         {/* Color Swatches — clickable */}
         <div className="flex gap-1.5 mb-2 items-center h-6">
-          {product.colors && product.colors.slice(0, 4).map((color, idx) => (
+          {visibleColors.map((color, idx) => (
             <button
               key={idx}
               type="button"

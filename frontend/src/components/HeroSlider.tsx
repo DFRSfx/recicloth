@@ -28,6 +28,11 @@ const HeroSlider: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
 
+  const applyFetchPriority = (node: HTMLImageElement | null, priority: 'high' | 'auto') => {
+    if (!node) return;
+    node.setAttribute('fetchpriority', priority);
+  };
+
   // Fetch slides from API
   useEffect(() => {
     const fetchSlides = async () => {
@@ -261,7 +266,7 @@ const HeroSlider: React.FC = () => {
                       setImagesLoaded(prev => new Set(prev).add(index));
                     }}
                     loading="eager"
-                    fetchPriority={index === 0 ? 'high' : 'auto'}
+                    ref={(node) => applyFetchPriority(node, index === 0 ? 'high' : 'auto')}
                   />
                 </picture>
                 {/* Overlay */}
