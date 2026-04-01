@@ -53,10 +53,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
 
   const colorImages = useMemo(
     () =>
-      displayColors.map((color) => {
+      displayColors.map((color, index) => {
         const slug = toColorSlug(color.name);
         const match = images.find(img => img.includes(`-${slug}`));
-        return { color, image: match ?? images[0] };
+        const fallback = images[index] ?? images[0];
+        return { color, image: match ?? fallback };
       }),
     [displayColors, images]
   );
@@ -306,8 +307,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
                 }`}
               disabled={!product.inStock || isAdded}
             >
-              {!product.inStock ? 'Esgotado' : isAdded ? 'Adicionado ✓' : 'Quick Add'}
-            </button>
+            {!product.inStock ? t('product.soldOut') : isAdded ? `${t('product.added')} ✓` : t('product.quickAdd')}
+          </button>
           </div>
         </div>
 
