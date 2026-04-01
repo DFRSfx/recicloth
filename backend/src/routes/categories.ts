@@ -108,9 +108,8 @@ router.post(
 
       clearCachedByPrefix('categories:');
 
-      // 🌍 i18n: Guarda traduções em background
-      saveCategoryTranslations(result.insertId, name, description || null, 'pt')
-        .catch(console.error);
+      // 🌍 i18n: Guarda traduções (ambas línguas) antes de responder
+      await saveCategoryTranslations(result.insertId, name, description || null, 'pt');
 
       res.status(201).json(newCategory[0]);
     } catch (error: any) {
