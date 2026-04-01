@@ -70,47 +70,38 @@ export async function saveColorTranslations(
 }
 
 // ── Categoria ──────────────────────────────────────────────────────────────────
+// Translates name/description to both PT and EN regardless of input language.
 export async function saveCategoryTranslations(
   categoryId: number,
   name: string,
-  description: string | null,
-  sourceLang: 'en' | 'pt' = 'en'
+  description: string | null
 ): Promise<void> {
-  const targetLang = sourceLang === 'en' ? 'pt' : 'en';
+  const [ptName, enName] = await Promise.all([
+    translate(name, null, 'pt'),
+    translate(name, null, 'en'),
+  ]);
 
-  // Persist both rows immediately with original text so FK is satisfied
-  // and both rows exist regardless of translation API availability.
+  const [ptDesc, enDesc] = description
+    ? await Promise.all([
+        translate(description, null, 'pt'),
+        translate(description, null, 'en'),
+      ])
+    : [null, null];
+
   await pool.query(
     `INSERT INTO category_translations (category_id, lang, name, description)
      VALUES (?, ?, ?, ?)
      ON CONFLICT (category_id, lang) DO UPDATE
        SET name = EXCLUDED.name, description = EXCLUDED.description`,
-    [categoryId, sourceLang, name, description]
+    [categoryId, 'pt', ptName, ptDesc]
   );
   await pool.query(
     `INSERT INTO category_translations (category_id, lang, name, description)
      VALUES (?, ?, ?, ?)
      ON CONFLICT (category_id, lang) DO UPDATE
        SET name = EXCLUDED.name, description = EXCLUDED.description`,
-    [categoryId, targetLang, name, description]
+    [categoryId, 'en', enName, enDesc]
   );
 
-  // Translate and update the target-language row in background (best-effort).
-  translate(name, sourceLang, targetLang)
-    .then(async (translatedName) => {
-      const translatedDesc = description
-        ? await translate(description, sourceLang, targetLang)
-        : null;
-      await pool.query(
-        `INSERT INTO category_translations (category_id, lang, name, description)
-         VALUES (?, ?, ?, ?)
-         ON CONFLICT (category_id, lang) DO UPDATE
-           SET name = EXCLUDED.name, description = EXCLUDED.description`,
-        [categoryId, targetLang, translatedName, translatedDesc]
-      );
-      console.log(`✅ Traduções da categoria ${categoryId} guardadas`);
-    })
-    .catch((err) =>
-      console.error(`⚠️ Background translation update failed for category ${categoryId}:`, err)
-    );
+  console.log(`✅ Traduções da categoria ${categoryId} guardadas (pt + en)`);
 }

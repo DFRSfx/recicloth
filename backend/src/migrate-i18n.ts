@@ -46,7 +46,7 @@ async function migrateAll() {
 
   for (const c of categories) {
     console.log(`  → Categoria ${c.id}: "${c.name}"`);
-    await saveCategoryTranslations(c.id, c.name, c.description || null, 'en');
+    await saveCategoryTranslations(c.id, c.name, c.description || null);
     await new Promise(r => setTimeout(r, 300));
   }
 

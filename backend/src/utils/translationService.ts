@@ -5,7 +5,7 @@ const DEEPL_KEY      = process.env.DEEPL_API_KEY  || '';
 const MYMEMORY_EMAIL = process.env.MYMEMORY_EMAIL || '';
 
 // ── DeepL Free API ────────────────────────────────────────────────────────────
-async function translateDeepL(text: string, from: string, to: string): Promise<string> {
+async function translateDeepL(text: string, from: string | null, to: string): Promise<string> {
   if (!DEEPL_KEY) throw new Error('DEEPL_API_KEY não configurada');
 
   // DeepL usa códigos ligeiramente diferentes dos ISO standard
@@ -14,9 +14,12 @@ async function translateDeepL(text: string, from: string, to: string): Promise<s
 
   const body = new URLSearchParams({
     text,
-    source_lang: sourceMap[from] ?? from.toUpperCase(),
-    target_lang: targetMap[to]   ?? to.toUpperCase(),
+    target_lang: targetMap[to] ?? to.toUpperCase(),
   });
+  // Omit source_lang to let DeepL auto-detect when from is null
+  if (from && from !== 'auto') {
+    body.set('source_lang', sourceMap[from] ?? from.toUpperCase());
+  }
 
   const res = await fetch('https://api-free.deepl.com/v2/translate', {
     method:  'POST',
@@ -38,10 +41,11 @@ async function translateDeepL(text: string, from: string, to: string): Promise<s
 }
 
 // ── MyMemory (fallback — sem chave necessária) ─────────────────────────────────
-async function translateMyMemory(text: string, from: string, to: string): Promise<string> {
+async function translateMyMemory(text: string, from: string | null, to: string): Promise<string> {
+  const src = (!from || from === 'auto') ? 'autodetect' : from;
   const params = new URLSearchParams({
     q:        text,
-    langpair: `${from}|${to}`,
+    langpair: `${src}|${to}`,
   });
   if (MYMEMORY_EMAIL) params.set('de', MYMEMORY_EMAIL);
 
@@ -62,7 +66,7 @@ async function translateMyMemory(text: string, from: string, to: string): Promis
 }
 
 // ── Exportado: tenta DeepL → cai para MyMemory ───────────────────────────────
-export async function translate(text: string, from: string, to: string): Promise<string> {
+export async function translate(text: string, from: string | null, to: string): Promise<string> {
   if (!text?.trim()) return '';
   try {
     return await translateDeepL(text, from, to);
