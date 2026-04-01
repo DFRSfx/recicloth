@@ -78,24 +78,27 @@ export async function saveCategoryTranslations(
 ): Promise<void> {
   const targetLang = sourceLang === 'en' ? 'pt' : 'en';
 
+  // Save source language first, independent of translation API
+  await pool.query(
+    `INSERT INTO category_translations (category_id, lang, name, description)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT (category_id, lang) DO UPDATE
+       SET name = EXCLUDED.name, description = EXCLUDED.description`,
+    [categoryId, sourceLang, name, description]
+  );
+
   const [translatedName, translatedDesc] = await Promise.all([
     translate(name, sourceLang, targetLang),
     description ? translate(description, sourceLang, targetLang) : Promise.resolve(null),
   ]);
 
-  const rows: [number, string, string, string | null][] = [
-    [categoryId, sourceLang, name, description],
-    [categoryId, targetLang, translatedName, translatedDesc],
-  ];
+  await pool.query(
+    `INSERT INTO category_translations (category_id, lang, name, description)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT (category_id, lang) DO UPDATE
+       SET name = EXCLUDED.name, description = EXCLUDED.description`,
+    [categoryId, targetLang, translatedName, translatedDesc]
+  );
 
-  for (const [cid, lang, n, d] of rows) {
-    await pool.query(
-      `INSERT INTO category_translations (category_id, lang, name, description)
-       VALUES (?, ?, ?, ?)
-       ON CONFLICT (category_id, lang) DO UPDATE
-         SET name = EXCLUDED.name, description = EXCLUDED.description`,
-      [cid, lang, n, d]
-    );
-  }
   console.log(`✅ Traduções da categoria ${categoryId} guardadas`);
 }
