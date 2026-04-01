@@ -25,19 +25,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
   const { lang, t } = useLanguage();
   const productPath = getProductPath(lang, product.id);
 
+  // Defesa: garantir que temos sempre um array de imagens válido
+  const carouselImages = product.images && product.images.length > 0 ? product.images : ['placeholder.jpg'];
+
   // Carousel State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
 
-  // Active color: explicitly tracked so cart always gets the right color
+  // Estado Micro-Interação
+  const [isAdded, setIsAdded] = useState(false);
+
+  // Active color: monitoriza a cor selecionada para o carrinho
   const [activeColor, setActiveColor] = useState<string | undefined>(
     product.colors?.[0]?.name
   );
 
-  // Defensive check: ensure images array exists to prevent crashes
-  const images = product.images && product.images.length > 0 ? product.images : ['placeholder.jpg'];
+  // Cores a exibir (máx 4)
   const displayColors = useMemo(() => {
     const allColors = product.colors ?? [];
     const base = allColors.slice(0, 4);
@@ -51,71 +56,31 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
     return [...base.slice(0, 3), selected];
   }, [product.colors, selectedColorHex]);
 
-  const colorImages = useMemo(
-    () =>
-      displayColors.map((color, index) => {
-        const slug = toColorSlug(color.name);
-        const match = images.find(img => img.includes(`-${slug}`));
-        const fallback = images[index] ?? images[0];
-        return { color, image: match ?? fallback };
-      }),
-    [displayColors, images]
-  );
-
-  const useColorCarousel = colorImages.length > 0;
-  const carouselImages = useColorCarousel ? colorImages.map(item => item.image) : images;
-
-  // Micro-interaction State
-  const [isAdded, setIsAdded] = useState(false);
-
-  // When a Shop filter color is selected, jump to that color's first image
+  // Efeito para sincronizar a cor selecionada via Props (Filtros da Loja)
   useEffect(() => {
-    const colorObj = selectedColorHex
-      ? product.colors?.find(c => c.hex === selectedColorHex)
-      : displayColors[0] ?? product.colors?.[0];
-    if (!colorObj) return;
-    setActiveColor(colorObj.name);
-    if (useColorCarousel) {
-      const idx = displayColors.findIndex(color => color.name === colorObj.name);
-      if (idx >= 0) setCurrentImageIndex(idx);
-      return;
-    }
-
-    const slug = toColorSlug(colorObj.name);
-    const idx = images.findIndex(img => img.includes(`-${slug}`));
-    if (idx >= 0) setCurrentImageIndex(idx);
-  }, [selectedColorHex, product, displayColors, useColorCarousel, images]);
-
-  // When image changes via swipe/arrow, sync activeColor to the new image's color
-  useEffect(() => {
-    if (useColorCarousel) {
-      setActiveColor(displayColors[currentImageIndex]?.name);
-      return;
-    }
-
-    if (!product.colors?.length) return;
-    const img = images[currentImageIndex];
-    if (!img) return;
-    for (const color of product.colors) {
-      if (img.includes(`-${toColorSlug(color.name)}`)) {
-        setActiveColor(color.name);
-        return;
+    if (selectedColorHex) {
+      const colorObj = product.colors?.find(c => c.hex === selectedColorHex);
+      if (colorObj) {
+        setActiveColor(colorObj.name);
+        const slug = toColorSlug(colorObj.name);
+        const idx = carouselImages.findIndex(img => img.toLowerCase().includes(slug));
+        if (idx >= 0) setCurrentImageIndex(idx);
       }
     }
-  }, [currentImageIndex, displayColors, useColorCarousel, images, product.colors]);
+  }, [selectedColorHex, product.colors, carouselImages]);
 
-  // Clicking a color swatch: update active color AND jump to its first image
+  // Handler para clicar nas bolinhas de cor
   const handleColorSelect = (colorName: string) => {
     setActiveColor(colorName);
-    if (useColorCarousel) {
-      const idx = displayColors.findIndex(color => color.name === colorName);
-      if (idx >= 0) setCurrentImageIndex(idx);
-      return;
-    }
-
     const slug = toColorSlug(colorName);
-    const idx = images.findIndex(img => img.includes(`-${slug}`));
-    if (idx >= 0) setCurrentImageIndex(idx);
+
+    // Encontra o índice da imagem que contém o slug da cor no nome do ficheiro
+    const idx = carouselImages.findIndex(img => img.toLowerCase().includes(slug));
+
+    // Se a imagem existir, desliza o carrossel para ela
+    if (idx >= 0) {
+      setCurrentImageIndex(idx);
+    }
   };
 
   const isFavorite = favorites.some(fav => fav.product_id === product.id);
@@ -195,9 +160,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
     if (isDragging) handleDragEnd();
   };
 
-  const dotItems = carouselImages;
-  const activeDotIndex = currentImageIndex;
-
   return (
     <>
       <div className="flex flex-col group relative h-full">
@@ -264,7 +226,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
           </Link>
 
           {/* Navigation Arrows (Visible on Desktop Hover) */}
-          {dotItems.length > 1 && (
+          {carouselImages.length > 1 && (
             <>
               <button
                 onClick={handlePrevImage}
@@ -281,11 +243,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
 
               {/* Pagination Dots */}
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                {dotItems.map((_, index) => (
+                {carouselImages.map((_, index) => (
                   <div
                     key={index}
-                    className={`h-1 rounded-full transition-all ${index === activeDotIndex ? 'bg-black w-4' : 'bg-gray-400 w-1'
-                      }`}
+                    className={`h-1 rounded-full transition-all ${index === currentImageIndex ? 'bg-black w-4' : 'bg-gray-400 w-1'}`}
                   />
                 ))}
               </div>
@@ -307,8 +268,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
                 }`}
               disabled={!product.inStock || isAdded}
             >
-            {!product.inStock ? t('product.soldOut') : isAdded ? `${t('product.added')} ✓` : t('product.quickAdd')}
-          </button>
+              {!product.inStock ? t('product.soldOut') : isAdded ? `${t('product.added')} ✓` : t('product.quickAdd')}
+            </button>
           </div>
         </div>
 
