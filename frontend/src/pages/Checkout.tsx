@@ -16,6 +16,8 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import AuthModal from '../components/AuthModal';
+import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -89,6 +91,12 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
   const { isAuthenticated, user } = useAuth();
   const { success } = useToast();
   const navigate = useNavigate();
+  const { lang } = useLanguage();
+  const checkoutSuccessPath = getRoutePath('checkoutSuccess', lang);
+  const checkoutPath = getRoutePath('checkout', lang);
+  const cartPath = getRoutePath('cart', lang);
+  const ordersPath = getRoutePath('orders', lang);
+  const homePath = getRoutePath('home', lang);
 
   const subtotalExVat = amount / 1.23;
   const ivaAmount = amount - subtotalExVat;
@@ -221,7 +229,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
 
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: { return_url: `${window.location.origin}/checkout/success` },
+      confirmParams: { return_url: `${window.location.origin}${checkoutSuccessPath}` },
       redirect: 'if_required',
     });
 
@@ -245,7 +253,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
 
     if (paymentIntent?.status === 'succeeded') {
       sessionStorage.setItem('pending_finalize', JSON.stringify(finalizeBody));
-      navigate('/checkout/success');
+      navigate(checkoutSuccessPath);
       return;
     }
 
@@ -285,7 +293,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
   if (paymentReference) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <SEO title="Pedido Criado com Sucesso" description="O seu pedido foi criado com sucesso" canonical="/checkout" ogType="website" />
+        <SEO title="Pedido Criado com Sucesso" description="O seu pedido foi criado com sucesso" canonical={checkoutPath} ogType="website" />
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -321,9 +329,9 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
               </div>
             )}
             <div className="flex gap-4">
-              <Link to="/" className="flex-1 px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors">Voltar ao Início</Link>
+              <Link to={homePath} className="flex-1 px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors">Voltar ao Início</Link>
               {isAuthenticated && (
-                <Link to="/encomendas" className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors">Ver Encomendas</Link>
+                <Link to={ordersPath} className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors">Ver Encomendas</Link>
               )}
             </div>
           </div>
@@ -334,17 +342,17 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SEO
-        title="Checkout - Finalizar Compra"
-        description="Finalize sua compra de forma segura. Aceitamos Multibanco, MB WAY e cartão de crédito."
-        canonical="/checkout"
-        ogType="website"
-      />
+        <SEO
+          title="Checkout - Finalizar Compra"
+          description="Finalize sua compra de forma segura. Aceitamos Multibanco, MB WAY e cartão de crédito."
+          canonical={checkoutPath}
+          ogType="website"
+        />
       
       {/* ALTERAÇÃO CHAVE 1: Uso de max-w-7xl (1280px) ou max-w-[1400px] para ocupar muito mais ecrã sem quebrar a leitura */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-16 py-8 lg:py-12">
         <div className="flex items-center gap-4 mb-8">
-          <Link to="/carrinho" className="flex items-center gap-2 text-primary-600 hover:text-primary-700">
+          <Link to={cartPath} className="flex items-center gap-2 text-primary-600 hover:text-primary-700">
             <ArrowLeft className="h-4 w-4" />
             Voltar ao Carrinho
           </Link>
@@ -594,6 +602,8 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
 const Checkout: React.FC = () => {
   const { items } = useCart();
   const { user } = useAuth();
+  const { lang } = useLanguage();
+  const shopPath = getRoutePath('shop', lang);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [amount, setAmount] = useState(0);
   const [paymentIntentId, setPaymentIntentId] = useState('');
@@ -648,7 +658,7 @@ const Checkout: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Carrinho vazio</h2>
-          <Link to="/loja" className="text-primary-600 hover:text-primary-700">Voltar à loja</Link>
+          <Link to={shopPath} className="text-primary-600 hover:text-primary-700">Voltar à loja</Link>
         </div>
       </div>
     );

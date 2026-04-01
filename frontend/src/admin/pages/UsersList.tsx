@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Search, X, Edit2, Loader2, AlertCircle } from 'lucide-react';
 import { usersApi } from '../../utils/apiHelpers';
-import AdminSelect from '../components/AdminSelect';
 
 interface User {
   id: number;
@@ -123,11 +122,6 @@ export default function UsersList() {
 
   const getRoleLabel = (role: string) => {
     return role === 'admin' ? 'Admin' : 'Cliente';
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-PT', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   if (loading) {

@@ -7,7 +7,6 @@ const generateSlug = (name: string) =>
     .trim()
     .replace(/\s+/g, '-');
 import { categoriesApi } from '../../utils/apiHelpers';
-import { useConfirmStore } from '../../hooks/useConfirm';
 import { useToast } from '../../context/ToastContext';
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
 
@@ -25,7 +24,6 @@ export default function CategoriesList() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
-  const openConfirm = useConfirmStore(state => state.openConfirm);
   const { error: showError } = useToast();
   const [formData, setFormData] = useState({
     name: '',

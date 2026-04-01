@@ -4,13 +4,16 @@ import { Heart, ChevronLeft, ChevronRight, Plus, Check } from 'lucide-react';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
+import { useLanguage } from '../context/LanguageContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 import { fireCartToast } from './CartToastManager';
+import { getProductPath } from '../utils/routes';
 
 interface ProductCardProps {
   product: Product;
   hideActions?: boolean;
   selectedColorHex?: string;
+  viewMode?: 'grid' | 'fullscreen';
 }
 
 const toColorSlug = (value: string): string =>
@@ -19,6 +22,8 @@ const toColorSlug = (value: string): string =>
 const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false, selectedColorHex }) => {
   const { addItem } = useCart();
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
+  const { lang } = useLanguage();
+  const productPath = getProductPath(lang, product.id);
 
   // Carousel State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -180,7 +185,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
         )}
 
         {/* Swipeable Track */}
-        <Link to={`/produto/${product.id}`} className="block w-full h-full cursor-pointer">
+        <Link to={productPath} className="block w-full h-full cursor-pointer">
           <div
             className="w-full h-full select-none touch-pan-y"
             onTouchStart={handleTouchStart}
@@ -284,7 +289,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
         </div>
 
         {/* Title & Price */}
-        <Link to={`/produto/${product.id}`} className="hover:underline group-hover:text-black">
+        <Link to={productPath} className="hover:underline group-hover:text-black">
           <h3 className="text-sm font-medium text-gray-900 leading-tight mb-1 pr-8">
             {product.name}
           </h3>

@@ -166,8 +166,22 @@
         }
       }
 
+      function syncSiennaLanguage() {
+        const lang = (document.documentElement.lang || 'en').toLowerCase();
+        const plugin = window.SiennaPlugin;
+        const menu = document.querySelector('.asw-menu');
+        if (!plugin || typeof plugin.changeLanguage !== 'function' || !menu) return;
+        plugin.changeLanguage(lang);
+      }
+
       // Run on load and after a delay to ensure widget is loaded
-      window.addEventListener('load', updateAccessibilityWidgetColors);
+      window.addEventListener('load', () => {
+        updateAccessibilityWidgetColors();
+        syncSiennaLanguage();
+
+        const langObserver = new MutationObserver(() => syncSiennaLanguage());
+        langObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+      });
       setTimeout(updateAccessibilityWidgetColors, 1000);
       setTimeout(updateAccessibilityWidgetColors, 3000);
     </script>
@@ -175,6 +189,10 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sienna-accessibility@latest/dist/sienna-accessibility.umd.js" defer></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/sienna-accessibility@latest/dist/sienna-accessibility.umd.js"
+      data-asw-disableObserveLang="true"
+      defer
+    ></script>
   </body>
 </html>

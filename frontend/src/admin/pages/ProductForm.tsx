@@ -816,7 +816,7 @@ export default function ProductForm() {
                           setDragOverIndex(null);
                         }
                       }}
-                      onTouchEnd={(e) => {
+                      onTouchEnd={() => {
                         if (dragTimeout.current) {
                           clearTimeout(dragTimeout.current);
                           dragTimeout.current = null;
@@ -831,7 +831,7 @@ export default function ProductForm() {
                         touchedElement.current = null;
                         document.body.style.overflow = '';
                       }}
-                      onTouchCancel={(e) => {
+                      onTouchCancel={() => {
                         if (dragTimeout.current) {
                           clearTimeout(dragTimeout.current);
                           dragTimeout.current = null;

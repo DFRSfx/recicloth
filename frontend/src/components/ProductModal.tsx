@@ -12,7 +12,7 @@ interface ProductModalProps {
 
 const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose }) => {
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
+  const [selectedColor, setSelectedColor] = useState(product.colors[0]?.name || '');
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
 
@@ -20,7 +20,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
-      addItem(product, selectedColor);
+      addItem(product, selectedColor || undefined);
     }
     onClose();
   };
@@ -85,15 +85,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose })
                 <div className="flex flex-wrap gap-2">
                   {product.colors.map((color) => (
                     <button
-                      key={color}
-                      onClick={() => setSelectedColor(color)}
+                      key={color.name}
+                      onClick={() => setSelectedColor(color.name)}
                       className={`px-3 py-1 text-sm border rounded-md ${
-                        selectedColor === color
+                        selectedColor === color.name
                           ? 'border-primary-600 bg-primary-50 text-primary-600'
                           : 'border-gray-300 text-gray-700 hover:border-primary-600'
                       }`}
                     >
-                      {color}
+                      {color.name}
                     </button>
                   ))}
                 </div>

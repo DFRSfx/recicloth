@@ -11,6 +11,7 @@ import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 import Toast, { ToastType } from '../components/Toast';
 import { fireCartToast } from '../components/CartToastManager';
 import { useLanguage } from '../context/LanguageContext';
+import { getProductPath, getRoutePath, withQuery } from '../utils/routes';
 
 const toColorSlug = (value: string): string =>
   value
@@ -23,11 +24,12 @@ const toColorSlug = (value: string): string =>
 
 const Product: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { addItem, items } = useCart();
+  const { addItem } = useCart();
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
   const { product, loading, error } = useProduct(id || '');
   const { products: allProducts } = useProducts();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const shopPath = getRoutePath('shop', lang);
 
   const [selectedColor, setSelectedColor] = useState('');
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
@@ -119,7 +121,7 @@ const Product: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">{error || t('product.notFound')}</h2>
-          <Link to="/loja" className="inline-flex items-center px-6 py-3 bg-black text-white font-medium hover:bg-gray-800 transition-colors">
+          <Link to={shopPath} className="inline-flex items-center px-6 py-3 bg-black text-white font-medium hover:bg-gray-800 transition-colors">
             {t('product.backToShop')}
           </Link>
         </div>
@@ -129,8 +131,6 @@ const Product: React.FC = () => {
 
   const relatedProducts = allProducts.filter(p => p.id !== product.id && p.category === product.category).slice(0, 4);
   const isFavorite = favorites.some(fav => fav.product_id === String(product.id));
-  const cartItem = items.find(i => String(i.product.id) === String(product.id));
-  const isInCart = !!cartItem;
 
   const handleAddToCart = () => {
     if (!product.inStock || isAdded) return;
@@ -184,24 +184,24 @@ const Product: React.FC = () => {
   const schemas = {
     '@context': 'https://schema.org',
     '@graph': [
-      getProductSchema(product),
+      getProductSchema(product, lang),
       getBreadcrumbSchema([
-        { name: t('nav.home'), url: '/' },
-        { name: t('nav.shop'), url: '/loja' },
-        { name: product.category, url: `/loja?categoria=${product.category}` },
-        { name: product.name, url: `/produto/${product.id}` }
+        { name: t('nav.home'), url: getRoutePath('home', lang) },
+        { name: t('nav.shop'), url: shopPath },
+        { name: product.category, url: withQuery(shopPath, { categoria: product.category }) },
+        { name: product.name, url: getProductPath(lang, product.id) }
       ])
     ],
   };
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 pb-20">
-      <SEO title={`${product.name} | Loja`} description={product.description.slice(0, 120)} canonical={`/produto/${product.id}`} ogType="product" ogImage={product.images[0]} schema={schemas} />
+      <SEO title={`${product.name} | Loja`} description={product.description.slice(0, 120)} canonical={getProductPath(lang, product.id)} ogType="product" ogImage={product.images[0]} schema={schemas} />
 
       <div className="hidden lg:block max-w-[1440px] mx-auto px-8 py-6 text-sm font-medium text-gray-500">
-        <Link to="/loja" className="hover:text-black hover:underline">{t('nav.shop')}</Link>
+        <Link to={shopPath} className="hover:text-black hover:underline">{t('nav.shop')}</Link>
         <span className="mx-2">/</span>
-        <Link to={`/loja?categoria=${product.category}`} className="hover:text-black hover:underline">{product.category}</Link>
+        <Link to={withQuery(shopPath, { categoria: product.category })} className="hover:text-black hover:underline">{product.category}</Link>
         <span className="mx-2">/</span>
         <span className="text-gray-900">{product.name}</span>
       </div>
@@ -274,7 +274,7 @@ const Product: React.FC = () => {
         <div className="w-full lg:w-5/12 xl:w-1/3 px-4 py-6 lg:px-0 lg:py-0 lg:sticky lg:top-24">
 
           <div className="block lg:hidden mb-6">
-            <Link to={`/loja?categoria=${product.category}`} className="flex items-center text-sm font-bold text-gray-900 mb-4">
+            <Link to={withQuery(shopPath, { categoria: product.category })} className="flex items-center text-sm font-bold text-gray-900 mb-4">
               <ChevronLeft size={16} className="mr-1" strokeWidth={2.5} /> {t('product.backToShop')}
             </Link>
             <h1 className="text-2xl font-bold tracking-tight mb-2">{product.name}</h1>

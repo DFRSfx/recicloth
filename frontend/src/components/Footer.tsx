@@ -2,9 +2,15 @@ import React from 'react';
 import { Instagram, Mail, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const Footer: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const shopPath = getRoutePath('shop', lang);
+  const contactPath = getRoutePath('contact', lang);
+  const privacyPath = getRoutePath('privacyPolicy', lang);
+  const returnPath = getRoutePath('returnPolicy', lang);
+  const termsPath = getRoutePath('terms', lang);
 
   return (
     <footer className="bg-primary-900 text-white"> {/* Usei bg-primary-900 para forçar um tom bem escuro como no print */}
@@ -44,27 +50,27 @@ const Footer: React.FC = () => {
             <h4 className="text-lg font-bold mb-5 tracking-tight">{t('footer.links.title')}</h4>
             <ul className="space-y-3.5 text-primary-100 text-[15px]">
               <li>
-                <Link to="/loja" className="hover:text-white transition-colors block">
+                <Link to={shopPath} className="hover:text-white transition-colors block">
                   {t('footer.links.allProducts')}
                 </Link>
               </li>
               <li>
-                <Link to="/contacto" className="hover:text-white transition-colors block">
+                <Link to={contactPath} className="hover:text-white transition-colors block">
                   {t('nav.contact')}
                 </Link>
               </li>
               <li>
-                <Link to="/politica-privacidade" className="hover:text-white transition-colors block">
+                <Link to={privacyPath} className="hover:text-white transition-colors block">
                   {t('footer.links.privacy')}
                 </Link>
               </li>
               <li>
-                <Link to="/politica-devolucao" className="hover:text-white transition-colors block">
+                <Link to={returnPath} className="hover:text-white transition-colors block">
                   {t('footer.links.returns')}
                 </Link>
               </li>
               <li>
-                <Link to="/termos-condicoes" className="hover:text-white transition-colors block">
+                <Link to={termsPath} className="hover:text-white transition-colors block">
                   {t('footer.links.terms')}
                 </Link>
               </li>

@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import AuthModal from '../components/AuthModal';
 import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath, getTrackOrderPath } from '../utils/routes';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -32,7 +33,9 @@ const CheckoutSuccess: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { clearCart } = useCart();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const homePath = getRoutePath('home', lang);
+  const ordersPath = getRoutePath('orders', lang);
 
   const [orderId, setOrderId] = useState<number | null>(null);
   const [trackingToken, setTrackingToken] = useState<string | null>(urlToken);
@@ -67,7 +70,7 @@ const CheckoutSuccess: React.FC = () => {
 
   const handleVerEncomendas = () => {
     if (isAuthenticated) {
-      navigate('/encomendas');
+      navigate(ordersPath);
     } else {
       setShowGuestModal(true);
     }
@@ -75,12 +78,12 @@ const CheckoutSuccess: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <SEO
-        title={t('checkout.success.title')}
-        description={t('checkout.success.desc')}
-        canonical="/checkout/success"
-        ogType="website"
-      />
+        <SEO
+          title={t('checkout.success.title')}
+          description={t('checkout.success.desc')}
+          canonical={getRoutePath('checkoutSuccess', lang)}
+          ogType="website"
+        />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm p-8 text-center">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -116,7 +119,7 @@ const CheckoutSuccess: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              to="/"
+              to={homePath}
               className="flex-1 px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors"
             >
               {t('common.backToHome')}
@@ -131,7 +134,7 @@ const CheckoutSuccess: React.FC = () => {
 
           {trackingToken && (
             <p className="text-xs text-gray-400 mt-6">
-              <Link to={`/track-order/${trackingToken}`} className="underline hover:text-gray-600">
+              <Link to={getTrackOrderPath(lang, trackingToken)} className="underline hover:text-gray-600">
                 {t('checkout.success.trackOrder')}
               </Link>
             </p>

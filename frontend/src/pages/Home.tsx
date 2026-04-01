@@ -7,11 +7,14 @@ import ProductCard from '../components/ProductCard';
 import { useProducts } from '../hooks/useProducts';
 import { getOrganizationSchema, getWebSiteSchema, getFAQSchema, getHomepageFAQs } from '../utils/schemas';
 import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const faqs = getHomepageFAQs();
 
 const Home: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const contactPath = getRoutePath('contact', lang);
+  const shopPath = getRoutePath('shop', lang);
   const { products, loading, error } = useProducts();
   const [featuredViewMode, setFeaturedViewMode] = useState<'grid' | 'fullscreen'>('grid');
   const [newViewMode, setNewViewMode] = useState<'grid' | 'fullscreen'>('grid');
@@ -22,8 +25,8 @@ const Home: React.FC = () => {
   const schemas = {
     '@context': 'https://schema.org',
     '@graph': [
-      getOrganizationSchema(),
-      getWebSiteSchema(),
+      getOrganizationSchema(lang),
+      getWebSiteSchema(lang),
       getFAQSchema(faqs),
     ],
   };
@@ -33,7 +36,7 @@ const Home: React.FC = () => {
       <SEO
         title="Recicloth"
         description="Moda que respeita o planeta. Descubra roupa reciclada, upcycled e segunda-mão selecionada pela Recicloth."
-        canonical="/"
+        canonical={getRoutePath('home', lang)}
         ogType="website"
         schema={schemas}
       />
@@ -53,7 +56,7 @@ const Home: React.FC = () => {
             <strong>roupa reciclada para homem e mulher</strong>,{' '}
             <strong>acessórios upcycled</strong> e peças únicas que respeitam o
             planeta sem abdicar do estilo. Tem dúvidas?{' '}
-            <Link to="/contacto" className="text-primary-600 hover:underline font-medium">
+            <Link to={contactPath} className="text-primary-600 hover:underline font-medium">
               {t('home.hero.cta')}
             </Link>
             .
@@ -128,7 +131,7 @@ const Home: React.FC = () => {
 
           <div className="text-center">
             <Link
-              to="/loja"
+              to={shopPath}
               className="inline-flex items-center px-6 py-3 border border-primary-600 text-primary-600 font-medium rounded-md hover:bg-primary-50 transition-colors"
             >
               {t('home.featured.viewAll')}
@@ -307,7 +310,7 @@ const Home: React.FC = () => {
             {t('home.cta.desc')}
           </p>
           <Link
-            to="/loja"
+            to={shopPath}
             className="inline-flex items-center px-8 py-4 bg-white text-primary-600 font-semibold rounded-md hover:bg-gray-100 hover:shadow-lg hover:scale-105 transition-all duration-300 group"
           >
             {t('home.cta.button')}

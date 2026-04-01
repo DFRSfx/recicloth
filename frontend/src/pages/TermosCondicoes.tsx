@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import SEO from '../components/SEO';
+import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const TermosCondicoes: React.FC = () => {
   const [lang, setLang] = useState<'pt' | 'en'>('pt');
+  const { lang: uiLang } = useLanguage();
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
-      <SEO
-        title="Termos e Condições | Terms & Conditions"
-        description="Termos e condições de utilização da Recicloth. Terms and conditions of use."
-        canonical="/termos-condicoes"
-      />
+        <SEO
+          title="Termos e Condições | Terms & Conditions"
+          description="Termos e condições de utilização da Recicloth. Terms and conditions of use."
+          canonical={getRoutePath('terms', uiLang)}
+        />
       <div className="max-w-4xl mx-auto px-4 py-12">
 
         <div className="flex gap-2 mb-8">

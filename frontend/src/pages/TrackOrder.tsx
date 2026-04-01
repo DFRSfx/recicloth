@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Package, CheckCircle, Truck, Clock, XCircle, ArrowLeft } from 'lucide-react';
 import SEO from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
+import { getTrackOrderPath } from '../utils/routes';
 
 interface OrderItem {
   id: number;
@@ -34,7 +35,7 @@ interface Order {
 
 const TrackOrder: React.FC = () => {
   const { token } = useParams<{ token: string }>();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -174,7 +175,7 @@ const TrackOrder: React.FC = () => {
       <SEO
         title={`Rastrear Encomenda #${order.id}`}
         description="Acompanhe o estado da sua encomenda"
-        canonical={`/track-order/${token}`}
+        canonical={token ? getTrackOrderPath(lang, token) : undefined}
         ogType="website"
       />
 

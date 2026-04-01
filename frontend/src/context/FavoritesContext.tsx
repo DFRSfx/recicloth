@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product } from '../types';
 import { useAuth } from './AuthContext';
 import { API_URL } from '../utils/api';
 
@@ -42,7 +41,7 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(undefin
 export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user, token, isAuthenticated } = useAuth();
+  const { token, isAuthenticated } = useAuth();
   const [sessionId] = useState(getSessionId());
   const [isSyncing, setIsSyncing] = useState(false);
 

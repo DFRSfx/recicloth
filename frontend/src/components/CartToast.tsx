@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { X, CheckCircle, Trash2 } from 'lucide-react';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
+import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 interface CartToastProps {
   productName: string;
@@ -12,6 +14,8 @@ interface CartToastProps {
 
 const CartToast: React.FC<CartToastProps> = ({ productName, productImage, type, onClose }) => {
   const [isClosing, setIsClosing] = useState(false);
+  const { lang } = useLanguage();
+  const cartPath = getRoutePath('cart', lang);
 
   useEffect(() => {
     const timer = setTimeout(() => handleClose(), 3500);
@@ -68,7 +72,7 @@ const CartToast: React.FC<CartToastProps> = ({ productName, productImage, type, 
             </p>
             {!isRemoved && (
               <Link
-                to="/carrinho"
+                to={cartPath}
                 onClick={handleClose}
                 className="text-xs font-medium text-primary-600 hover:underline"
               >

@@ -4,13 +4,16 @@ import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const VerifyEmail: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const { info } = useToast();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const homePath = getRoutePath('home', lang);
+  const contactPath = getRoutePath('contact', lang);
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const token = searchParams.get('token');
@@ -92,7 +95,7 @@ const VerifyEmail: React.FC = () => {
                 </p>
               </div>
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate(homePath)}
                 className="mt-6 w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl"
               >
                 {t('verifyEmail.success.goHome')}
@@ -123,7 +126,7 @@ const VerifyEmail: React.FC = () => {
               </div>
               <div className="space-y-3">
                 <button
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate(homePath)}
                   className="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
                 >
                   {t('common.backToHome')}
@@ -147,7 +150,7 @@ const VerifyEmail: React.FC = () => {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             {t('verifyEmail.help')}{' '}
-            <a href="/contacto" className="text-primary-600 hover:text-primary-700 font-medium">
+            <a href={contactPath} className="text-primary-600 hover:text-primary-700 font-medium">
               {t('verifyEmail.contactUs')}
             </a>
           </p>

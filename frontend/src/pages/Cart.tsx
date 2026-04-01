@@ -5,15 +5,18 @@ import SEO from '../components/SEO';
 import CartItem from '../components/CartItem';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const Cart: React.FC = () => {
   const { items, total, clearCart, itemCount } = useCart();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const cartPath = getRoutePath('cart', lang);
+  const shopPath = getRoutePath('shop', lang);
+  const checkoutPath = getRoutePath('checkout', lang);
 
   // Estado para controlar o modal de confirmação
   const [showClearModal, setShowClearModal] = useState(false);
 
-  const shipping = 0;
   const subtotalExVat = total / 1.23;
   const ivaAmount = total - subtotalExVat;
 
@@ -29,7 +32,7 @@ const Cart: React.FC = () => {
         <SEO
           title={t('cart.title')}
           description={t('cart.empty.desc')}
-          canonical="/carrinho"
+          canonical={cartPath}
           ogType="website"
         />
         <div className="text-center max-w-md px-4 flex flex-col items-center animate-fade-in">
@@ -48,7 +51,7 @@ const Cart: React.FC = () => {
           </p>
           
           <Link
-            to="/loja"
+            to={shopPath}
             className="inline-flex items-center justify-center px-8 py-3.5 bg-[#1E4D3B] text-white font-medium rounded hover:bg-[#163a2c] transition-all shadow-sm active:scale-95 w-full sm:w-auto"
           >
             {t('common.exploreProducts')}
@@ -64,7 +67,7 @@ const Cart: React.FC = () => {
       <SEO
         title={t('cart.title')}
         description={`${t('cart.youHave')} ${itemCount} ${itemCount === 1 ? t('cart.itemSingular') : t('cart.itemPlural')}.`}
-        canonical="/carrinho"
+        canonical={cartPath}
         ogType="website"
       />
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -106,7 +109,7 @@ const Cart: React.FC = () => {
             
             {/* Link Voltar - Desktop */}
             <div className="hidden lg:flex justify-start">
-              <Link to="/loja" className="inline-flex items-center gap-2 text-[#1E4D3B] hover:text-[#163a2c] font-medium transition-all group">
+              <Link to={shopPath} className="inline-flex items-center gap-2 text-[#1E4D3B] hover:text-[#163a2c] font-medium transition-all group">
                 <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
                 <span className="hover:underline">{t('common.continueShopping')}</span>
               </Link>
@@ -150,7 +153,7 @@ const Cart: React.FC = () => {
 
               <div className="flex flex-col gap-4 mt-8">
                 <Link
-                  to="/finalizar-compra"
+                  to={checkoutPath}
                   className="w-full flex items-center justify-center gap-2 bg-[#1E4D3B] text-white py-4 px-6 rounded hover:bg-[#163a2c] transition-colors shadow-sm font-semibold text-[16px]"
                 >
                   {t('cart.checkout')}
@@ -159,7 +162,7 @@ const Cart: React.FC = () => {
                 
                 {/* Link Voltar - Centrado abaixo do botão */}
                 <Link
-                  to="/loja"
+                  to={shopPath}
                   className="w-full text-center py-2 text-[#475569] hover:text-[#1E4D3B] font-medium text-[15px] hover:underline"
                 >
                   {t('common.continueShopping')}

@@ -118,8 +118,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Registration failed');
       }
 
-      const data = await response.json();
-
       // NÃO fazer login automático - user precisa verificar email primeiro
       // Token e user serão retornados mas não salvos até verificar email
       console.log('✅ Conta criada, aguardando verificação de email');

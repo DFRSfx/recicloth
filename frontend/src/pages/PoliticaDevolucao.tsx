@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import SEO from '../components/SEO';
+import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const PoliticaDevolucao: React.FC = () => {
   const [lang, setLang] = useState<'pt' | 'en'>('pt');
+  const { lang: uiLang } = useLanguage();
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
-      <SEO
-        title="Política de Devolução | Return Policy"
-        description="Política de devolução de 14 dias da Recicloth. 14-day return policy."
-        canonical="/politica-devolucao"
-      />
+        <SEO
+          title="Política de Devolução | Return Policy"
+          description="Política de devolução de 14 dias da Recicloth. 14-day return policy."
+          canonical={getRoutePath('returnPolicy', uiLang)}
+        />
       <div className="max-w-4xl mx-auto px-4 py-12">
 
         {/* Language toggle */}

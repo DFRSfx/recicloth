@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { productsApi } from '../../utils/apiHelpers';
 import { X, Save, Globe } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';

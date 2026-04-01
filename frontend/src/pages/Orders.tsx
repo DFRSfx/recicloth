@@ -7,6 +7,7 @@ import InvoiceModal from '../components/InvoiceModal';
 import { InvoiceOrder } from '../utils/generateInvoice';
 import SEO from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
+import { getProductPath, getRoutePath, getTrackOrderPath } from '../utils/routes';
 
 interface OrderItem {
   id: number;
@@ -39,7 +40,10 @@ interface Order {
 const Orders: React.FC = () => {
   const { isAuthenticated, token } = useAuth();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const ordersPath = getRoutePath('orders', lang);
+  const shopPath = getRoutePath('shop', lang);
+  const homePath = getRoutePath('home', lang);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const [invoiceOrder, setInvoiceOrder] = useState<InvoiceOrder | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -90,9 +94,9 @@ const Orders: React.FC = () => {
 
   React.useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/');
+      navigate(homePath);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, homePath]);
 
   const getStatusConfig = (status: Order['status']) => {
     const configs = {
@@ -169,7 +173,7 @@ const Orders: React.FC = () => {
       <SEO
         title={t('admin.nav.orders')}
         description={t('orders.error.load')}
-        canonical="/encomendas"
+        canonical={ordersPath}
         ogType="website"
       />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -192,7 +196,7 @@ const Orders: React.FC = () => {
             <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('orders.empty.title')}</h3>
             <p className="text-gray-600 mb-6">{t('orders.empty.desc')}</p>
             <button
-              onClick={() => navigate('/loja')}
+              onClick={() => navigate(shopPath)}
               className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               {t('common.exploreProducts')}
@@ -296,7 +300,7 @@ const Orders: React.FC = () => {
                                 />
                                 <div className="flex-1">
                                   <Link
-                                    to={`/produto/${item.product.id}`}
+                                    to={getProductPath(lang, item.product.id)}
                                     className="font-medium text-gray-900 hover:text-primary-600"
                                   >
                                     {item.product.name}
@@ -337,7 +341,7 @@ const Orders: React.FC = () => {
                           {/* Actions */}
                           <div className="mt-4 space-y-2">
                             <Link
-                              to={`/track-order/${order.tracking_token}`}
+                              to={getTrackOrderPath(lang, order.tracking_token)}
                               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                             >
                               <Eye className="h-4 w-4" />

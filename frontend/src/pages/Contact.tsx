@@ -6,12 +6,13 @@ import {
 import SEO from '../components/SEO';
 import { getLocalBusinessSchema, getFAQSchema } from '../utils/schemas';
 import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 type FormData = { name: string; email: string; subject: string; message: string };
 type FormErrors = Partial<FormData>;
 
 const Contact: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   // Move subjectOptions inside the component to access t()
   const subjectOptions = [
@@ -114,18 +115,18 @@ const Contact: React.FC = () => {
 
   const schemas = {
     '@context': 'https://schema.org',
-    '@graph': [getLocalBusinessSchema(), getFAQSchema(faqs)],
+    '@graph': [getLocalBusinessSchema(lang), getFAQSchema(faqs)],
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SEO
-        title="Contacto"
-        description="Entre em contacto com a Recicloth. Estamos disponíveis para esclarecer dúvidas sobre moda sustentável, roupas recicladas e entregas. Apoio personalizado para cada cliente."
-        canonical="/contacto"
-        ogType="website"
-        schema={schemas}
-      />
+        <SEO
+          title="Contacto"
+          description="Entre em contacto com a Recicloth. Estamos disponíveis para esclarecer dúvidas sobre moda sustentável, roupas recicladas e entregas. Apoio personalizado para cada cliente."
+          canonical={getRoutePath('contact', lang)}
+          ogType="website"
+          schema={schemas}
+        />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-12">

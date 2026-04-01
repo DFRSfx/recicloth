@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { X, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const CONSENT_KEY = 'recicloth_cookie_consent';
 const PREFS_KEY = 'recicloth_cookie_preferences';
 
 const MarketingConsent: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const privacyPath = getRoutePath('privacyPolicy', lang);
+  const termsPath = getRoutePath('terms', lang);
   const [showNewsletter, setShowNewsletter] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
@@ -202,7 +205,7 @@ const MarketingConsent: React.FC = () => {
             <p className="text-xs text-gray-600 mb-6 leading-relaxed max-w-3xl">
               {t('marketing.cookiesDesc')}
               {' '}
-              <Link to="/politica-privacidade" className="underline text-gray-900 decoration-1 underline-offset-2">
+              <Link to={privacyPath} className="underline text-gray-900 decoration-1 underline-offset-2">
                 {t('footer.links.privacy')}
               </Link>.
             </p>
@@ -347,7 +350,7 @@ const MarketingConsent: React.FC = () => {
 
               <p className="mt-8 text-xs text-gray-500">
                 Ao continuar, concorda com os nossos{' '}
-                <Link to="/termos-condicoes" className="underline">
+                <Link to={termsPath} className="underline">
                   Termos e Condições
                 </Link>.
               </p>

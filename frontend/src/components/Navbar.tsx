@@ -13,6 +13,7 @@ import AuthModal from './AuthModal';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useLanguage } from '../context/LanguageContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
+import { getProductPath, getRoutePath, getRoutePrefixes, getShopPath, isRouteMatch } from '../utils/routes';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api`;
@@ -24,7 +25,7 @@ const Navbar: React.FC = () => {
   const { itemCount } = useCart();
   const { favorites } = useFavorites();
   const { success, info } = useToast();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   const getCategoryImage = (categoryName: string): string | null => {
     const categoryProducts = products.filter(p => p.category === categoryName);
@@ -120,21 +121,25 @@ const Navbar: React.FC = () => {
   const [hasMoved, setHasMoved] = useState(false);
 
   const navigation = [
-    { name: t('nav.home'), href: '/' },
-    { name: t('nav.shop'), href: '/loja' },
-    { name: t('nav.contact'), href: '/contacto' },
+    { name: t('nav.home'), key: 'home' as const },
+    { name: t('nav.shop'), key: 'shop' as const },
+    { name: t('nav.contact'), key: 'contact' as const },
   ];
 
-  const isActive = (href: string) => {
-    if (href === '/' && location.pathname === '/') return true;
-    if (href !== '/' && location.pathname.startsWith(href)) return true;
-    return false;
-  };
+  const isActive = (routeKey: 'home' | 'shop' | 'contact') => isRouteMatch(location.pathname, routeKey);
+
+  const homePath = getRoutePath('home', lang);
+  const shopPath = getRoutePath('shop', lang);
+  const favoritesPath = getRoutePath('favorites', lang);
+  const cartPath = getRoutePath('cart', lang);
+  const profilePath = getRoutePath('profile', lang);
+  const ordersPath = getRoutePath('orders', lang);
 
   useEffect(() => {
     const pathParts = location.pathname.split('/');
-    if (pathParts[1] === 'loja' && pathParts[2]) {
-      setSelectedCategory(pathParts[2]); // store slug directly from URL
+    const shopSegments = getRoutePrefixes('shop').map(path => path.replace('/', ''));
+    if (shopSegments.includes(pathParts[1]) && pathParts[2]) {
+      setSelectedCategory(pathParts[2]);
     } else {
       setSelectedCategory('');
     }
@@ -175,7 +180,7 @@ const Navbar: React.FC = () => {
   }, [searchOpen]);
 
   const handleProductClick = (productId: string) => {
-    navigate(`/produto/${productId}`);
+    navigate(getProductPath(lang, productId));
     setSearchOpen(false);
     setSearchQuery('');
   };
@@ -244,7 +249,7 @@ const Navbar: React.FC = () => {
     if (hasMoved) return;
     const wasSelected = selectedCategory === slug;
     setSelectedCategory(wasSelected ? '' : slug);
-    navigate(wasSelected ? '/loja' : `/loja/${slug}`);
+    navigate(wasSelected ? getShopPath(lang) : getShopPath(lang, slug));
   };
 
   const handleSearchToggle = () => {
@@ -262,7 +267,7 @@ const Navbar: React.FC = () => {
 
             {/* Logo & Desktop Nav Links */}
             <div className="flex items-center gap-10 xl:gap-14 flex-shrink-0">
-              <Link to="/" className="flex items-center">
+              <Link to={homePath} className="flex items-center">
                 <img
                   src="/images/logo.png"
                   alt="Recicloth"
@@ -271,13 +276,14 @@ const Navbar: React.FC = () => {
               </Link>
 
               <div className="hidden md:flex items-center space-x-10">
-                {navigation.map((item) => (
-                  item.href === '/loja' ? (
-                    <div key={item.href} className="relative h-full flex items-center" ref={megaMenuRef}>
+                {navigation.map((item) => {
+                  const navHref = getRoutePath(item.key, lang);
+                  return item.key === 'shop' ? (
+                    <div key={item.key} className="relative h-full flex items-center" ref={megaMenuRef}>
                       <button
                         onMouseEnter={() => setMegaMenuOpen(true)}
-                        onClick={() => navigate('/loja')}
-                        className={`text-[16px] font-medium transition-colors duration-200 pb-1 border-b-2 ${isActive(item.href)
+                        onClick={() => navigate(shopPath)}
+                        className={`text-[16px] font-medium transition-colors duration-200 pb-1 border-b-2 ${isActive(item.key)
                             ? 'text-[#1E4D3B] border-[#1E4D3B]'
                             : 'text-gray-600 border-transparent hover:text-[#1E4D3B]'
                           }`}
@@ -307,7 +313,7 @@ const Navbar: React.FC = () => {
                             ) : (
                               <div className="grid grid-cols-3 gap-6">
                                 <Link
-                                  to="/loja"
+                                  to={shopPath}
                                   onClick={() => setMegaMenuOpen(false)}
                                   className="group relative overflow-hidden rounded-lg hover:shadow-xl transition-all duration-300 border border-gray-100"
                                 >
@@ -328,7 +334,7 @@ const Navbar: React.FC = () => {
                                   return (
                                     <Link
                                       key={category.id}
-                                      to={`/loja/${slug}`}
+                                      to={getShopPath(lang, slug)}
                                       onClick={() => setMegaMenuOpen(false)}
                                       className="group relative overflow-hidden rounded-lg hover:shadow-xl transition-all duration-300 border border-gray-100"
                                     >
@@ -367,17 +373,17 @@ const Navbar: React.FC = () => {
                     </div>
                   ) : (
                     <Link
-                      key={item.href}
-                      to={item.href}
-                      className={`text-[16px] font-medium transition-colors duration-200 pb-1 border-b-2 ${isActive(item.href)
+                      key={item.key}
+                      to={navHref}
+                      className={`text-[16px] font-medium transition-colors duration-200 pb-1 border-b-2 ${isActive(item.key)
                           ? 'text-[#1E4D3B] border-[#1E4D3B]'
                           : 'text-gray-600 border-transparent hover:text-[#1E4D3B]'
                         }`}
                     >
                       {item.name}
                     </Link>
-                  )
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -445,7 +451,7 @@ const Navbar: React.FC = () => {
               </button>
 
               {/* Heart Icon Desktop */}
-              <Link to="/favoritos" aria-label={t('nav.favorites')} className="hidden md:flex items-center justify-center hover:text-black transition-colors relative">
+              <Link to={favoritesPath} aria-label={t('nav.favorites')} className="hidden md:flex items-center justify-center hover:text-black transition-colors relative">
                 <Heart className="h-6 w-6" strokeWidth={1.5} />
                 {favorites.length > 0 && (
                   <span className="absolute -top-1.5 -right-2 bg-[#1E4D3B] text-white rounded-full text-[10px] font-bold w-4 h-4 flex items-center justify-center shadow-sm">
@@ -455,7 +461,7 @@ const Navbar: React.FC = () => {
               </Link>
 
               {/* Cart Icon Mobile & Desktop */}
-              <Link to="/carrinho" aria-label={t('nav.cart')} className="flex items-center justify-center hover:text-black transition-colors relative">
+              <Link to={cartPath} aria-label={t('nav.cart')} className="flex items-center justify-center hover:text-black transition-colors relative">
                 <ShoppingCart className="h-6 w-6" strokeWidth={1.5} />
                 {itemCount > 0 && (
                   <span className="absolute -top-1.5 -right-2 bg-[#1E4D3B] text-white rounded-full text-[10px] font-bold w-4 h-4 flex items-center justify-center shadow-sm">
@@ -541,28 +547,31 @@ const Navbar: React.FC = () => {
               <div className="px-4 pt-2 pb-4 space-y-1">
 
                 {/* Navigation Links */}
-                {navigation.map((item) => (
+                {navigation.map((item) => {
+                  const navHref = getRoutePath(item.key, lang);
+                  return (
                   <Link
-                    key={item.name}
-                    to={item.href}
+                    key={item.key}
+                    to={navHref}
                     onClick={handleCloseMenu}
-                    className={`block px-4 py-3 text-[15px] rounded-md transition-colors ${isActive(item.href) ? 'text-gray-900 bg-gray-50 font-medium' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                    className={`block px-4 py-3 text-[15px] rounded-md transition-colors ${isActive(item.key) ? 'text-gray-900 bg-gray-50 font-medium' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                   >
                     {item.name}
                   </Link>
-                ))}
+                  );
+                })}
 
                 <div className="border-t border-gray-100 my-2 mx-2"></div>
 
                 {/* Favorites - Mobile */}
-                <Link to="/favoritos" onClick={handleCloseMenu} className="w-full flex items-center justify-between px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                <Link to={favoritesPath} onClick={handleCloseMenu} className="w-full flex items-center justify-between px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-3"><Heart className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> {t('nav.favorites')}</div>
                   {favorites.length > 0 && <span className="bg-[#1E4D3B] text-white rounded-full text-xs font-bold w-5 h-5 flex items-center justify-center">{favorites.length}</span>}
                 </Link>
 
                 {/* Cart - Mobile */}
-                <Link to="/carrinho" onClick={handleCloseMenu} className="w-full flex items-center justify-between px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                <Link to={cartPath} onClick={handleCloseMenu} className="w-full flex items-center justify-between px-4 py-3 rounded-md text-[15px] text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-3"><ShoppingCart className="h-5 w-5 text-gray-500" strokeWidth={1.5} /> {t('nav.cart')}</div>
                   {itemCount > 0 && <span className="bg-[#1E4D3B] text-white rounded-full text-xs font-bold w-5 h-5 flex items-center justify-center">{itemCount}</span>}
                 </Link>
@@ -776,7 +785,7 @@ const Navbar: React.FC = () => {
                     {t('nav.myAccount')}
                   </h3>
                   <div className="flex flex-col gap-2">
-                    <Link to="/perfil" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200">
+                    <Link to={profilePath} onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200">
                       <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
                         <UserCircle className="h-5 w-5 text-[#1E4D3B]" />
                       </div>
@@ -787,7 +796,7 @@ const Navbar: React.FC = () => {
                       <svg className="h-5 w-5 text-gray-400 group-hover:text-[#1E4D3B] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                     </Link>
 
-                    <Link to="/encomendas" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200">
+                    <Link to={ordersPath} onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200">
                       <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
                         <Package className="h-5 w-5 text-[#1E4D3B]" />
                       </div>
@@ -798,7 +807,7 @@ const Navbar: React.FC = () => {
                       <svg className="h-5 w-5 text-gray-400 group-hover:text-[#1E4D3B] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                     </Link>
 
-                    <Link to="/favoritos" onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200">
+                    <Link to={favoritesPath} onClick={handleCloseUserMenu} className="group flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200">
                       <div className="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors relative">
                         <Heart className="h-5 w-5 text-[#1E4D3B]" />
                         {favorites.length > 0 && <span className="absolute -top-1 -right-1 bg-[#1E4D3B] text-white rounded-full text-[10px] w-4 h-4 flex items-center justify-center">{favorites.length}</span>}

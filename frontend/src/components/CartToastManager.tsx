@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, CheckCircle, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
+import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const DURATION = 3500;
 
@@ -29,6 +31,8 @@ export const fireCartToast = (detail: CartToastDetail) => {
 const CartToastManager: React.FC = () => {
   const [toasts, setToasts] = useState<ToastEntry[]>([]);
   const timers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const { lang } = useLanguage();
+  const cartPath = getRoutePath('cart', lang);
 
   const removeToast = useCallback((key: string) => {
     timers.current.delete(key);
@@ -107,7 +111,7 @@ const CartToastManager: React.FC = () => {
                 </p>
                 {!isRemoved && (
                   <Link
-                    to="/carrinho"
+                    to={cartPath}
                     onClick={() => removeToast(toast.key)}
                     className="text-xs font-medium text-[#2D6A4F] hover:underline"
                   >

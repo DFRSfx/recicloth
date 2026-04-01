@@ -1,17 +1,19 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Trash2, Loader2, X } from 'lucide-react';
+import { Heart, Trash2, X } from 'lucide-react';
 import { Product } from '../types';
 import { useFavorites } from '../context/FavoritesContext';
 import { useConfirmStore } from '../hooks/useConfirm';
 import ProductCard from '../components/ProductCard';
 import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const Favorites: React.FC = () => {
   const navigate = useNavigate();
   const { favorites, removeFromFavorites, clearFavorites, loading } = useFavorites();
   const openConfirm = useConfirmStore(state => state.openConfirm);
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const shopPath = getRoutePath('shop', lang);
 
   // Convert favorite items to Product format for ProductCard
   const favoriteProducts: Product[] = favorites.map((item) => ({
@@ -90,7 +92,7 @@ const Favorites: React.FC = () => {
                 {t('favorites.empty.desc')}
               </p>
               <button
-                onClick={() => navigate('/loja')}
+                onClick={() => navigate(shopPath)}
                 className="px-8 py-3.5 bg-[#1E4D3B] text-white rounded font-medium hover:bg-[#163a2c] transition-colors shadow-sm"
               >
                 {t('common.exploreProducts')}
@@ -132,7 +134,7 @@ const Favorites: React.FC = () => {
         {favorites.length > 0 && (
           <div className="mt-20 pt-10 border-t border-gray-200 text-center">
             <button
-              onClick={() => navigate('/loja')}
+              onClick={() => navigate(shopPath)}
               className="inline-flex items-center justify-center px-8 py-3.5 bg-white border border-[#1E4D3B] text-[#1E4D3B] rounded font-medium hover:bg-gray-50 transition-colors"
             >
               {t('common.continueShopping')}

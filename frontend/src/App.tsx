@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -62,10 +62,19 @@ function App() {
                       <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/loja" element={<Shop />} />
+                        <Route path="/shop" element={<Shop />} />
                         <Route path="/loja/:categorySlug" element={<Shop />} />
+                        <Route path="/shop/:categorySlug" element={<Shop />} />
                         <Route path="/produto/:id" element={<Product />} />
+                        <Route path="/product/:id" element={<Product />} />
                         <Route path="/carrinho" element={<Cart />} />
+                        <Route path="/cart" element={<Cart />} />
                         <Route path="/finalizar-compra" element={
+                          <Suspense fallback={null}>
+                            <Checkout />
+                          </Suspense>
+                        } />
+                        <Route path="/checkout" element={
                           <Suspense fallback={null}>
                             <Checkout />
                           </Suspense>
@@ -81,15 +90,24 @@ function App() {
                           </Suspense>
                         } />
                         <Route path="/contacto" element={<Contact />} />
+                        <Route path="/contact" element={<Contact />} />
                         <Route path="/perfil" element={<Profile />} />
+                        <Route path="/profile" element={<Profile />} />
                         <Route path="/encomendas" element={<Orders />} />
+                        <Route path="/orders" element={<Orders />} />
                         <Route path="/favoritos" element={<Favorites />} />
+                        <Route path="/favorites" element={<Favorites />} />
                         <Route path="/verificar-email" element={<VerifyEmail />} />
+                        <Route path="/verify-email" element={<VerifyEmail />} />
                         <Route path="/redefinir-senha" element={<ResetPassword />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
                         <Route path="/track-order/:token" element={<TrackOrder />} />
                         <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+                        <Route path="/privacy-policy" element={<PoliticaPrivacidade />} />
                         <Route path="/politica-devolucao" element={<PoliticaDevolucao />} />
+                        <Route path="/return-policy" element={<PoliticaDevolucao />} />
                         <Route path="/termos-condicoes" element={<TermosCondicoes />} />
+                        <Route path="/terms-conditions" element={<TermosCondicoes />} />
                         {/* <Route path="/sobre" element={<About />} /> */}
                       </Routes>
                     </main>

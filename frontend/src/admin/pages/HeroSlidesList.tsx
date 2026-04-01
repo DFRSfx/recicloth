@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Edit, Trash2, Save, X, MoveVertical, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import AdminSelect from '../components/AdminSelect';
 import { useToast } from '../../context/ToastContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { getAbsoluteImageUrl } from '../../utils/imageUtils';
+import { getRoutePath, getShopPath, withQuery } from '../../utils/routes';
 
 const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const API_URL = `${SERVER_URL}/api`;
@@ -22,6 +24,7 @@ interface HeroSlide {
 }
 
 export default function HeroSlidesList() {
+  const { t, lang } = useLanguage();
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +52,67 @@ export default function HeroSlidesList() {
   const addButtonTextRef = useRef<HTMLInputElement>(null);
   const addImageRef = useRef<HTMLInputElement>(null);
 
+  const buildPageRouteValues = (targetLang: 'pt' | 'en') => [
+    getRoutePath('home', targetLang),
+    getRoutePath('shop', targetLang),
+    withQuery(getRoutePath('shop', targetLang), { filter: 'new' }),
+    withQuery(getRoutePath('shop', targetLang), { filter: 'featured' }),
+    getRoutePath('favorites', targetLang),
+    getRoutePath('cart', targetLang),
+    getRoutePath('checkout', targetLang),
+    getRoutePath('checkoutSuccess', targetLang),
+    getRoutePath('checkoutFail', targetLang),
+    getRoutePath('contact', targetLang),
+    getRoutePath('profile', targetLang),
+    getRoutePath('orders', targetLang),
+    getRoutePath('verifyEmail', targetLang),
+    getRoutePath('resetPassword', targetLang),
+    getRoutePath('privacyPolicy', targetLang),
+    getRoutePath('returnPolicy', targetLang),
+    getRoutePath('terms', targetLang)
+  ];
+
+  const pageRouteOptions = [
+    { value: getRoutePath('home', lang), label: t('admin.heroSlides.routes.home') },
+    { value: getRoutePath('shop', lang), label: t('admin.heroSlides.routes.shopAll') },
+    { value: withQuery(getRoutePath('shop', lang), { filter: 'new' }), label: t('admin.heroSlides.routes.shopNew') },
+    { value: withQuery(getRoutePath('shop', lang), { filter: 'featured' }), label: t('admin.heroSlides.routes.shopFeatured') },
+    { value: getRoutePath('favorites', lang), label: t('admin.heroSlides.routes.favorites') },
+    { value: getRoutePath('cart', lang), label: t('admin.heroSlides.routes.cart') },
+    { value: getRoutePath('checkout', lang), label: t('admin.heroSlides.routes.checkout') },
+    { value: getRoutePath('checkoutSuccess', lang), label: t('admin.heroSlides.routes.checkoutSuccess') },
+    { value: getRoutePath('checkoutFail', lang), label: t('admin.heroSlides.routes.checkoutFail') },
+    { value: getRoutePath('contact', lang), label: t('admin.heroSlides.routes.contact') },
+    { value: getRoutePath('profile', lang), label: t('admin.heroSlides.routes.profile') },
+    { value: getRoutePath('orders', lang), label: t('admin.heroSlides.routes.orders') },
+    { value: getRoutePath('verifyEmail', lang), label: t('admin.heroSlides.routes.verifyEmail') },
+    { value: getRoutePath('resetPassword', lang), label: t('admin.heroSlides.routes.resetPassword') },
+    { value: getRoutePath('privacyPolicy', lang), label: t('admin.heroSlides.routes.privacyPolicy') },
+    { value: getRoutePath('returnPolicy', lang), label: t('admin.heroSlides.routes.returnPolicy') },
+    { value: getRoutePath('terms', lang), label: t('admin.heroSlides.routes.terms') }
+  ];
+
+  const pageRouteValueSet = new Set([
+    ...buildPageRouteValues('pt'),
+    ...buildPageRouteValues('en')
+  ]);
+
+  const withCurrentOption = (
+    options: Array<{ value: string; label: string }>,
+    value: string
+  ) => {
+    if (!value) return options;
+    return options.some(option => option.value === value)
+      ? options
+      : [{ value, label: `${t('admin.heroSlides.routes.current')} (${value})` }, ...options];
+  };
+
+  const getDefaultPageRoute = () =>
+    pageRouteOptions[0]?.value ?? getRoutePath('home', lang);
+
+  const getDefaultCategoryRoute = () =>
+    categories[0] ? getShopPath(lang, categories[0].slug) : '';
+
   const clearAddError = (field: string) => {
     setAddFieldErrors(prev => { const next = { ...prev }; delete next[field]; return next; });
   };
@@ -57,6 +121,18 @@ export default function HeroSlidesList() {
     loadSlides();
     loadCategories();
   }, []);
+
+  useEffect(() => {
+    if (formData.button_link_type === 'page' && !formData.button_link) {
+      setFormData(prev => ({ ...prev, button_link: getDefaultPageRoute() }));
+    }
+  }, [formData.button_link_type, formData.button_link, lang]);
+
+  useEffect(() => {
+    if (formData.button_link_type === 'category' && !formData.button_link && categories.length > 0) {
+      setFormData(prev => ({ ...prev, button_link: getDefaultCategoryRoute() }));
+    }
+  }, [formData.button_link_type, formData.button_link, categories, lang]);
 
   const loadCategories = async () => {
     try {
@@ -89,11 +165,11 @@ export default function HeroSlidesList() {
       // Check for authentication errors
       if (!response.ok) {
         if (response.status === 403 || response.status === 401) {
-          setError('Sessão expirada. Por favor, faça login novamente.');
+          setError(t('admin.heroSlides.sessionExpired'));
           setSlides([]);
           return;
         }
-        throw new Error(data.error || 'Erro ao carregar slides');
+        throw new Error(data.error || t('admin.heroSlides.loadError'));
       }
 
       // Ensure data is an array
@@ -102,12 +178,12 @@ export default function HeroSlidesList() {
         setError(null);
       } else {
         console.error('Invalid data format from API:', data);
-        setError('Formato de dados inválido');
+        setError(t('admin.heroSlides.invalidData'));
         setSlides([]);
       }
     } catch (error) {
       console.error('Error loading slides:', error);
-      setError(error instanceof Error ? error.message : 'Erro ao carregar slides');
+      setError(error instanceof Error ? error.message : t('admin.heroSlides.loadError'));
       setSlides([]);
     } finally {
       setLoading(false);
@@ -126,32 +202,67 @@ export default function HeroSlidesList() {
     }
   };
 
-  const handleLinkTypeChange = (type: 'page' | 'category' | 'custom', value: string = '') => {
+  const handleLinkTypeChange = (type: 'page' | 'category' | 'custom') => {
+    const nextValue =
+      type === 'page'
+        ? getDefaultPageRoute()
+        : type === 'category'
+          ? getDefaultCategoryRoute()
+          : '';
+
     setFormData({
       ...formData,
       button_link_type: type,
-      button_link: value
+      button_link: nextValue
     });
   };
 
   const detectLinkType = (link: string): 'page' | 'category' | 'custom' => {
-    const predefinedPages = ['/loja', '/loja?filter=new', '/loja?filter=featured', '/favoritos', '/'];
-    if (predefinedPages.includes(link)) return 'page';
-    if (link.includes('categoria=')) return 'category';
+    const shopPt = getRoutePath('shop', 'pt');
+    const shopEn = getRoutePath('shop', 'en');
+    if (pageRouteValueSet.has(link)) return 'page';
+    if (
+      link.includes('categoria=') ||
+      link.startsWith(`${shopPt}/`) ||
+      link.startsWith(`${shopEn}/`)
+    ) {
+      return 'category';
+    }
     return 'custom';
   };
 
-  const handleEditLinkTypeChange = (slideId: number, type: 'page' | 'category' | 'custom', value: string = '') => {
-    updateSlide(slideId, 'button_link', value);
+  const handleEditLinkTypeChange = (slideId: number, type: 'page' | 'category' | 'custom') => {
+    const nextValue =
+      type === 'page'
+        ? getDefaultPageRoute()
+        : type === 'category'
+          ? getDefaultCategoryRoute()
+          : '';
+    updateSlide(slideId, 'button_link', nextValue);
+  };
+
+  const openAddModal = () => {
+    setShowAddForm(true);
+    setAddFieldErrors({});
+    setFormData((prev) => ({
+      ...prev,
+      button_link_type: 'page',
+      button_link: prev.button_link || getDefaultPageRoute()
+    }));
+  };
+
+  const closeAddModal = () => {
+    setShowAddForm(false);
+    setAddFieldErrors({});
   };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const errors: Record<string, string> = {};
-    if (!formData.title.trim()) errors.title = 'Campo obrigatório';
-    if (!formData.button_text.trim()) errors.button_text = 'Campo obrigatório';
-    if (!imageFile) errors.image = 'Selecione uma imagem de fundo';
+    if (!formData.title.trim()) errors.title = t('common.required');
+    if (!formData.button_text.trim()) errors.button_text = t('common.required');
+    if (!imageFile) errors.image = t('admin.heroSlides.requiredImage');
 
     if (Object.keys(errors).length > 0) {
       setAddFieldErrors(errors);
@@ -189,14 +300,14 @@ export default function HeroSlidesList() {
       });
 
       if (response.ok) {
-        showSuccess('Slide criado com sucesso!');
+        showSuccess(t('admin.heroSlides.createSuccess'));
         setShowAddForm(false);
         setAddFieldErrors({});
         setFormData({
           title: '',
           description: '',
           button_text: '',
-          button_link: '',
+          button_link: getDefaultPageRoute(),
           button_link_type: 'page',
           text_color: 'white',
           display_order: 0,
@@ -206,11 +317,11 @@ export default function HeroSlidesList() {
         setImagePreview('');
         loadSlides();
       } else {
-        showError('Erro ao criar slide');
+        showError(t('admin.heroSlides.createError'));
       }
     } catch (error) {
       console.error('Error adding slide:', error);
-      showError('Erro ao criar slide');
+      showError(t('admin.heroSlides.createError'));
     }
   };
 
@@ -243,18 +354,18 @@ export default function HeroSlidesList() {
       });
 
       if (response.ok) {
-        showSuccess('Slide atualizado com sucesso!');
+        showSuccess(t('admin.heroSlides.updateSuccess'));
         setEditingId(null);
         setImageFile(null);
         setImagePreview('');
         // Force reload with cache bust
         await loadSlides();
       } else {
-        showError('Erro ao atualizar slide');
+        showError(t('admin.heroSlides.updateError'));
       }
     } catch (error) {
       console.error('Error updating slide:', error);
-      showError('Erro ao atualizar slide');
+      showError(t('admin.heroSlides.updateError'));
     }
   };
 
@@ -271,15 +382,15 @@ export default function HeroSlidesList() {
       });
 
       if (response.ok) {
-        showSuccess('Slide eliminado com sucesso!');
+        showSuccess(t('admin.heroSlides.deleteSuccess'));
         setDeleteConfirm(null);
         loadSlides();
       } else {
-        showError('Erro ao eliminar slide');
+        showError(t('admin.heroSlides.deleteError'));
       }
     } catch (error) {
       console.error('Error deleting slide:', error);
-      showError('Erro ao eliminar slide');
+      showError(t('admin.heroSlides.deleteError'));
     }
   };
 
@@ -305,16 +416,22 @@ export default function HeroSlidesList() {
       });
 
       if (response.ok) {
-        showSuccess(`Slide ${!currentStatus ? 'ativado' : 'desativado'} com sucesso!`);
+        showSuccess(
+          !currentStatus
+            ? t('admin.heroSlides.activateSuccess')
+            : t('admin.heroSlides.deactivateSuccess')
+        );
         loadSlides();
       } else {
-        showError('Erro ao alterar estado do slide');
+        showError(t('admin.heroSlides.toggleError'));
       }
     } catch (error) {
       console.error('Error toggling slide status:', error);
-      showError('Erro ao alterar estado do slide');
+      showError(t('admin.heroSlides.toggleError'));
     }
   };
+
+  const isSessionExpired = error === t('admin.heroSlides.sessionExpired');
 
   if (loading) {
     return (
@@ -333,12 +450,12 @@ export default function HeroSlidesList() {
             <AlertCircle className="text-red-600 flex-shrink-0" size={20} />
             <span className="text-red-700 text-sm">{error}</span>
           </div>
-          {error.includes('expirada') && (
+          {isSessionExpired && (
             <button
               onClick={() => window.location.href = '/'}
               className="ml-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
             >
-              Fazer Login
+              {t('admin.heroSlides.loginAction')}
             </button>
           )}
         </div>
@@ -347,197 +464,238 @@ export default function HeroSlidesList() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#1A1A1A]">Hero Slides</h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-1">Gerir os slides da página inicial</p>
+          <h1 className="text-2xl font-bold text-[#1A1A1A]">{t('admin.heroSlides.title')}</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">{t('admin.heroSlides.subtitle')}</p>
         </div>
         <button
-          onClick={() => { setShowAddForm(!showAddForm); setAddFieldErrors({}); }}
+          onClick={openAddModal}
           className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2 font-medium text-sm"
         >
-          {showAddForm ? <X size={18} /> : <Plus size={18} />}
-          {showAddForm ? 'Cancelar' : 'Criar Slide'}
+          <Plus size={18} />
+          {t('admin.heroSlides.addButton')}
         </button>
       </div>
 
-      {/* Add Form */}
+      {/* Add Modal */}
       {showAddForm && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Adicionar Novo Slide</h2>
-          <form onSubmit={handleAdd} noValidate className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Título *</label>
-                <input
-                  ref={addTitleRef}
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => { setFormData({ ...formData, title: e.target.value }); clearAddError('title'); }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.title ? 'border-red-500' : 'border-gray-300'}`}
-                />
-                {addFieldErrors.title && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.title}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Texto do Botão *</label>
-                <input
-                  ref={addButtonTextRef}
-                  type="text"
-                  value={formData.button_text}
-                  onChange={(e) => { setFormData({ ...formData, button_text: e.target.value }); clearAddError('button_text'); }}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.button_text ? 'border-red-500' : 'border-gray-300'}`}
-                />
-                {addFieldErrors.button_text && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.button_text}</p>}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-              />
-            </div>
-
-            {/* Link Configuration */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">Destino do Botão *</label>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleLinkTypeChange('page', '/loja')}
-                  className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                    formData.button_link_type === 'page'
-                      ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  📄 Página
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleLinkTypeChange('category', '')}
-                  className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                    formData.button_link_type === 'category'
-                      ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  🏷️ Categoria
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleLinkTypeChange('custom', '')}
-                  className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                    formData.button_link_type === 'custom'
-                      ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
-                      : 'border-gray-300 hover:border-gray-400'
-                  }`}
-                >
-                  🔗 Personalizado
-                </button>
-              </div>
-
-              {formData.button_link_type === 'page' && (
-                <AdminSelect
-                  value={formData.button_link}
-                  onChange={(value) => setFormData({ ...formData, button_link: value })}
-                  wrapperClassName="w-full"
-                  options={[
-                    { value: '/loja', label: '🛍️ Loja (Todos os Produtos)' },
-                    { value: '/loja?filter=new', label: '✨ Novidades' },
-                    { value: '/loja?filter=featured', label: '⭐ Produtos em Destaque' },
-                    { value: '/favoritos', label: '❤️ Favoritos' },
-                    { value: '/', label: '🏠 Página Inicial' },
-                  ]}
-                />
-              )}
-
-              {formData.button_link_type === 'category' && (
-                <AdminSelect
-                  value={formData.button_link}
-                  onChange={(value) => setFormData({ ...formData, button_link: value })}
-                  wrapperClassName="w-full"
-                  placeholder="Selecione uma categoria"
-                  options={categories.map(cat => ({ value: `/loja?categoria=${cat.slug}`, label: cat.name }))}
-                />
-              )}
-
-              {formData.button_link_type === 'custom' && (
-                <input
-                  type="text"
-                  value={formData.button_link}
-                  onChange={(e) => setFormData({ ...formData, button_link: e.target.value })}
-                  placeholder="Ex: /sobre, /contacto, ou URL externa"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                />
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Cor do Texto</label>
-                <AdminSelect
-                  value={formData.text_color}
-                  onChange={(value) => setFormData({ ...formData, text_color: value as 'white' | 'dark' })}
-                  wrapperClassName="w-full"
-                  options={[
-                    { value: 'white', label: 'Branco' },
-                    { value: 'dark', label: 'Escuro' },
-                  ]}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Imagem de Fundo *</label>
-              <input
-                ref={addImageRef}
-                type="file"
-                accept="image/*"
-                onChange={(e) => { handleImageChange(e); clearAddError('image'); }}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.image ? 'border-red-500' : 'border-gray-300'}`}
-              />
-              {addFieldErrors.image && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.image}</p>}
-              {imagePreview && (
-                <div className="mt-3">
-                  <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+        <>
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={closeAddModal}
+            role="button"
+            tabIndex={-1}
+            aria-label={t('common.close')}
+          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-secondary-200">
+              <div className="p-6 border-b border-secondary-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-[#1A1A1A]">{t('admin.heroSlides.addTitle')}</h2>
+                  <button
+                    onClick={closeAddModal}
+                    className="text-gray-400 hover:text-gray-600 transition-colors rounded-lg p-1"
+                    aria-label={t('common.close')}
+                  >
+                    <X size={24} />
+                  </button>
                 </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ordem de Exibição</label>
-                <input
-                  type="number"
-                  value={formData.display_order}
-                  onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                />
               </div>
-              <div className="flex items-center pt-7">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_active}
-                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                  />
-                  <span className="ml-2 text-gray-700">Slide Ativo</span>
-                </label>
+
+              <div className="p-6">
+                <form onSubmit={handleAdd} noValidate className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('admin.heroSlides.fields.title')} *
+                      </label>
+                      <input
+                        ref={addTitleRef}
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) => { setFormData({ ...formData, title: e.target.value }); clearAddError('title'); }}
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.title ? 'border-red-500' : 'border-gray-300'}`}
+                      />
+                      {addFieldErrors.title && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.title}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('admin.heroSlides.fields.buttonText')} *
+                      </label>
+                      <input
+                        ref={addButtonTextRef}
+                        type="text"
+                        value={formData.button_text}
+                        onChange={(e) => { setFormData({ ...formData, button_text: e.target.value }); clearAddError('button_text'); }}
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.button_text ? 'border-red-500' : 'border-gray-300'}`}
+                      />
+                      {addFieldErrors.button_text && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.button_text}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('admin.heroSlides.fields.description')}
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="block text-sm font-medium text-gray-700">
+                      {t('admin.heroSlides.fields.destination')} *
+                    </label>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleLinkTypeChange('page')}
+                        className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                          formData.button_link_type === 'page'
+                            ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        {t('admin.heroSlides.linkType.page')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleLinkTypeChange('category')}
+                        className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                          formData.button_link_type === 'category'
+                            ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        {t('admin.heroSlides.linkType.category')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleLinkTypeChange('custom')}
+                        className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                          formData.button_link_type === 'custom'
+                            ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        {t('admin.heroSlides.linkType.custom')}
+                      </button>
+                    </div>
+
+                    {formData.button_link_type === 'page' && (
+                      <AdminSelect
+                        value={formData.button_link}
+                        onChange={(value) => setFormData({ ...formData, button_link: value })}
+                        wrapperClassName="w-full"
+                        options={pageRouteOptions}
+                      />
+                    )}
+
+                    {formData.button_link_type === 'category' && (
+                      <AdminSelect
+                        value={formData.button_link}
+                        onChange={(value) => setFormData({ ...formData, button_link: value })}
+                        wrapperClassName="w-full"
+                        placeholder={t('admin.heroSlides.selectCategory')}
+                        options={categories.map(cat => ({ value: getShopPath(lang, cat.slug), label: cat.name }))}
+                      />
+                    )}
+
+                    {formData.button_link_type === 'custom' && (
+                      <input
+                        type="text"
+                        value={formData.button_link}
+                        onChange={(e) => setFormData({ ...formData, button_link: e.target.value })}
+                        placeholder={t('admin.heroSlides.placeholder.customLink')}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                      />
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('admin.heroSlides.fields.textColor')}
+                      </label>
+                      <AdminSelect
+                        value={formData.text_color}
+                        onChange={(value) => setFormData({ ...formData, text_color: value as 'white' | 'dark' })}
+                        wrapperClassName="w-full"
+                        options={[
+                          { value: 'white', label: t('admin.heroSlides.textColor.white') },
+                          { value: 'dark', label: t('admin.heroSlides.textColor.dark') },
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('admin.heroSlides.fields.backgroundImage')} *
+                    </label>
+                    <input
+                      ref={addImageRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => { handleImageChange(e); clearAddError('image'); }}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.image ? 'border-red-500' : 'border-gray-300'}`}
+                    />
+                    {addFieldErrors.image && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.image}</p>}
+                    {imagePreview && (
+                      <div className="mt-3">
+                        <img src={imagePreview} alt={t('admin.heroSlides.fields.imagePreviewAlt')} className="w-full h-48 object-cover rounded-lg" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('admin.heroSlides.fields.displayOrder')}
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.display_order}
+                        onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                      />
+                    </div>
+                    <div className="flex items-center pt-7">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.is_active}
+                          onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                          className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        />
+                        <span className="ml-2 text-gray-700">{t('admin.heroSlides.fields.slideActive')}</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={closeAddModal}
+                      className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-sm transition-colors"
+                    >
+                      {t('common.cancel')}
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-colors touch-manipulation min-h-[44px] font-medium text-sm"
+                    >
+                      {t('admin.heroSlides.addButton')}
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
-
-            <button
-              type="submit"
-              className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-colors touch-manipulation min-h-[44px]"
-            >
-              Criar Slide
-            </button>
-          </form>
-        </div>
+          </div>
+        </>
       )}
 
       {/* Slides List - Preview Cards */}
@@ -584,14 +742,14 @@ export default function HeroSlidesList() {
                   }`}
                 >
                   {slide.is_active ? <Eye size={14} className="inline mr-1" /> : <EyeOff size={14} className="inline mr-1" />}
-                  {slide.is_active ? 'Ativo' : 'Inativo'}
+                  {slide.is_active ? t('admin.heroSlides.status.active') : t('admin.heroSlides.status.inactive')}
                 </button>
               </div>
 
               {/* Order Badge */}
               <div className="absolute top-3 left-3 z-20">
                 <div className="bg-black bg-opacity-60 text-white px-3 py-1 rounded-full text-xs font-medium">
-                  Ordem: {slide.display_order}
+                  {t('admin.heroSlides.fields.order')}: {slide.display_order}
                 </div>
               </div>
             </div>
@@ -600,7 +758,7 @@ export default function HeroSlidesList() {
             <div className="p-4 bg-tertiary-100">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-sm text-gray-600">
-                  <span className="font-medium">Link:</span> {slide.button_link}
+                  <span className="font-medium">{t('admin.heroSlides.fields.link')}:</span> {slide.button_link}
                 </div>
               </div>
 
@@ -610,15 +768,15 @@ export default function HeroSlidesList() {
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation min-h-[44px]"
                 >
                   <Edit size={18} />
-                  <span>Editar</span>
+                  <span>{t('common.edit')}</span>
                 </button>
                 <button
                   onClick={() => setDeleteConfirm({ id: slide.id, title: slide.title })}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 active:bg-red-800 transition-colors touch-manipulation min-h-[44px]"
-                  aria-label="Eliminar"
+                  aria-label={t('common.delete')}
                 >
                   <Trash2 size={18} />
-                  <span>Eliminar</span>
+                  <span>{t('common.delete')}</span>
                 </button>
               </div>
             </div>
@@ -627,7 +785,7 @@ export default function HeroSlidesList() {
 
         {slides.length === 0 && (
           <div className="col-span-full text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
-            <p className="text-gray-500">Nenhum slide encontrado</p>
+            <p className="text-gray-500">{t('admin.heroSlides.empty')}</p>
           </div>
         )}
       </div>
@@ -645,7 +803,7 @@ export default function HeroSlidesList() {
             }}
             role="button"
             tabIndex={-1}
-            aria-label="Fechar modal"
+            aria-label={t('common.close')}
           />
 
           {/* Modal */}
@@ -653,14 +811,14 @@ export default function HeroSlidesList() {
             <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-secondary-200">
               <div className="p-6 border-b border-secondary-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[#1A1A1A]">Editar Slide</h2>
+                <h2 className="text-lg font-semibold text-[#1A1A1A]">{t('admin.heroSlides.editTitle')}</h2>
                 <button
                   onClick={() => {
                     setEditingId(null);
                     loadSlides();
                   }}
                   className="text-gray-400 hover:text-gray-600 transition-colors rounded-lg p-1"
-                  aria-label="Fechar modal"
+                  aria-label={t('common.close')}
                 >
                   <X size={24} />
                 </button>
@@ -672,10 +830,17 @@ export default function HeroSlidesList() {
                   const slide = slides.find(s => s.id === editingId);
                   if (!slide) return null;
 
+                  const linkType = detectLinkType(slide.button_link);
+                  const pageOptionsWithCurrent = withCurrentOption(pageRouteOptions, slide.button_link);
+                  const categoryOptionsWithCurrent = withCurrentOption(
+                    categories.map(cat => ({ value: getShopPath(lang, cat.slug), label: cat.name })),
+                    slide.button_link
+                  );
+
                   return (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Título</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.title')}</label>
                         <input
                           type="text"
                           value={slide.title}
@@ -685,7 +850,7 @@ export default function HeroSlidesList() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.description')}</label>
                         <textarea
                           value={slide.description}
                           onChange={(e) => updateSlide(editingId, 'description', e.target.value)}
@@ -695,7 +860,7 @@ export default function HeroSlidesList() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Texto do Botão</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.buttonText')}</label>
                         <input
                           type="text"
                           value={slide.button_text}
@@ -706,82 +871,76 @@ export default function HeroSlidesList() {
 
                       {/* Link Configuration */}
                       <div className="space-y-3">
-                        <label className="block text-sm font-medium text-gray-700">Destino do Botão</label>
+                        <label className="block text-sm font-medium text-gray-700">{t('admin.heroSlides.fields.destination')}</label>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <button
                             type="button"
-                            onClick={() => handleEditLinkTypeChange(editingId, 'page', '/loja')}
+                            onClick={() => handleEditLinkTypeChange(editingId, 'page')}
                             className={`px-4 py-3 rounded-lg border-2 transition-all text-base ${
-                              detectLinkType(slide.button_link) === 'page'
+                              linkType === 'page'
                                 ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
                                 : 'border-gray-300 hover:border-gray-400'
                             }`}
                           >
-                            📄 Página
+                            {t('admin.heroSlides.linkType.page')}
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleEditLinkTypeChange(editingId, 'category', '')}
+                            onClick={() => handleEditLinkTypeChange(editingId, 'category')}
                             className={`px-4 py-3 rounded-lg border-2 transition-all text-base ${
-                              detectLinkType(slide.button_link) === 'category'
+                              linkType === 'category'
                                 ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
                                 : 'border-gray-300 hover:border-gray-400'
                             }`}
                           >
-                            🏷️ Categoria
+                            {t('admin.heroSlides.linkType.category')}
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleEditLinkTypeChange(editingId, 'custom', '')}
+                            onClick={() => handleEditLinkTypeChange(editingId, 'custom')}
                             className={`px-4 py-3 rounded-lg border-2 transition-all text-base ${
-                              detectLinkType(slide.button_link) === 'custom'
+                              linkType === 'custom'
                                 ? 'border-primary-600 bg-primary-50 text-primary-900 font-medium'
                                 : 'border-gray-300 hover:border-gray-400'
                             }`}
                           >
-                            🔗 Personalizado
+                            {t('admin.heroSlides.linkType.custom')}
                           </button>
                         </div>
 
-                        {detectLinkType(slide.button_link) === 'page' && (
+                        {linkType === 'page' && (
                           <AdminSelect
                             value={slide.button_link}
                             onChange={(value) => updateSlide(editingId, 'button_link', value)}
                             wrapperClassName="w-full"
-                            options={[
-                              { value: '/loja', label: '🛍️ Loja (Todos os Produtos)' },
-                              { value: '/loja?filter=new', label: '✨ Novidades' },
-                              { value: '/loja?filter=featured', label: '⭐ Produtos em Destaque' },
-                              { value: '/favoritos', label: '❤️ Favoritos' },
-                              { value: '/', label: '🏠 Página Inicial' },
-                            ]}
+                            options={pageOptionsWithCurrent}
                           />
                         )}
 
-                        {detectLinkType(slide.button_link) === 'category' && (
+                        {linkType === 'category' && (
                           <AdminSelect
                             value={slide.button_link}
                             onChange={(value) => updateSlide(editingId, 'button_link', value)}
                             wrapperClassName="w-full"
-                            placeholder="Selecione uma categoria"
-                            options={categories.map(cat => ({ value: `/loja?categoria=${cat.slug}`, label: cat.name }))}
+                            placeholder={t('admin.heroSlides.selectCategory')}
+                            options={categoryOptionsWithCurrent}
                           />
                         )}
 
-                        {detectLinkType(slide.button_link) === 'custom' && (
+                        {linkType === 'custom' && (
                           <input
                             type="text"
                             value={slide.button_link}
                             onChange={(e) => updateSlide(editingId, 'button_link', e.target.value)}
-                            placeholder="Ex: /sobre, /contacto, ou URL externa"
+                            placeholder={t('admin.heroSlides.placeholder.customLink')}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
                           />
                         )}
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Alterar Imagem de Fundo (opcional)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.changeImage')}</label>
                         <input
                           type="file"
                           accept="image/*"
@@ -792,7 +951,7 @@ export default function HeroSlidesList() {
                         <div className="mt-3">
                           <img
                             src={imagePreview || getAbsoluteImageUrl(slide.background_image_md || slide.background_image)}
-                            alt="Preview da imagem de fundo"
+                            alt={t('admin.heroSlides.fields.imagePreviewAlt')}
                             className="w-full h-48 object-cover rounded-lg border border-gray-200"
                           />
                         </div>
@@ -800,20 +959,20 @@ export default function HeroSlidesList() {
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Cor do Texto</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.textColor')}</label>
                           <AdminSelect
                             value={slide.text_color}
                             onChange={(value) => updateSlide(editingId, 'text_color', value)}
                             wrapperClassName="w-full"
                             options={[
-                              { value: 'white', label: 'Branco' },
-                              { value: 'dark', label: 'Escuro' },
+                              { value: 'white', label: t('admin.heroSlides.textColor.white') },
+                              { value: 'dark', label: t('admin.heroSlides.textColor.dark') },
                             ]}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Ordem</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.order')}</label>
                           <input
                             type="number"
                             value={slide.display_order}
@@ -830,7 +989,7 @@ export default function HeroSlidesList() {
                               onChange={(e) => updateSlide(editingId, 'is_active', e.target.checked)}
                               className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                             />
-                            <span className="ml-2 text-gray-700">Ativo</span>
+                            <span className="ml-2 text-gray-700">{t('admin.heroSlides.fields.active')}</span>
                           </label>
                         </div>
                       </div>
@@ -843,14 +1002,14 @@ export default function HeroSlidesList() {
                           }}
                           className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium text-sm transition-colors"
                         >
-                          Cancelar
+                          {t('common.cancel')}
                         </button>
                         <button
                           onClick={() => handleUpdate(editingId)}
                           className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium text-sm transition-colors flex items-center justify-center gap-2"
                         >
                           <Save size={18} />
-                          Guardar
+                          {t('common.save')}
                         </button>
                       </div>
                     </>
@@ -871,7 +1030,7 @@ export default function HeroSlidesList() {
             onClick={() => setDeleteConfirm(null)}
             role="button"
             tabIndex={-1}
-            aria-label="Fechar modal"
+            aria-label={t('common.close')}
           />
 
           {/* Modal */}
@@ -881,12 +1040,13 @@ export default function HeroSlidesList() {
                 <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
                   <AlertCircle className="text-red-600" size={24} />
                 </div>
-                <h2 className="text-lg font-semibold text-[#1A1A1A] mb-2">Eliminar Slide</h2>
+                <h2 className="text-lg font-semibold text-[#1A1A1A] mb-2">{t('admin.heroSlides.deleteTitle')}</h2>
                 <p className="text-gray-600 mb-1">
-                  Tem a certeza que deseja eliminar o slide <span className="font-semibold">"{deleteConfirm.title}"</span>?
+                  {t('admin.heroSlides.deleteConfirmPrefix')}{' '}
+                  <span className="font-semibold">"{deleteConfirm.title}"</span>?
                 </p>
                 <p className="text-sm text-gray-500">
-                  Esta ação não pode ser revertida.
+                  {t('admin.heroSlides.deleteWarning')}
                 </p>
               </div>
 
@@ -895,13 +1055,13 @@ export default function HeroSlidesList() {
                   onClick={() => setDeleteConfirm(null)}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm transition-colors"
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={confirmDelete}
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm transition-colors"
                 >
-                  Eliminar
+                  {t('common.delete')}
                 </button>
               </div>
             </div>

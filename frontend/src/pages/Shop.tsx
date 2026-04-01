@@ -1,17 +1,17 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Search, SlidersHorizontal, ChevronLeft, Check } from 'lucide-react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import SEO from '../components/SEO';
 import ProductCard from '../components/ProductCard';
 import FilterModal from '../components/FilterModal';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath, getShopPath } from '../utils/routes';
 
 const PRODUCTS_PER_LOAD = 12;
 
 const Shop: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { categorySlug } = useParams<{ categorySlug?: string }>();
   const navigate = useNavigate();
 
@@ -23,7 +23,7 @@ const Shop: React.FC = () => {
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('newest');
-  const [displayCount, setDisplayCount] = useState(PRODUCTS_PER_LOAD);
+  const [displayCount] = useState(PRODUCTS_PER_LOAD);
 
   // UI State
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -67,8 +67,8 @@ const Shop: React.FC = () => {
   }, [categorySlug, allCategories]);
 
   const handleCategoryChange = (category: string) => {
-    if (!category || category === selectedCategory) navigate('/loja');
-    else navigate(`/loja/${category.toLowerCase().replace(/\s+/g, '-')}`);
+    if (!category || category === selectedCategory) navigate(getShopPath(lang));
+    else navigate(getShopPath(lang, category.toLowerCase().replace(/\s+/g, '-')));
   };
 
   const toggleColor = (color: string) => {
@@ -109,7 +109,6 @@ const Shop: React.FC = () => {
 
     const prices = allProducts.map(p => p.price);
     const maxPrice = Math.max(...prices);
-    const minPrice = Math.min(...prices);
 
     // Create brackets dynamically
     const brackets: { id: string; label: string }[] = [];
@@ -166,7 +165,7 @@ const Shop: React.FC = () => {
     setSelectedPrices([]);
     setPriceRange([0, 100]);
     if (selectedCategory) {
-      navigate('/loja');
+      navigate(getShopPath(lang));
     }
   };
 
@@ -233,7 +232,7 @@ const Shop: React.FC = () => {
       {/* Header */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-12 pb-6">
         <div className="lg:hidden mb-6">
-          <Link to="/loja" className="flex items-center gap-2 text-sm font-medium text-gray-900">
+          <Link to={getRoutePath('shop', lang)} className="flex items-center gap-2 text-sm font-medium text-gray-900">
             <ChevronLeft size={16} strokeWidth={2.5} /> {t('shop.title')}
           </Link>
         </div>

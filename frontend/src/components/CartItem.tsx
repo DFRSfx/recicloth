@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 import { fireCartToast } from './CartToastManager';
 import { useLanguage } from '../context/LanguageContext';
+import { getProductPath } from '../utils/routes';
 
 const toColorSlug = (value: string): string =>
   value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -22,7 +23,8 @@ interface CartItemProps {
 
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { updateQuantity, removeItem } = useCart();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const productPath = getProductPath(lang, item.product.id);
 
   const colorImage = getColorImage(item.product.images, item.selectedColor);
 
@@ -39,7 +41,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     <div className="p-4 sm:p-6 border-b border-gray-200 last:border-b-0">
       <div className="flex gap-3 sm:gap-4">
         {/* Product Image */}
-        <Link to={`/produto/${item.product.id}`} className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 overflow-hidden rounded-lg hover:opacity-90 transition-opacity">
+        <Link to={productPath} className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 overflow-hidden rounded-lg hover:opacity-90 transition-opacity">
           <img
             src={getAbsoluteImageUrl(imgVariant(colorImage, 'sm'))}
             alt={item.product.name}
@@ -52,7 +54,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
           {/* Header: Name + Remove Button */}
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex-1 min-w-0">
-              <Link to={`/produto/${item.product.id}`} className="group/name">
+              <Link to={productPath} className="group/name">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover/name:text-primary-600 transition-colors line-clamp-2">
                   {item.product.name}
                 </h3>

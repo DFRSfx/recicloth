@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../utils/api';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
@@ -262,7 +261,7 @@ const HeroSlider: React.FC = () => {
                       setImagesLoaded(prev => new Set(prev).add(index));
                     }}
                     loading="eager"
-                    fetchpriority={index === 0 ? 'high' : 'auto'}
+                    fetchPriority={index === 0 ? 'high' : 'auto'}
                   />
                 </picture>
                 {/* Overlay */}

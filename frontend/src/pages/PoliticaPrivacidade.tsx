@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import SEO from '../components/SEO';
+import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const PoliticaPrivacidade: React.FC = () => {
   const [lang, setLang] = useState<'pt' | 'en'>('pt');
+  const { lang: uiLang } = useLanguage();
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
-      <SEO
-        title="Política de Privacidade | Privacy Policy"
-        description="Política de privacidade e proteção de dados da Recicloth (RGPD). Privacy policy and GDPR information."
-        canonical="/politica-privacidade"
-      />
+        <SEO
+          title="Política de Privacidade | Privacy Policy"
+          description="Política de privacidade e proteção de dados da Recicloth (RGPD). Privacy policy and GDPR information."
+          canonical={getRoutePath('privacyPolicy', uiLang)}
+        />
       <div className="max-w-4xl mx-auto px-4 py-12">
 
         <div className="flex gap-2 mb-8">

@@ -3,20 +3,23 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { XCircle } from 'lucide-react';
 import SEO from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 const CheckoutFail: React.FC = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('order');
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const homePath = getRoutePath('home', lang);
+  const cartPath = getRoutePath('cart', lang);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <SEO
-        title={t('checkout.fail.title')}
-        description={t('checkout.fail.desc')}
-        canonical="/checkout/fail"
-        ogType="website"
-      />
+        <SEO
+          title={t('checkout.fail.title')}
+          description={t('checkout.fail.desc')}
+          canonical={getRoutePath('checkoutFail', lang)}
+          ogType="website"
+        />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm p-8 text-center">
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -51,13 +54,13 @@ const CheckoutFail: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              to="/"
+              to={homePath}
               className="flex-1 px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors"
             >
               {t('common.backToHome')}
             </Link>
             <Link
-              to="/carrinho"
+              to={cartPath}
               className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors"
             >
               {t('checkout.fail.retry')}

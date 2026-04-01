@@ -1,9 +1,10 @@
 import { Product } from '../types';
+import { getProductPath, getRoutePath, Lang } from './routes';
 
 const SITE_URL = 'https://recicloth.com';
 
 // Organization / OnlineStore Schema
-export const getOrganizationSchema = () => ({
+export const getOrganizationSchema = (lang: Lang = 'pt') => ({
   '@type': 'OnlineStore',
   '@id': `${SITE_URL}/#organization`,
   name: 'Recicloth',
@@ -20,7 +21,7 @@ export const getOrganizationSchema = () => ({
     'selecionadas com critério ambiental — entregue em toda a União Europeia.',
   email: 'recicloth1972@gmail.com',
   sameAs: ['https://www.instagram.com/recicloth.croche/'],
-  hasMap: `${SITE_URL}/contacto`,
+  hasMap: `${SITE_URL}${getRoutePath('contact', lang)}`,
   currenciesAccepted: 'EUR',
   paymentAccepted: 'Cartão de crédito, Multibanco',
   areaServed: {
@@ -30,24 +31,24 @@ export const getOrganizationSchema = () => ({
 });
 
 // WebSite Schema with SearchAction
-export const getWebSiteSchema = () => ({
+export const getWebSiteSchema = (lang: Lang = 'pt') => ({
   '@type': 'WebSite',
   '@id': `${SITE_URL}/#website`,
   name: 'Recicloth',
   url: SITE_URL,
-  inLanguage: 'pt-PT',
+  inLanguage: lang === 'pt' ? 'pt-PT' : 'en',
   potentialAction: {
     '@type': 'SearchAction',
     target: {
       '@type': 'EntryPoint',
-      urlTemplate: `${SITE_URL}/loja?q={search_term_string}`,
+      urlTemplate: `${SITE_URL}${getRoutePath('shop', lang)}?q={search_term_string}`,
     },
     'query-input': 'required name=search_term_string',
   },
 });
 
 // LocalBusiness / OnlineStore Schema (used on Contact page)
-export const getLocalBusinessSchema = () => ({
+export const getLocalBusinessSchema = (lang: Lang = 'pt') => ({
   '@context': 'https://schema.org',
   '@type': 'OnlineStore',
   '@id': `${SITE_URL}/#organization`,
@@ -69,15 +70,15 @@ export const getLocalBusinessSchema = () => ({
     email: 'recicloth1972@gmail.com',
     contactType: 'customer service',
     areaServed: 'PT',
-    availableLanguage: ['Portuguese'],
+    availableLanguage: [lang === 'pt' ? 'Portuguese' : 'English'],
   },
 });
 
 // Product Schema
-export const getProductSchema = (product: Product) => ({
+export const getProductSchema = (product: Product, lang: Lang = 'pt') => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
-  '@id': `${SITE_URL}/produto/${product.id}`,
+  '@id': `${SITE_URL}${getProductPath(lang, product.id)}`,
   name: product.name,
   description: product.description,
   image: product.images.map(img =>
@@ -95,7 +96,7 @@ export const getProductSchema = (product: Product) => ({
   },
   offers: {
     '@type': 'Offer',
-    url: `${SITE_URL}/produto/${product.id}`,
+    url: `${SITE_URL}${getProductPath(lang, product.id)}`,
     priceCurrency: 'EUR',
     price: product.price.toFixed(2),
     availability: product.inStock
@@ -156,7 +157,7 @@ export const getFAQSchema = (faqs: { question: string; answer: string }[]) => ({
 });
 
 // ItemList Schema for Shop page
-export const getItemListSchema = (products: Product[]) => ({
+export const getItemListSchema = (products: Product[], lang: Lang = 'pt') => ({
   '@context': 'https://schema.org',
   '@type': 'ItemList',
   name: 'Roupa Reciclada e Moda Sustentável — Recicloth',
@@ -164,7 +165,7 @@ export const getItemListSchema = (products: Product[]) => ({
   itemListElement: products.map((product, index) => ({
     '@type': 'ListItem',
     position: index + 1,
-    url: `${SITE_URL}/produto/${product.id}`,
+    url: `${SITE_URL}${getProductPath(lang, product.id)}`,
     name: product.name,
   })),
 });

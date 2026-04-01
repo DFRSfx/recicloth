@@ -5,6 +5,7 @@ import FloatingLabelInput from './FloatingLabelInput';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
+import { getRoutePath } from '../utils/routes';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,7 +16,9 @@ interface AuthModalProps {
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
   const { isAuthenticated, login, register, setAuthState } = useAuth();
   const { success, error: showError } = useToast();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const privacyPath = getRoutePath('privacyPolicy', lang);
+  const termsPath = getRoutePath('terms', lang);
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(initialMode);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({ name: '', email: '', password: '' });
@@ -856,11 +859,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     />
                     <label htmlFor="privacy" className="ml-3 text-xs text-gray-700 cursor-pointer">
                       Li e aceito os{' '}
-                      <a href="/termos-condicoes" className="text-primary-600 hover:text-primary-700 underline">
+                      <a href={termsPath} className="text-primary-600 hover:text-primary-700 underline">
                         Termos e Condições
                       </a>
                       {' '}e a{' '}
-                      <a href="/politica-privacidade" className="text-primary-600 hover:text-primary-700 underline">
+                      <a href={privacyPath} className="text-primary-600 hover:text-primary-700 underline">
                         Política de Privacidade
                       </a>
                     </label>
