@@ -6,6 +6,7 @@ import SEO from '../components/SEO';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import AuthModal from '../components/AuthModal';
+import { useLanguage } from '../context/LanguageContext';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -31,6 +32,7 @@ const CheckoutSuccess: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const { clearCart } = useCart();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [orderId, setOrderId] = useState<number | null>(null);
   const [trackingToken, setTrackingToken] = useState<string | null>(urlToken);
@@ -74,8 +76,8 @@ const CheckoutSuccess: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <SEO
-        title="Pagamento Concluído com Sucesso"
-        description="O seu pagamento foi processado com sucesso"
+        title={t('checkout.success.title')}
+        description={t('checkout.success.desc')}
         canonical="/checkout/success"
         ogType="website"
       />
@@ -86,30 +88,30 @@ const CheckoutSuccess: React.FC = () => {
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Pagamento Concluído com Sucesso!
+            {t('checkout.success.title')}
           </h1>
 
           <p className="text-gray-600 mb-8">
-            O seu pagamento foi processado com sucesso e a sua encomenda está confirmada.
+            {t('checkout.success.desc')}
           </p>
 
           {orderId && (
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
-              <p className="text-sm text-gray-600 mb-2">Número da Encomenda</p>
+              <p className="text-sm text-gray-600 mb-2">{t('checkout.success.orderNumber')}</p>
               <p className="text-2xl font-bold text-primary-600">#{orderId}</p>
             </div>
           )}
 
           {!orderId && (
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
-              <p className="text-sm text-gray-600">A sua encomenda está a ser processada...</p>
+              <p className="text-sm text-gray-600">{t('checkout.success.processing')}</p>
             </div>
           )}
 
           <div className="text-sm text-gray-600 mb-8">
-            <p>Pagamento confirmado</p>
-            <p>Receberá um email de confirmação em breve</p>
-            <p>A sua encomenda será processada nas próximas horas</p>
+            <p>{t('checkout.success.step1')}</p>
+            <p>{t('checkout.success.step2')}</p>
+            <p>{t('checkout.success.step3')}</p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -117,20 +119,20 @@ const CheckoutSuccess: React.FC = () => {
               to="/"
               className="flex-1 px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors"
             >
-              Voltar ao Início
+              {t('common.backToHome')}
             </Link>
             <button
               onClick={handleVerEncomendas}
               className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors"
             >
-              Ver Encomendas
+              {t('checkout.success.viewOrders')}
             </button>
           </div>
 
           {trackingToken && (
             <p className="text-xs text-gray-400 mt-6">
               <Link to={`/track-order/${trackingToken}`} className="underline hover:text-gray-600">
-                Acompanhar encomenda
+                {t('checkout.success.trackOrder')}
               </Link>
             </p>
           )}
@@ -142,7 +144,7 @@ const CheckoutSuccess: React.FC = () => {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b">
-              <h2 className="font-semibold text-gray-900">Ver Encomendas</h2>
+              <h2 className="font-semibold text-gray-900">{t('checkout.success.viewOrders')}</h2>
               <button
                 onClick={() => setShowGuestModal(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
@@ -152,7 +154,7 @@ const CheckoutSuccess: React.FC = () => {
             </div>
             <div className="px-6 py-5">
               <p className="text-gray-600 text-sm mb-5">
-                Para ver o histórico das suas encomendas precisa de ter uma conta e estar autenticado.
+                {t('checkout.success.loginRequired')}
               </p>
               <button
                 onClick={() => { setShowGuestModal(false); setShowAuthModal(true); }}
@@ -162,8 +164,8 @@ const CheckoutSuccess: React.FC = () => {
                   <LogIn className="h-4 w-4" />
                 </div>
                 <div className="text-left">
-                  <p className="font-semibold text-sm">Entrar / Criar Conta</p>
-                  <p className="text-xs text-white/75">Aceda ao histórico completo de encomendas</p>
+                  <p className="font-semibold text-sm">{t('checkout.success.loginCta')}</p>
+                  <p className="text-xs text-white/75">{t('checkout.success.orderHistoryDesc')}</p>
                 </div>
               </button>
             </div>

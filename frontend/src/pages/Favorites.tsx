@@ -5,11 +5,13 @@ import { Product } from '../types';
 import { useFavorites } from '../context/FavoritesContext';
 import { useConfirmStore } from '../hooks/useConfirm';
 import ProductCard from '../components/ProductCard';
+import { useLanguage } from '../context/LanguageContext';
 
 const Favorites: React.FC = () => {
   const navigate = useNavigate();
   const { favorites, removeFromFavorites, clearFavorites, loading } = useFavorites();
   const openConfirm = useConfirmStore(state => state.openConfirm);
+  const { t } = useLanguage();
 
   // Convert favorite items to Product format for ProductCard
   const favoriteProducts: Product[] = favorites.map((item) => ({
@@ -29,10 +31,10 @@ const Favorites: React.FC = () => {
 
   const handleClearAllFavorites = () => {
     openConfirm({
-      title: 'Limpar todos os favoritos?',
-      message: `Tem a certeza que deseja remover todos os ${favorites.length} produtos dos favoritos? Esta ação não pode ser desfeita.`,
-      confirmText: 'Remover Todos',
-      cancelText: 'Cancelar',
+      title: t('favorites.clearAll'),
+      message: `${t('cart.clearConfirm.desc')}`,
+      confirmText: t('common.delete'),
+      cancelText: t('common.cancel'),
       onConfirm: async () => {
         await clearFavorites();
       },
@@ -42,20 +44,20 @@ const Favorites: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#f9f9f9] py-8 lg:py-16">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <Heart className="h-7 w-7 text-[#1E4D3B] fill-current" />
               <h1 className="text-3xl lg:text-4xl font-bold text-[#0f172a] tracking-tight">
-                Os Meus Favoritos
+                {t('favorites.title')}
               </h1>
             </div>
             <p className="text-[#64748b] text-[15px]">
               {favorites.length === 0
-                ? 'Ainda não tem favoritos guardados'
-                : `${favorites.length} produto${favorites.length === 1 ? '' : 's'} guardado${favorites.length === 1 ? '' : 's'}`}
+                ? t('favorites.empty.title')
+                : `${favorites.length} ${favorites.length === 1 ? t('favorites.productSingular') : t('favorites.productPlural')}`}
             </p>
           </div>
 
@@ -65,7 +67,7 @@ const Favorites: React.FC = () => {
               className="flex items-center gap-2 text-sm text-[#dc2626] hover:text-[#b91c1c] transition-colors font-medium"
             >
               <Trash2 className="h-4 w-4" />
-              Limpar Favoritos
+              {t('favorites.clearAll')}
             </button>
           )}
         </div>
@@ -82,17 +84,16 @@ const Favorites: React.FC = () => {
                 <Heart className="h-10 w-10 text-gray-300" strokeWidth={1.5} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">
-                Ainda sem favoritos
+                {t('favorites.empty.title')}
               </h3>
               <p className="text-gray-500 mb-8 leading-relaxed text-[15px]">
-                Explore a nossa loja e adicione produtos à sua lista de favoritos para os encontrar
-                facilmente mais tarde.
+                {t('favorites.empty.desc')}
               </p>
               <button
                 onClick={() => navigate('/loja')}
                 className="px-8 py-3.5 bg-[#1E4D3B] text-white rounded font-medium hover:bg-[#163a2c] transition-colors shadow-sm"
               >
-                Explorar Produtos
+                {t('common.exploreProducts')}
               </button>
             </div>
           </div>
@@ -100,10 +101,10 @@ const Favorites: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-10 lg:gap-x-6 lg:gap-y-12">
             {favoriteProducts.map((product) => (
               <div key={product.id} className="relative group h-full">
-                
+
                 {/* IMPORTANT UX FIX:
                   Instead of putting a random absolute button over the card which ruins the hover state,
-                  we inject the remove button into the top right, but give it a solid white background 
+                  we inject the remove button into the top right, but give it a solid white background
                   and high z-index so it clearly sits on top of the image slider.
                 */}
                 <button
@@ -113,12 +114,12 @@ const Favorites: React.FC = () => {
                     removeFromFavorites(product.id);
                   }}
                   className="absolute top-2 right-2 z-30 flex items-center justify-center w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.12)] text-[#dc2626] hover:bg-white hover:scale-110 transition-all"
-                  aria-label="Remover dos favoritos"
+                  aria-label={t('favorites.removeAria')}
                 >
                   <X className="h-5 w-5" strokeWidth={2} />
                 </button>
 
-                {/* Note: We pass hideActions={true} so ProductCard doesn't render its own 
+                {/* Note: We pass hideActions={true} so ProductCard doesn't render its own
                   Heart button, which would conflict with our Remove button above.
                 */}
                 <ProductCard product={product} hideActions={true} />
@@ -134,7 +135,7 @@ const Favorites: React.FC = () => {
               onClick={() => navigate('/loja')}
               className="inline-flex items-center justify-center px-8 py-3.5 bg-white border border-[#1E4D3B] text-[#1E4D3B] rounded font-medium hover:bg-gray-50 transition-colors"
             >
-              Continuar a Comprar
+              {t('common.continueShopping')}
             </button>
           </div>
         )}

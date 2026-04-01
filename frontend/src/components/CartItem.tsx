@@ -5,6 +5,7 @@ import { CartItem as CartItemType } from '../types';
 import { useCart } from '../context/CartContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 import { fireCartToast } from './CartToastManager';
+import { useLanguage } from '../context/LanguageContext';
 
 const toColorSlug = (value: string): string =>
   value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -21,6 +22,7 @@ interface CartItemProps {
 
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { updateQuantity, removeItem } = useCart();
+  const { t } = useLanguage();
 
   const colorImage = getColorImage(item.product.images, item.selectedColor);
 
@@ -57,7 +59,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
               </Link>
               {item.selectedColor && (
                 <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                  Cor: {item.selectedColor}
+                  {t('cartItem.colorLabel')} {item.selectedColor}
                 </p>
               )}
             </div>
@@ -68,7 +70,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
                 removeItem(item.product.id);
               }}
               className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors flex-shrink-0"
-              title="Remover produto"
+              title={t('cartItem.remove')}
             >
               <X className="h-5 w-5" />
             </button>
@@ -79,7 +81,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
             <p className="text-base sm:text-lg font-bold text-primary-600">
               {item.product.price.toFixed(2)}€
               <span className="text-xs sm:text-sm text-gray-500 font-normal ml-1">
-                / unidade
+                {t('cartItem.perUnit')}
               </span>
             </p>
           </div>
@@ -91,7 +93,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
               <button
                 onClick={() => handleQuantityChange(item.quantity - 1)}
                 className="p-2 sm:p-2.5 hover:bg-gray-50 transition-colors active:bg-gray-100"
-                aria-label="Diminuir quantidade"
+                aria-label={t('cartItem.decreaseQty')}
               >
                 <Minus className="h-4 w-4 text-gray-600" />
               </button>

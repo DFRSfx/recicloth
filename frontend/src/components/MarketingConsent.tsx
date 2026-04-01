@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { X, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 const CONSENT_KEY = 'recicloth_cookie_consent';
 const PREFS_KEY = 'recicloth_cookie_preferences';
 
 const MarketingConsent: React.FC = () => {
+  const { t } = useLanguage();
   const [showNewsletter, setShowNewsletter] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
@@ -70,13 +72,13 @@ const MarketingConsent: React.FC = () => {
     e.preventDefault();
     let valid = true;
     if (!email.trim()) {
-      setEmailError('Introduza o seu email');
+      setEmailError(t('marketing.emailPlaceholder'));
       valid = false;
     } else {
       setEmailError('');
     }
     if (!marketingChecked) {
-      setMarketingError('É necessário aceitar para subscrever');
+      setMarketingError(t('marketing.mustAccept'));
       valid = false;
     } else {
       setMarketingError('');
@@ -160,7 +162,7 @@ const MarketingConsent: React.FC = () => {
                 <div>
                   <input
                     type="email"
-                    placeholder="Junte-se à newsletter"
+                    placeholder={t('marketing.emailPlaceholder')}
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(''); }}
                     className={`w-full px-4 py-3 bg-[#e9e9e9] border-none text-gray-900 placeholder:text-gray-500 focus:ring-1 focus:ring-gray-400 outline-none text-center text-sm ${emailError ? 'ring-1 ring-red-400' : ''}`}
@@ -176,7 +178,7 @@ const MarketingConsent: React.FC = () => {
                       className="mt-0.5 w-4 h-4 rounded border-gray-400 text-black focus:ring-black cursor-pointer flex-shrink-0"
                     />
                     <span className="text-[11px] text-gray-600 leading-relaxed">
-                      Aceito receber comunicações de marketing e novidades sobre moda sustentável
+                      {t('marketing.acceptDesc')}
                     </span>
                   </label>
                   {marketingError && <p className="mt-1 text-xs text-red-500">{marketingError}</p>}
@@ -196,12 +198,12 @@ const MarketingConsent: React.FC = () => {
       {showPrivacy && (
         <div className="fixed bottom-0 left-0 right-0 z-[60] p-4 md:pb-6 flex justify-center items-end pointer-events-none">
           <div className="bg-white w-full max-w-[900px] p-6 md:p-8 shadow-[0_-5px_25px_rgba(0,0,0,0.1)] pointer-events-auto animate-slide-up border border-gray-100 rounded-sm">
-            <h4 className="font-bold text-gray-900 mb-2 text-base">Valorizamos a sua privacidade</h4>
+            <h4 className="font-bold text-gray-900 mb-2 text-base">{t('marketing.privacy')}</h4>
             <p className="text-xs text-gray-600 mb-6 leading-relaxed max-w-3xl">
-              Utilizamos cookies para personalização e análise de desempenho.
-              Saiba mais na nossa{' '}
+              {t('marketing.cookiesDesc')}
+              {' '}
               <Link to="/politica-privacidade" className="underline text-gray-900 decoration-1 underline-offset-2">
-                Política de Privacidade
+                {t('footer.links.privacy')}
               </Link>.
             </p>
 

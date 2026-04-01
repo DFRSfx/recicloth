@@ -4,9 +4,11 @@ import { ShoppingBag, ArrowRight, ArrowLeft, Trash2, ShieldCheck, RefreshCw, Ale
 import SEO from '../components/SEO';
 import CartItem from '../components/CartItem';
 import { useCart } from '../context/CartContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const Cart: React.FC = () => {
   const { items, total, clearCart, itemCount } = useCart();
+  const { t } = useLanguage();
 
   // Estado para controlar o modal de confirmação
   const [showClearModal, setShowClearModal] = useState(false);
@@ -25,8 +27,8 @@ const Cart: React.FC = () => {
     return (
       <div className="bg-[#f9f9f9] min-h-[70vh] flex flex-col items-center justify-center py-16 sm:py-24">
         <SEO
-          title="Carrinho de Compras"
-          description="O seu carrinho de compras está vazio."
+          title={t('cart.title')}
+          description={t('cart.empty.desc')}
           canonical="/carrinho"
           ogType="website"
         />
@@ -38,18 +40,18 @@ const Cart: React.FC = () => {
           </div>
           
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 tracking-tight">
-            O seu carrinho está vazio
+            {t('cart.empty.title')}
           </h2>
           
           <p className="text-gray-500 mb-8 max-w-xs sm:max-w-sm mx-auto leading-relaxed text-[15px]">
-            Adicione alguns produtos à sua coleção e eles aparecerão aqui.
+            {t('cart.empty.desc')}
           </p>
           
           <Link
             to="/loja"
             className="inline-flex items-center justify-center px-8 py-3.5 bg-[#1E4D3B] text-white font-medium rounded hover:bg-[#163a2c] transition-all shadow-sm active:scale-95 w-full sm:w-auto"
           >
-            Explorar Produtos
+            {t('common.exploreProducts')}
           </Link>
         </div>
       </div>
@@ -60,8 +62,8 @@ const Cart: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#f9f9f9] pb-16 pt-8 lg:pt-12">
       <SEO
-        title="Carrinho de Compras"
-        description={`O seu carrinho contém ${itemCount} itens.`}
+        title={t('cart.title')}
+        description={`${t('cart.youHave')} ${itemCount} ${itemCount === 1 ? t('cart.itemSingular') : t('cart.itemPlural')}.`}
         canonical="/carrinho"
         ogType="website"
       />
@@ -71,10 +73,10 @@ const Cart: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-5">
           <div>
             <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight">
-              Carrinho de Compras
+              {t('cart.title')}
             </h1>
             <p className="text-gray-600 mt-2 text-[15px]">
-              Você tem {itemCount} {itemCount === 1 ? 'item selecionado' : 'itens selecionados'}
+              {t('cart.youHave')} {itemCount} {itemCount === 1 ? t('cart.itemSingular') : t('cart.itemPlural')}
             </p>
           </div>
           
@@ -83,7 +85,7 @@ const Cart: React.FC = () => {
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm text-[#dc2626] bg-white border border-[#fca5a5] rounded hover:bg-[#fef2f2] transition-colors w-full md:w-auto shadow-sm font-medium"
           >
             <Trash2 className="h-4 w-4" />
-            Limpar Carrinho
+            {t('cart.clear')}
           </button>
         </div>
 
@@ -106,7 +108,7 @@ const Cart: React.FC = () => {
             <div className="hidden lg:flex justify-start">
               <Link to="/loja" className="inline-flex items-center gap-2 text-[#1E4D3B] hover:text-[#163a2c] font-medium transition-all group">
                 <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-                <span className="hover:underline">Continuar a Comprar</span>
+                <span className="hover:underline">{t('common.continueShopping')}</span>
               </Link>
             </div>
           </div>
@@ -116,32 +118,32 @@ const Cart: React.FC = () => {
             <div className="bg-white rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-100 p-6 lg:p-8 lg:sticky lg:top-24">
               
               <h3 className="text-lg font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">
-                Resumo do Pedido
+                {t('cart.title')}
               </h3>
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-gray-600 text-[15px]">
-                  <span>Subtotal (s/ IVA)</span>
+                  <span>{t('cart.subtotal')}</span>
                   <span className="font-medium text-gray-900">{subtotalExVat.toFixed(2)}€</span>
                 </div>
                 <div className="flex justify-between text-[15px]">
-                  <span className="text-gray-600">Envio</span>
-                  <span className="font-medium text-[#16a34a]">Grátis</span>
+                  <span className="text-gray-600">{t('cart.shipping')}</span>
+                  <span className="font-medium text-[#16a34a]">{t('common.free')}</span>
                 </div>
                 <div className="flex justify-between text-gray-600 text-[15px]">
-                  <span>IVA (23%)</span>
+                  <span>{t('cart.vat')}</span>
                   <span className="font-medium text-gray-900">{ivaAmount.toFixed(2)}€</span>
                 </div>
 
                 <div className="border-t border-dashed border-gray-200 pt-5 mt-5">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-lg font-bold text-gray-900">Total (c/ IVA)</span>
+                    <span className="text-lg font-bold text-gray-900">{t('cart.total')}</span>
                     <span className="text-2xl font-bold text-[#1E4D3B]">
                       {total.toFixed(2)}€
                     </span>
                   </div>
                   <p className="text-xs text-gray-400 text-right">
-                    IVA incluído
+                    {t('cart.vatIncluded')}
                   </p>
                 </div>
               </div>
@@ -151,7 +153,7 @@ const Cart: React.FC = () => {
                   to="/finalizar-compra"
                   className="w-full flex items-center justify-center gap-2 bg-[#1E4D3B] text-white py-4 px-6 rounded hover:bg-[#163a2c] transition-colors shadow-sm font-semibold text-[16px]"
                 >
-                  Finalizar Compra
+                  {t('cart.checkout')}
                   <ArrowRight className="h-5 w-5" strokeWidth={2.5} />
                 </Link>
                 
@@ -160,7 +162,7 @@ const Cart: React.FC = () => {
                   to="/loja"
                   className="w-full text-center py-2 text-[#475569] hover:text-[#1E4D3B] font-medium text-[15px] hover:underline"
                 >
-                  Continuar a Comprar
+                  {t('common.continueShopping')}
                 </Link>
               </div>
 
@@ -169,15 +171,15 @@ const Cart: React.FC = () => {
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="h-5 w-5 text-[#16a34a] flex-shrink-0 mt-0.5" strokeWidth={2} />
                   <div>
-                    <p className="text-[14px] font-bold text-gray-900">Pagamento Seguro</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Seus dados estão 100% protegidos.</p>
+                    <p className="text-[14px] font-bold text-gray-900">{t('cart.securePayment')}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{t('cart.securePaymentDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <RefreshCw className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" strokeWidth={2} />
                   <div>
-                    <p className="text-[14px] font-bold text-gray-900">Devolução Fácil</p>
-                    <p className="text-xs text-gray-500 mt-0.5">30 dias para devolução gratuita.</p>
+                    <p className="text-[14px] font-bold text-gray-900">{t('cart.easyReturn')}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{t('cart.easyReturnDesc')}</p>
                   </div>
                 </div>
               </div>
@@ -197,23 +199,23 @@ const Cart: React.FC = () => {
               <AlertTriangle className="h-6 w-6 text-red-600" />
             </div>
             <h3 className="text-xl font-bold text-center text-gray-900 mb-2 tracking-tight">
-              Limpar Carrinho?
+              {t('cart.clearConfirm.title')}
             </h3>
             <p className="text-center text-gray-500 mb-8 text-[15px]">
-              Tem a certeza que deseja remover todos os itens do carrinho? Esta ação não pode ser desfeita.
+              {t('cart.clearConfirm.desc')}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowClearModal(false)}
                 className="flex-1 px-4 py-3 bg-white text-gray-700 border border-gray-300 rounded font-medium hover:bg-gray-50 transition-colors"
               >
-                Cancelar
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleConfirmClear}
                 className="flex-1 px-4 py-3 bg-[#dc2626] text-white rounded font-medium hover:bg-[#b91c1c] transition-colors"
               >
-                Sim, Limpar
+                {t('cart.clearConfirm.yes')}
               </button>
             </div>
           </div>

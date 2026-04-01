@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../utils/api';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
+import { useLanguage } from '../context/LanguageContext';
 
 interface SlideData {
   id: number;
@@ -17,6 +18,7 @@ interface SlideData {
 }
 
 const HeroSlider: React.FC = () => {
+  const { t } = useLanguage();
   const [slides, setSlides] = useState<SlideData[]>([]);
   const [loading, setLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState<Set<number>>(new Set());
@@ -196,7 +198,7 @@ const HeroSlider: React.FC = () => {
           {loading && (
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-              <p className="text-gray-500 text-sm">A carregar slides...</p>
+              <p className="text-gray-500 text-sm">{t('heroSlider.loading')}</p>
             </div>
           )}
         </div>
@@ -315,7 +317,7 @@ const HeroSlider: React.FC = () => {
                 ? 'w-8 h-3 bg-primary-600 shadow-lg'
                 : 'w-3 h-3 bg-white bg-opacity-60 hover:bg-opacity-90 hover:bg-primary-400'
             }`}
-            aria-label={`Ir para slide ${index + 1}`}
+            aria-label={`${t('heroSlider.goToSlide')} ${index + 1}`}
           />
         ))}
       </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, X, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -18,6 +19,7 @@ const Toast: React.FC<ToastProps> = ({
   onClose,
   isMobile = false
 }) => {
+  const { t } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
@@ -98,7 +100,7 @@ const Toast: React.FC<ToastProps> = ({
               onClick={handleClose}
               className={`w-full ${buttonBg} text-white py-3 px-6 rounded-lg font-medium text-sm hover:opacity-90 transition-opacity`}
             >
-              OK
+              {t('toast.ok')}
             </button>
           </div>
         </div>
@@ -121,7 +123,7 @@ const Toast: React.FC<ToastProps> = ({
         <button
           onClick={handleClose}
           className={`${iconColor} hover:opacity-70 transition-opacity flex-shrink-0`}
-          aria-label="Fechar notificação"
+          aria-label={t('toast.closeAria')}
         >
           <X className="h-5 w-5" />
         </button>

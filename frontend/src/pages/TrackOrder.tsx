@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Package, CheckCircle, Truck, Clock, XCircle, ArrowLeft } from 'lucide-react';
 import SEO from '../components/SEO';
+import { useLanguage } from '../context/LanguageContext';
 
 interface OrderItem {
   id: number;
@@ -33,6 +34,7 @@ interface Order {
 
 const TrackOrder: React.FC = () => {
   const { token } = useParams<{ token: string }>();
+  const { t } = useLanguage();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,13 +53,13 @@ const TrackOrder: React.FC = () => {
       const response = await fetch(`${API_BASE_URL}/orders/track/${token}`);
 
       if (!response.ok) {
-        throw new Error('Encomenda não encontrada');
+        throw new Error(t('trackOrder.notFound'));
       }
 
       const data = await response.json();
       setOrder(data);
     } catch (err: any) {
-      setError(err.message || 'Erro ao carregar encomenda');
+      setError(err.message || t('trackOrder.loadError'));
     } finally {
       setLoading(false);
     }
@@ -70,39 +72,39 @@ const TrackOrder: React.FC = () => {
           icon: <Clock className="h-8 w-8" />,
           color: 'text-yellow-600',
           bgColor: 'bg-yellow-100',
-          text: 'Pagamento Pendente',
-          description: 'Aguardando confirmação de pagamento'
+          text: t('trackOrder.status.pendingPayment'),
+          description: t('trackOrder.status.pendingPaymentDesc')
         };
       case 'processing':
         return {
           icon: <Package className="h-8 w-8" />,
           color: 'text-blue-600',
           bgColor: 'bg-blue-100',
-          text: 'Em Processamento',
-          description: 'Estamos a preparar a sua encomenda'
+          text: t('trackOrder.status.processing'),
+          description: t('trackOrder.status.processingDesc')
         };
       case 'shipped':
         return {
           icon: <Truck className="h-8 w-8" />,
           color: 'text-purple-600',
           bgColor: 'bg-purple-100',
-          text: 'Enviado',
-          description: 'A sua encomenda está a caminho'
+          text: t('orders.status.shipped'),
+          description: t('trackOrder.status.shippedDesc')
         };
       case 'delivered':
         return {
           icon: <CheckCircle className="h-8 w-8" />,
           color: 'text-green-600',
           bgColor: 'bg-green-100',
-          text: 'Entregue',
-          description: 'Encomenda entregue com sucesso'
+          text: t('trackOrder.status.delivered'),
+          description: t('trackOrder.status.deliveredDesc')
         };
       case 'cancelled':
         return {
           icon: <XCircle className="h-8 w-8" />,
           color: 'text-red-600',
           bgColor: 'bg-red-100',
-          text: 'Cancelado',
+          text: t('orders.status.cancelled'),
           description: 'Esta encomenda foi cancelada'
         };
       default:
@@ -119,13 +121,13 @@ const TrackOrder: React.FC = () => {
   const getPaymentStatusBadge = (paymentStatus: string) => {
     switch (paymentStatus) {
       case 'paid':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Pago</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{t('orders.status.paid') || 'Pago'}</span>;
       case 'pending':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendente</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{t('orders.status.pending')}</span>;
       case 'failed':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Falhado</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{t('orders.status.failed') || 'Falhado'}</span>;
       case 'expired':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Expirado</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{t('orders.status.expired') || 'Expirado'}</span>;
       default:
         return null;
     }
@@ -136,7 +138,7 @@ const TrackOrder: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">A carregar encomenda...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -148,17 +150,17 @@ const TrackOrder: React.FC = () => {
         <div className="text-center max-w-md">
           <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Encomenda não encontrada
+            {t('trackOrder.notFound')}
           </h2>
           <p className="text-gray-600 mb-6">
-            {error || 'Não foi possível encontrar a encomenda com este link.'}
+            {error || t('trackOrder.loadError')}
           </p>
           <Link
             to="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Voltar ao Início
+            {t('common.backToHome')}
           </Link>
         </div>
       </div>
@@ -184,10 +186,10 @@ const TrackOrder: React.FC = () => {
             className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-4"
           >
             <ArrowLeft className="h-4 w-4" />
-            Voltar ao Início
+            {t('common.backToHome')}
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">
-            Rastrear Encomenda
+            {t('checkout.success.trackOrder')}
           </h1>
           <p className="text-gray-600 mt-2">
             Encomenda #{order.id} • {new Date(order.created_at).toLocaleDateString('pt-PT')}
@@ -358,7 +360,7 @@ const TrackOrder: React.FC = () => {
         {/* Help Section */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 className="font-semibold text-gray-900 mb-2">
-            Precisa de ajuda?
+            {t('verifyEmail.help')}
           </h3>
           <p className="text-sm text-gray-700 mb-4">
             Se tiver alguma dúvida sobre a sua encomenda, entre em contacto connosco.

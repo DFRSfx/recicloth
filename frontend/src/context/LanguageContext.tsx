@@ -1,15 +1,21 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import pt from '../locales/pt.json';
+import en from '../locales/en.json';
 
 type Lang = 'pt' | 'en';
+
+const translations: Record<Lang, Record<string, string>> = { pt, en } as any;
 
 interface LanguageContextType {
   lang: Lang;
   setLang: (lang: Lang) => void;
+  t: (key: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
   lang: 'pt',
   setLang: () => {},
+  t: (key) => key,
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -23,12 +29,18 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('recicloth_lang', newLang);
   };
 
+  const t = useCallback(
+    (key: string): string =>
+      translations[lang][key] ?? translations['pt'][key] ?? key,
+    [lang]
+  );
+
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang }}>
+    <LanguageContext.Provider value={{ lang, setLang, t }}>
       {children}
     </LanguageContext.Provider>
   );

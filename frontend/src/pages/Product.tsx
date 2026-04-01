@@ -10,6 +10,7 @@ import { getProductSchema, getBreadcrumbSchema } from '../utils/schemas';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 import Toast, { ToastType } from '../components/Toast';
 import { fireCartToast } from '../components/CartToastManager';
+import { useLanguage } from '../context/LanguageContext';
 
 const toColorSlug = (value: string): string =>
   value
@@ -26,10 +27,11 @@ const Product: React.FC = () => {
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
   const { product, loading, error } = useProduct(id || '');
   const { products: allProducts } = useProducts();
+  const { t } = useLanguage();
 
   const [selectedColor, setSelectedColor] = useState('');
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
-  
+
   const [mobileImageIndex, setMobileImageIndex] = useState(0);
   const [isAdded, setIsAdded] = useState(false);
 
@@ -51,31 +53,31 @@ const Product: React.FC = () => {
   const { matchedImages, unmatchedImages, visibleImages } = useMemo(() => {
     if (!product) return { matchedImages: [], unmatchedImages: [], visibleImages: [] };
     const selectedColorSlug = selectedColor ? toColorSlug(selectedColor) : '';
-    
+
     if (!selectedColorSlug) {
-      return { 
-        matchedImages: product.images, 
-        unmatchedImages: [], 
-        visibleImages: product.images 
+      return {
+        matchedImages: product.images,
+        unmatchedImages: [],
+        visibleImages: product.images
       };
     }
 
     const matched = product.images.filter(img => img.includes(`-${selectedColorSlug}.webp`));
     const unmatched = product.images.filter(img => !img.includes(`-${selectedColorSlug}.webp`));
-    
-    // Se por algum motivo o slug falhar ou os ficheiros não tiverem o nome correto, 
+
+    // Se por algum motivo o slug falhar ou os ficheiros não tiverem o nome correto,
     // fazemos fallback para mostrar tudo como matched
     if (matched.length === 0) {
-      return { 
-        matchedImages: product.images, 
-        unmatchedImages: [], 
-        visibleImages: product.images 
+      return {
+        matchedImages: product.images,
+        unmatchedImages: [],
+        visibleImages: product.images
       };
     }
 
-    return { 
-      matchedImages: matched, 
-      unmatchedImages: unmatched, 
+    return {
+      matchedImages: matched,
+      unmatchedImages: unmatched,
       visibleImages: [...matched, ...unmatched] // Mobile mostra todas por ordem
     };
   }, [selectedColor, product]);
@@ -116,9 +118,9 @@ const Product: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{error || 'Produto não encontrado'}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{error || t('product.notFound')}</h2>
           <Link to="/loja" className="inline-flex items-center px-6 py-3 bg-black text-white font-medium hover:bg-gray-800 transition-colors">
-            Voltar à Loja
+            {t('product.backToShop')}
           </Link>
         </div>
       </div>
@@ -132,11 +134,11 @@ const Product: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!product.inStock || isAdded) return;
-    
-    addItem(product, selectedColor); 
+
+    addItem(product, selectedColor);
     const previewImage = matchedImages[0] || product.images[0];
     fireCartToast({ productId: product.id, colorName: selectedColor, productName: product.name, image: imgVariant(previewImage, 'sm'), type: 'added' });
-    
+
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -152,14 +154,14 @@ const Product: React.FC = () => {
       try {
         await navigator.share({ title: product.name, text: product.description, url: shareUrl });
       } catch (error: any) {
-        if (error.name !== 'AbortError') setToast({ message: 'Erro ao partilhar produto', type: 'error' });
+        if (error.name !== 'AbortError') setToast({ message: t('product.shareError'), type: 'error' });
       }
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        setToast({ message: 'Link copiado para a área de transferência!', type: 'success' });
+        setToast({ message: t('product.linkCopied'), type: 'success' });
       } catch (error) {
-        setToast({ message: 'Erro ao copiar link', type: 'error' });
+        setToast({ message: t('product.linkCopyError'), type: 'error' });
       }
     }
   };
@@ -182,10 +184,10 @@ const Product: React.FC = () => {
   const schemas = {
     '@context': 'https://schema.org',
     '@graph': [
-      getProductSchema(product), 
+      getProductSchema(product),
       getBreadcrumbSchema([
-        { name: 'Início', url: '/' },
-        { name: 'Loja', url: '/loja' },
+        { name: t('nav.home'), url: '/' },
+        { name: t('nav.shop'), url: '/loja' },
         { name: product.category, url: `/loja?categoria=${product.category}` },
         { name: product.name, url: `/produto/${product.id}` }
       ])
@@ -195,9 +197,9 @@ const Product: React.FC = () => {
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 pb-20">
       <SEO title={`${product.name} | Loja`} description={product.description.slice(0, 120)} canonical={`/produto/${product.id}`} ogType="product" ogImage={product.images[0]} schema={schemas} />
-      
+
       <div className="hidden lg:block max-w-[1440px] mx-auto px-8 py-6 text-sm font-medium text-gray-500">
-        <Link to="/loja" className="hover:text-black hover:underline">Loja</Link>
+        <Link to="/loja" className="hover:text-black hover:underline">{t('nav.shop')}</Link>
         <span className="mx-2">/</span>
         <Link to={`/loja?categoria=${product.category}`} className="hover:text-black hover:underline">{product.category}</Link>
         <span className="mx-2">/</span>
@@ -205,13 +207,13 @@ const Product: React.FC = () => {
       </div>
 
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start gap-0 lg:gap-12 relative px-0 lg:px-8">
-        
+
         {/* LEFT COLUMN: Images */}
         <div className="w-full lg:w-7/12 xl:w-2/3">
-          
+
           {/* Mobile Image Carousel */}
           <div className="relative block lg:hidden">
-            <div 
+            <div
               id="mobile-image-slider"
               className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar scroll-smooth"
               onScroll={handleMobileScroll}
@@ -222,7 +224,7 @@ const Product: React.FC = () => {
                 </div>
               ))}
             </div>
-            
+
             {visibleImages.length > 1 && (
               <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-black text-xs font-bold px-3 py-1.5 rounded-full shadow-sm pointer-events-none">
                 {mobileImageIndex + 1}/{visibleImages.length}
@@ -232,14 +234,14 @@ const Product: React.FC = () => {
 
           {/* DESKTOP IMAGE GRID: Hierarquia Visual */}
           <div className="hidden lg:grid grid-cols-2 gap-2">
-            
+
             {/* Imagens Selecionadas (Gigantes / Largura Total) */}
             {matchedImages.map((image, index) => (
               <div key={`matched-${index}`} className="col-span-2 w-full bg-[#f2f2f2] relative">
-                <img 
-                  src={getAbsoluteImageUrl(imgVariant(image, 'lg'))} 
-                  alt={`${product.name} em ${selectedColor} ${index + 1}`} 
-                  className="w-full h-auto object-cover mix-blend-multiply" 
+                <img
+                  src={getAbsoluteImageUrl(imgVariant(image, 'lg'))}
+                  alt={`${product.name} em ${selectedColor} ${index + 1}`}
+                  className="w-full h-auto object-cover mix-blend-multiply"
                 />
               </div>
             ))}
@@ -248,17 +250,17 @@ const Product: React.FC = () => {
             {unmatchedImages.length > 0 && (
               <>
                 <div className="col-span-2 mt-8 mb-2 px-2">
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Mais opções de cor</h3>
+                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">{t('product.moreColors')}</h3>
                 </div>
                 {unmatchedImages.map((image, index) => (
-                  <div 
-                    key={`unmatched-${index}`} 
+                  <div
+                    key={`unmatched-${index}`}
                     className="col-span-1 w-full bg-[#f2f2f2] relative aspect-[4/5] opacity-60 hover:opacity-100 transition-opacity duration-300"
                   >
-                    <img 
-                      src={getAbsoluteImageUrl(imgVariant(image, 'md'))} 
-                      alt={`Outra cor de ${product.name}`} 
-                      className="w-full h-full object-cover mix-blend-multiply" 
+                    <img
+                      src={getAbsoluteImageUrl(imgVariant(image, 'md'))}
+                      alt={`Outra cor de ${product.name}`}
+                      className="w-full h-full object-cover mix-blend-multiply"
                     />
                   </div>
                 ))}
@@ -270,17 +272,17 @@ const Product: React.FC = () => {
 
         {/* RIGHT COLUMN: Sticky Details */}
         <div className="w-full lg:w-5/12 xl:w-1/3 px-4 py-6 lg:px-0 lg:py-0 lg:sticky lg:top-24">
-          
+
           <div className="block lg:hidden mb-6">
             <Link to={`/loja?categoria=${product.category}`} className="flex items-center text-sm font-bold text-gray-900 mb-4">
-              <ChevronLeft size={16} className="mr-1" strokeWidth={2.5} /> Ver {product.category}
+              <ChevronLeft size={16} className="mr-1" strokeWidth={2.5} /> {t('product.backToShop')}
             </Link>
             <h1 className="text-2xl font-bold tracking-tight mb-2">{product.name}</h1>
             <div className="flex items-center gap-2 mb-2 text-sm">
               <div className="flex items-center text-black">
                 {[...Array(5)].map((_, i) => <Star key={i} size={14} className="fill-current" />)}
               </div>
-              <span className="text-primary-600">1 Reviews</span>
+              <span className="text-primary-600">{t('product.reviews')}</span>
             </div>
             <p className="text-[22px] font-bold">€ {product.price.toFixed(2)}</p>
           </div>
@@ -291,7 +293,7 @@ const Product: React.FC = () => {
               <div className="flex items-center text-black">
                 {[...Array(5)].map((_, i) => <Star key={i} size={14} className="fill-current" />)}
               </div>
-              <span className="text-primary-600 cursor-pointer hover:underline">1 Reviews</span>
+              <span className="text-primary-600 cursor-pointer hover:underline">{t('product.reviews')}</span>
             </div>
             <p className="text-2xl font-medium">€ {product.price.toFixed(2)}</p>
           </div>
@@ -299,7 +301,7 @@ const Product: React.FC = () => {
           {product.colors.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center gap-1.5 mb-3">
-                <span className="font-medium text-sm text-gray-900">Cor</span>
+                <span className="font-medium text-sm text-gray-900">{t('common.color')}</span>
                 <span className="text-sm font-bold text-gray-900">{selectedColor}</span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -310,7 +312,7 @@ const Product: React.FC = () => {
                     className={`relative w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                       selectedColor === color.name ? 'ring-2 ring-black ring-offset-2' : 'ring-1 ring-gray-300 hover:ring-gray-400'
                     }`}
-                    aria-label={`Selecionar cor ${color.name}`}
+                    aria-label={`${t('product.selectColor')} ${color.name}`}
                   >
                     <span className="w-7 h-7 rounded-full border border-black/10 shadow-inner" style={{ backgroundColor: color.hex || getColorCode(color.name) }} />
                   </button>
@@ -324,38 +326,38 @@ const Product: React.FC = () => {
               onClick={handleAddToCart}
               disabled={!product.inStock || isAdded}
               className={`flex-1 h-14 font-bold text-[15px] transition-all rounded-sm flex items-center justify-center gap-2 ${
-                !product.inStock 
+                !product.inStock
                   ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : isAdded
                   ? 'bg-[#1E4D3B] text-white border border-[#1E4D3B]'
                   : 'bg-black text-white hover:bg-gray-900 shadow-[0_4px_14px_rgba(0,0,0,0.15)]'
               }`}
             >
-              {!product.inStock ? 'Esgotado' : isAdded ? <><Check size={18} strokeWidth={3} /> Adicionado</> : 'Adicionar ao Carrinho'}
+              {!product.inStock ? t('product.soldOut') : isAdded ? <><Check size={18} strokeWidth={3} /> {t('product.added')}</> : t('product.addToCart')}
             </button>
 
-            <button 
+            <button
               onClick={handleToggleFavorite}
               className="h-14 w-14 flex items-center justify-center border border-gray-300 hover:border-black rounded-sm transition-colors"
-              aria-label="Lista de Desejos"
+              aria-label={t('product.wishlist')}
             >
               <Heart className={`w-5 h-5 transition-colors ${isFavorite ? 'fill-black text-black' : 'text-gray-900'}`} strokeWidth={2} />
             </button>
           </div>
 
           <div className="border-t border-gray-300">
-            
+
             <div className="border-b border-gray-300">
               <button onClick={() => toggleAccordion('description')} className="flex justify-between items-center w-full py-5 text-left font-bold text-[15px] text-gray-900">
-                Descrição do Produto
+                {t('product.description')}
                 {expandedSections.description ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
               </button>
               <div className={`overflow-hidden transition-all duration-300 ${expandedSections.description ? 'max-h-[2000px] pb-6' : 'max-h-0'}`}>
                 <div className="product-description" dangerouslySetInnerHTML={{ __html: product.description }} />
-                
+
                 <div className="flex flex-wrap gap-2">
-                  {product.featured && <span className="border border-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 uppercase tracking-wider">Destaque</span>}
-                  {product.new && <span className="border border-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 uppercase tracking-wider">Novo</span>}
+                  {product.featured && <span className="border border-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 uppercase tracking-wider">{t('product.tag.featured')}</span>}
+                  {product.new && <span className="border border-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 uppercase tracking-wider">{t('product.tag.new')}</span>}
                   {product.category && <span className="border border-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 uppercase tracking-wider">{product.category}</span>}
                 </div>
               </div>
@@ -363,11 +365,11 @@ const Product: React.FC = () => {
 
             <div className="border-b border-gray-300">
               <button onClick={() => toggleAccordion('shipping')} className="flex justify-between items-center w-full py-5 text-left font-bold text-[15px] text-gray-900">
-                Envio e Devoluções
+                {t('product.shipping.title')}
                 {expandedSections.shipping ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
               </button>
               <div className={`overflow-hidden transition-all duration-300 ${expandedSections.shipping ? 'max-h-96 pb-6' : 'max-h-0'}`}>
-                <p className="text-gray-700 text-sm leading-relaxed">Entregas em Portugal Continental em 2-3 dias úteis. Aceitamos devoluções num prazo de 14 dias após a receção da encomenda.</p>
+                <p className="text-gray-700 text-sm leading-relaxed">{t('product.shipping.desc')}</p>
               </div>
             </div>
 
@@ -375,7 +377,7 @@ const Product: React.FC = () => {
 
           <div className="mt-8">
             <button onClick={handleShare} className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-black transition-colors">
-              <Share2 size={16} /> Partilhar este produto
+              <Share2 size={16} /> {t('product.share')}
             </button>
           </div>
 
@@ -385,7 +387,7 @@ const Product: React.FC = () => {
       {relatedProducts.length > 0 && (
         <div className="max-w-[1440px] mx-auto px-4 lg:px-8 mt-24">
           <div className="border-t border-gray-200 pt-16">
-            <h2 className="text-2xl font-bold tracking-tight mb-8">Também pode gostar</h2>
+            <h2 className="text-2xl font-bold tracking-tight mb-8">{t('product.related')}</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-10">
               {relatedProducts.map((prod) => (
                 <ProductCard key={prod.id} product={prod} hideActions={true} />

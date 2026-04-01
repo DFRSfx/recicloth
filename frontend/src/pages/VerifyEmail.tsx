@@ -3,12 +3,14 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const VerifyEmail: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const { info } = useToast();
+  const { t } = useLanguage();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const token = searchParams.get('token');
@@ -17,7 +19,7 @@ const VerifyEmail: React.FC = () => {
     const verifyEmail = async () => {
       if (!token) {
         setStatus('error');
-        setMessage('Token de verificação inválido');
+        setMessage(t('verifyEmail.error.title'));
         return;
       }
 
@@ -34,7 +36,7 @@ const VerifyEmail: React.FC = () => {
 
         if (response.ok) {
           setStatus('success');
-          setMessage(data.message || 'Email verificado com sucesso!');
+          setMessage(data.message || t('verifyEmail.success.title'));
           
           // Update user in context if logged in
           if (user) {
@@ -43,17 +45,17 @@ const VerifyEmail: React.FC = () => {
           }
         } else {
           setStatus('error');
-          setMessage(data.error || 'Erro ao verificar email');
+          setMessage(data.error || t('verifyEmail.error.title'));
         }
       } catch (error) {
         console.error('Verification error:', error);
         setStatus('error');
-        setMessage('Erro ao verificar email. Por favor, tente novamente.');
+        setMessage(t('verifyEmail.error.title'));
       }
     };
 
     verifyEmail();
-  }, [token, user, updateUser]);
+  }, [token, user, updateUser, t]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center px-4">
@@ -65,10 +67,10 @@ const VerifyEmail: React.FC = () => {
                 <Loader2 className="h-10 w-10 text-primary-600 animate-spin" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-3">
-                A verificar email...
+                {t('verifyEmail.loading.title')}
               </h1>
               <p className="text-gray-600">
-                Por favor aguarde enquanto verificamos o seu email.
+                {t('verifyEmail.loading.desc')}
               </p>
             </>
           )}
@@ -79,21 +81,21 @@ const VerifyEmail: React.FC = () => {
                 <CheckCircle className="h-10 w-10 text-primary-600" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-3">
-                Email Verificado com Sucesso!
+                {t('verifyEmail.success.title')}
               </h1>
               <p className="text-gray-600 mb-6">
                 {message}
               </p>
               <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-primary-800">
-                  A sua conta está agora ativa e pode aceder a todas as funcionalidades da Recicloth.
+                  {t('verifyEmail.success.desc')}
                 </p>
               </div>
               <button
                 onClick={() => navigate('/')}
                 className="mt-6 w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl"
               >
-                Ir para a página inicial
+                {t('verifyEmail.success.goHome')}
               </button>
             </>
           )}
@@ -104,19 +106,19 @@ const VerifyEmail: React.FC = () => {
                 <XCircle className="h-10 w-10 text-red-600" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-3">
-                Erro na Verificação
+                {t('verifyEmail.error.title')}
               </h1>
               <p className="text-gray-600 mb-6">
                 {message}
               </p>
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-red-800 mb-3">
-                  <strong>Possíveis causas:</strong>
+                  <strong>{t('verifyEmail.error.causesLabel')}</strong>
                 </p>
                 <ul className="text-sm text-red-700 text-left space-y-2">
-                  <li>• O link de verificação expirou (válido por 1 hora)</li>
-                  <li>• O email já foi verificado anteriormente</li>
-                  <li>• O link está incorreto ou foi alterado</li>
+                  <li>• {t('verifyEmail.error.cause1')}</li>
+                  <li>• {t('verifyEmail.error.cause2')}</li>
+                  <li>• {t('verifyEmail.error.cause3')}</li>
                 </ul>
               </div>
               <div className="space-y-3">
@@ -124,7 +126,7 @@ const VerifyEmail: React.FC = () => {
                   onClick={() => navigate('/')}
                   className="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
                 >
-                  Voltar ao início
+                  {t('common.backToHome')}
                 </button>
                 <button
                   onClick={() => {
@@ -134,7 +136,7 @@ const VerifyEmail: React.FC = () => {
                   className="w-full border-2 border-primary-600 text-primary-600 py-3 px-6 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
                 >
                   <Mail className="inline-block h-5 w-5 mr-2" />
-                  Reenviar email de verificação
+                  {t('verifyEmail.error.resend')}
                 </button>
               </div>
             </>
@@ -144,9 +146,9 @@ const VerifyEmail: React.FC = () => {
         {/* Help text */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Precisa de ajuda?{' '}
+            {t('verifyEmail.help')}{' '}
             <a href="/contacto" className="text-primary-600 hover:text-primary-700 font-medium">
-              Entre em contacto
+              {t('verifyEmail.contactUs')}
             </a>
           </p>
         </div>

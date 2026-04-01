@@ -6,10 +6,12 @@ import HeroSlider from '../components/HeroSlider';
 import ProductCard from '../components/ProductCard';
 import { useProducts } from '../hooks/useProducts';
 import { getOrganizationSchema, getWebSiteSchema, getFAQSchema, getHomepageFAQs } from '../utils/schemas';
+import { useLanguage } from '../context/LanguageContext';
 
 const faqs = getHomepageFAQs();
 
 const Home: React.FC = () => {
+  const { t } = useLanguage();
   const { products, loading, error } = useProducts();
   const [featuredViewMode, setFeaturedViewMode] = useState<'grid' | 'fullscreen'>('grid');
   const [newViewMode, setNewViewMode] = useState<'grid' | 'fullscreen'>('grid');
@@ -47,7 +49,7 @@ const Home: React.FC = () => {
             <strong>moda sustentável</strong> começa na escolha de cada peça.{' '}
             Cada artigo — <strong>reciclado, upcycled ou de segunda mão</strong>{' '}
             — é cuidadosamente selecionado e verificado para garantir qualidade e{' '}
-            <strong>impacto ambiental positivo</strong>. Encontre{' '}
+            <strong>{t('home.hero.positiveImpact')}</strong>. Encontre{' '}
             <strong>roupa reciclada para homem e mulher</strong>,{' '}
             <strong>acessórios upcycled</strong> e peças únicas que respeitam o
             planeta sem abdicar do estilo. Tem dúvidas?{' '}
@@ -64,10 +66,10 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Produtos em Destaque
+              {t('home.featured.title')}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Seleção especial das nossas peças mais populares e procuradas
+              {t('home.featured.subtitle')}
             </p>
           </div>
 
@@ -75,7 +77,7 @@ const Home: React.FC = () => {
             <div className="flex justify-center py-12">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">A carregar produtos...</p>
+                <p className="text-gray-600">{t('common.loading')}</p>
               </div>
             </div>
           ) : error ? (
@@ -85,7 +87,7 @@ const Home: React.FC = () => {
                 onClick={() => window.location.reload()}
                 className="px-6 py-3 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
               >
-                Tentar Novamente
+                {t('common.retry')}
               </button>
             </div>
           ) : (
@@ -129,7 +131,7 @@ const Home: React.FC = () => {
               to="/loja"
               className="inline-flex items-center px-6 py-3 border border-primary-600 text-primary-600 font-medium rounded-md hover:bg-primary-50 transition-colors"
             >
-              Ver Todos os Produtos
+              {t('home.featured.viewAll')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
@@ -144,10 +146,10 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Novidades
+              {t('common.newArrivals')}
             </h2>
             <p className="text-lg text-gray-600">
-              As mais recentes adições à nossa coleção sustentável
+              {t('home.newArrivals.subtitle')}
             </p>
           </div>
 
@@ -204,10 +206,10 @@ const Home: React.FC = () => {
                   <Heart className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-1.5">
-                  Moda Circular
+                  {t('home.values.circular.title')}
                 </h3>
                 <p className="text-xs text-gray-600 leading-relaxed">
-                  Cada peça tem uma segunda vida
+                  {t('home.values.circular.desc')}
                 </p>
               </div>
             </div>
@@ -219,10 +221,10 @@ const Home: React.FC = () => {
                   <Shield className="h-6 w-6 text-white" />
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-1.5">
-                  Seleção Rigorosa
+                  {t('home.values.quality.title')}
                 </h3>
                 <p className="text-xs text-gray-600 leading-relaxed">
-                  Cada peça verificada antes de chegar até si
+                  {t('home.values.quality.desc')}
                 </p>
               </div>
             </div>
@@ -235,10 +237,10 @@ const Home: React.FC = () => {
                 </div>
                 <div className="text-left flex-1">
                   <h3 className="text-base font-bold text-gray-900 mb-1">
-                    Impacto Real
+                    {t('home.values.impact.title')}
                   </h3>
                   <p className="text-xs text-gray-600 leading-relaxed">
-                    Cada compra reduz o desperdício têxtil
+                    {t('home.values.impact.desc')}
                   </p>
                 </div>
               </div>
@@ -254,10 +256,10 @@ const Home: React.FC = () => {
                   <Heart className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Moda Circular
+                  {t('home.values.circular.title')}
                 </h3>
                 <p className="text-base text-gray-600 leading-relaxed">
-                  Cada peça reciclada ou upcycled tem uma história e uma segunda vida
+                  {t('home.values.circular.desc')}
                 </p>
               </div>
             </div>
@@ -269,10 +271,10 @@ const Home: React.FC = () => {
                   <Shield className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Seleção Rigorosa
+                  {t('home.values.quality.title')}
                 </h3>
                 <p className="text-base text-gray-600 leading-relaxed">
-                  Cada artigo é inspecionado e verificado antes de entrar na nossa coleção
+                  {t('home.values.quality.desc')}
                 </p>
               </div>
             </div>
@@ -284,10 +286,10 @@ const Home: React.FC = () => {
                   <Star className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Impacto Real
+                  {t('home.values.impact.title')}
                 </h3>
                 <p className="text-base text-gray-600 leading-relaxed">
-                  Cada compra reduz o desperdício têxtil e apoia um planeta mais sustentável
+                  {t('home.values.impact.desc')}
                 </p>
               </div>
             </div>
@@ -299,16 +301,16 @@ const Home: React.FC = () => {
       <section className="py-16 bg-primary-600 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Pronto para Descobrir?
+            {t('home.cta.title')}
           </h2>
           <p className="text-xl text-primary-100 mb-8">
-            Explore a nossa coleção completa de roupa reciclada, upcycled e de segunda mão
+            {t('home.cta.desc')}
           </p>
           <Link
             to="/loja"
             className="inline-flex items-center px-8 py-4 bg-white text-primary-600 font-semibold rounded-md hover:bg-gray-100 hover:shadow-lg hover:scale-105 transition-all duration-300 group"
           >
-            Explorar Loja
+            {t('home.cta.button')}
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
           </Link>
         </div>
@@ -319,10 +321,10 @@ const Home: React.FC = () => {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-              Perguntas Frequentes
+              {t('common.faqTitle')}
             </h2>
             <p className="text-gray-600">
-              Tudo o que precisa de saber sobre moda sustentável na Recicloth
+              {t('home.faq.subtitle')}
             </p>
           </div>
 

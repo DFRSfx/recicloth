@@ -6,23 +6,25 @@ import ProductCard from '../components/ProductCard';
 import FilterModal from '../components/FilterModal';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
+import { useLanguage } from '../context/LanguageContext';
 
 const PRODUCTS_PER_LOAD = 12;
 
 const Shop: React.FC = () => {
+  const { t } = useLanguage();
   const { categorySlug } = useParams<{ categorySlug?: string }>();
   const navigate = useNavigate();
-  
+
   const { products: allProducts, loading, error } = useProducts();
   const { categories: allCategories } = useCategories();
-  
+
   // State
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedPrices, setSelectedPrices] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('newest');
   const [displayCount, setDisplayCount] = useState(PRODUCTS_PER_LOAD);
-  
+
   // UI State
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [expandedFilters, setExpandedFilters] = useState({ color: true, price: true });
@@ -35,9 +37,9 @@ const Shop: React.FC = () => {
   }, []);
 
   const sortOptions = [
-    { value: 'newest', label: 'Mais Recentes' },
-    { value: 'price_asc', label: 'Preço: Menor para Maior' },
-    { value: 'price_desc', label: 'Preço: Maior para Menor' }
+    { value: 'newest', label: t('shop.sort.newest') },
+    { value: 'price_asc', label: t('shop.sort.priceLow') },
+    { value: 'price_desc', label: t('shop.sort.priceHigh') }
   ];
 
   // Close dropdown when clicking outside
@@ -108,29 +110,29 @@ const Shop: React.FC = () => {
     const prices = allProducts.map(p => p.price);
     const maxPrice = Math.max(...prices);
     const minPrice = Math.min(...prices);
-    
+
     // Create brackets dynamically
     const brackets: { id: string; label: string }[] = [];
     const step = 50; // €50 increments
-    
+
     let currentMin = 0;
     while (currentMin < maxPrice) {
       const currentMax = currentMin + step - 0.01;
       const hasProducts = prices.some(p => p >= currentMin && p < currentMin + step);
-      
+
       if (hasProducts) {
         brackets.push({
           id: `${currentMin}-${currentMin + step - 1}`,
           label: `€ ${currentMin.toFixed(2)} - € ${currentMax.toFixed(2)}`
         });
       }
-      
+
       currentMin += step;
-      
+
       // Limit to reasonable number of brackets
       if (brackets.length >= 10) break;
     }
-    
+
     // Add a final bracket for remaining high prices if needed
     if (maxPrice >= currentMin) {
       brackets.push({
@@ -138,7 +140,7 @@ const Shop: React.FC = () => {
         label: `€ ${currentMin.toFixed(2)}+`
       });
     }
-    
+
     return brackets;
   }, [allProducts]);
 
@@ -174,14 +176,14 @@ const Shop: React.FC = () => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = !selectedCategory || product.category === selectedCategory;
       const matchesColor = selectedColors.length === 0 || product.colors.some(c => selectedColors.includes(c.hex));
-      
+
       const matchesPrice = selectedPrices.length === 0 || selectedPrices.some(bracket => {
         // Handle dynamic price brackets
         if (bracket.endsWith('+')) {
           const minPrice = parseInt(bracket.replace('+', ''));
           return product.price >= minPrice;
         }
-        
+
         const [min, max] = bracket.split('-').map(Number);
         return product.price >= min && product.price < max + 1;
       });
@@ -207,13 +209,13 @@ const Shop: React.FC = () => {
 
   const currentProducts = filteredProducts.slice(0, displayCount);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">A carregar...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center">{t('common.loading')}</div>;
   if (error) return <div className="min-h-screen flex items-center justify-center">Erro: {error}</div>;
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] text-gray-900 font-sans relative pb-24 lg:pb-0">
-      <FilterModal 
-        isOpen={showMobileFilters} 
+      <FilterModal
+        isOpen={showMobileFilters}
         onClose={() => setShowMobileFilters(false)}
         sortBy={sortBy}
         onSortChange={setSortBy}
@@ -232,20 +234,20 @@ const Shop: React.FC = () => {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-12 pb-6">
         <div className="lg:hidden mb-6">
           <Link to="/loja" className="flex items-center gap-2 text-sm font-medium text-gray-900">
-            <ChevronLeft size={16} strokeWidth={2.5} /> Comprar por Categoria
+            <ChevronLeft size={16} strokeWidth={2.5} /> {t('shop.title')}
           </Link>
         </div>
         <h1 className="text-3xl lg:text-4xl font-bold mb-3 tracking-tight">
-          {selectedCategory ? selectedCategory : "Novidades"}
+          {selectedCategory ? selectedCategory : t('common.newArrivals')}
         </h1>
         <p className="text-sm lg:text-base text-gray-600 max-w-2xl mb-6 lg:mb-8">
-          Moda sustentável que respeita o planeta. Designs atemporais para o nosso futuro.
+          {t('shop.tagline')}
         </p>
 
         {/* Top Nav */}
         <div className="-mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0">
           <div className="flex gap-6 overflow-x-auto border-b border-gray-300 pb-4 text-sm font-medium whitespace-nowrap scrollbar-hide pr-4 sm:pr-6 lg:pr-0">
-            <button onClick={() => handleCategoryChange('')} className={`${!selectedCategory ? 'text-black border-b-4 border-gray-400 pb-[14px] -mb-[18px]' : 'text-gray-600'} flex-shrink-0`}>Todos os Artigos</button>
+            <button onClick={() => handleCategoryChange('')} className={`${!selectedCategory ? 'text-black border-b-4 border-gray-400 pb-[14px] -mb-[18px]' : 'text-gray-600'} flex-shrink-0`}>{t('shop.allItems')}</button>
             {allCategories.map((cat) => (
               <button key={cat.id} onClick={() => handleCategoryChange(cat.name)} className={`${selectedCategory === cat.name ? 'text-black border-b-4 border-gray-400 pb-[14px] -mb-[18px]' : 'text-gray-600'} flex-shrink-0`}>
                 {cat.name}
@@ -256,29 +258,29 @@ const Shop: React.FC = () => {
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col lg:flex-row gap-8">
-        
+
         {/* Desktop Sidebar */}
         <aside className="hidden lg:block w-64 flex-shrink-0">
           <div className="mb-6 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input type="text" placeholder="Procurar..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-sm focus:ring-black focus:border-black" />
+            <input type="text" placeholder={t('shop.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-sm focus:ring-black focus:border-black" />
           </div>
 
           {/* Color Grid */}
           <div className="border-t border-gray-200 py-4">
             <button onClick={() => toggleFilter('color')} className="flex justify-between items-center w-full text-left font-medium text-sm">
-              Cor {expandedFilters.color ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              {t('common.color')} {expandedFilters.color ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
             {expandedFilters.color && (
               <div className="mt-4 space-y-3 px-2">
                 {uniqueColors.map(color => (
-                  <button 
-                    key={color.hex} 
-                    onClick={() => toggleColor(color.hex)} 
+                  <button
+                    key={color.hex}
+                    onClick={() => toggleColor(color.hex)}
                     className={`flex items-center gap-3 group w-full text-left ${selectedColors.includes(color.hex) ? 'font-bold' : ''}`}
                   >
-                    <span 
-                      className={`w-6 h-6 rounded-full border border-gray-300 shadow-sm flex-shrink-0 ${selectedColors.includes(color.hex) ? 'ring-2 ring-black ring-offset-2' : ''}`} 
+                    <span
+                      className={`w-6 h-6 rounded-full border border-gray-300 shadow-sm flex-shrink-0 ${selectedColors.includes(color.hex) ? 'ring-2 ring-black ring-offset-2' : ''}`}
                       style={{ backgroundColor: color.hex }}
                     ></span>
                     <span className="text-sm group-hover:underline">{color.name}</span>
@@ -291,7 +293,7 @@ const Shop: React.FC = () => {
           {/* Price Checkboxes */}
           <div className="border-y border-gray-200 py-4">
             <button onClick={() => toggleFilter('price')} className="flex justify-between items-center w-full text-left font-medium text-sm">
-              Preço {expandedFilters.price ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              {t('common.price')} {expandedFilters.price ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
             {expandedFilters.price && (
               <div className="mt-4 space-y-4">
@@ -309,14 +311,14 @@ const Shop: React.FC = () => {
         {/* Product Grid Area */}
         <main className="flex-1">
           <div className="flex justify-between items-center mb-6 text-sm font-medium">
-            <span className="text-gray-900 font-bold">{filteredProducts.length} Artigos</span>
+            <span className="text-gray-900 font-bold">{filteredProducts.length} {t('shop.items')}</span>
             <div className="hidden lg:flex items-center gap-2">
               {isIOS ? (
                 // Native iOS select
                 <div className="relative">
-                  <select 
-                    value={sortBy} 
-                    onChange={(e) => setSortBy(e.target.value)} 
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
                     className="border-none bg-transparent focus:ring-0 cursor-pointer font-medium text-sm pr-8 appearance-none"
                   >
                     {sortOptions.map(option => (
@@ -348,8 +350,8 @@ const Shop: React.FC = () => {
                           }}
                           className={`
                             w-full text-left px-4 py-3 text-sm transition-colors flex items-center justify-between group
-                            ${sortBy === option.value 
-                              ? 'bg-gray-50 text-black font-semibold' 
+                            ${sortBy === option.value
+                              ? 'bg-gray-50 text-black font-semibold'
                               : 'text-gray-700 hover:bg-gray-50 hover:text-black'
                             }
                           `}
@@ -378,7 +380,7 @@ const Shop: React.FC = () => {
       {/* Mobile FAB */}
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40 lg:hidden">
         <button onClick={() => setShowMobileFilters(true)} className="flex items-center gap-2 bg-black text-white px-6 py-3.5 rounded-full font-bold text-sm shadow-xl hover:scale-105 transition-transform">
-          Filtrar & Ordenar <SlidersHorizontal size={16} />
+          {t('shop.filterSort')} <SlidersHorizontal size={16} />
         </button>
       </div>
     </div>

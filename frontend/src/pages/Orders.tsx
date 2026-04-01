@@ -6,6 +6,7 @@ import { getAbsoluteImageUrl } from '../utils/imageUtils';
 import InvoiceModal from '../components/InvoiceModal';
 import { InvoiceOrder } from '../utils/generateInvoice';
 import SEO from '../components/SEO';
+import { useLanguage } from '../context/LanguageContext';
 
 interface OrderItem {
   id: number;
@@ -38,6 +39,7 @@ interface Order {
 const Orders: React.FC = () => {
   const { isAuthenticated, token } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const [invoiceOrder, setInvoiceOrder] = useState<InvoiceOrder | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -55,10 +57,10 @@ const Orders: React.FC = () => {
   const loadOrders = async () => {
     try {
       setLoading(true);
-      
+
       if (!token) {
         console.error('No auth token available');
-        setError('Sem token de autenticação');
+        setError(t('orders.error.noToken'));
         setLoading(false);
         return;
       }
@@ -70,13 +72,13 @@ const Orders: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao carregar encomendas');
+        throw new Error(t('orders.error.load'));
       }
 
       const data = await response.json();
       setOrders(data);
     } catch (err: any) {
-      setError(err.message || 'Erro ao carregar encomendas');
+      setError(err.message || t('orders.error.load'));
     } finally {
       setLoading(false);
     }
@@ -95,31 +97,31 @@ const Orders: React.FC = () => {
   const getStatusConfig = (status: Order['status']) => {
     const configs = {
       pending: {
-        label: 'Pendente',
+        label: t('orders.status.pending'),
         icon: Clock,
         color: 'text-yellow-600',
         bgColor: 'bg-yellow-100',
       },
       processing: {
-        label: 'Em Processamento',
+        label: t('orders.status.processing'),
         icon: Package,
         color: 'text-blue-600',
         bgColor: 'bg-blue-100',
       },
       shipped: {
-        label: 'Enviada',
+        label: t('orders.status.shipped'),
         icon: Truck,
         color: 'text-purple-600',
         bgColor: 'bg-purple-100',
       },
       delivered: {
-        label: 'Entregue',
+        label: t('orders.status.delivered'),
         icon: CheckCircle,
         color: 'text-green-600',
         bgColor: 'bg-green-100',
       },
       cancelled: {
-        label: 'Cancelada',
+        label: t('orders.status.cancelled'),
         icon: XCircle,
         color: 'text-red-600',
         bgColor: 'bg-red-100',
@@ -131,13 +133,13 @@ const Orders: React.FC = () => {
   const getPaymentStatusBadge = (paymentStatus: string) => {
     switch (paymentStatus) {
       case 'paid':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Pago</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">{t('orders.status.paid') || 'Pago'}</span>;
       case 'pending':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Pendente</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">{t('orders.status.pending')}</span>;
       case 'failed':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Falhado</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">{t('orders.status.failed') || 'Falhado'}</span>;
       case 'expired':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Expirado</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{t('orders.status.expired') || 'Expirado'}</span>;
       default:
         return null;
     }
@@ -156,7 +158,7 @@ const Orders: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">A carregar encomendas...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -165,15 +167,15 @@ const Orders: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <SEO
-        title="Minhas Encomendas"
-        description="Veja todas as suas encomendas e o seu estado"
+        title={t('admin.nav.orders')}
+        description={t('orders.error.load')}
         canonical="/encomendas"
         ogType="website"
       />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">As Minhas Encomendas</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.nav.orders')}</h1>
           <p className="text-gray-600 mt-2">Acompanhe o estado das suas encomendas</p>
         </div>
 
@@ -193,7 +195,7 @@ const Orders: React.FC = () => {
               onClick={() => navigate('/loja')}
               className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
-              Explorar Produtos
+              {t('common.exploreProducts')}
             </button>
           </div>
         ) : (
@@ -224,10 +226,10 @@ const Orders: React.FC = () => {
                     className="p-6 cursor-pointer hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-100 focus:ring-2 focus:ring-inset focus:ring-primary-500"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      
+
                       {/* Left Side: Order Info & Badges */}
                       <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 flex-1">
-                        
+
                         {/* Text Data (Grid ensures they align nicely on tiny screens) */}
                         <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                           <div>
@@ -241,7 +243,7 @@ const Orders: React.FC = () => {
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-500">Total</p>
+                            <p className="text-sm text-gray-500">{t('cart.total')}</p>
                             <p className="font-semibold text-gray-900">{Number(order.total).toFixed(2)}€</p>
                           </div>
                         </div>
@@ -256,7 +258,7 @@ const Orders: React.FC = () => {
                           </span>
                           {getPaymentStatusBadge(order.payment_status)}
                         </div>
-                        
+
                       </div>
 
                       {/* Right Side: Chevron Icon */}
@@ -267,7 +269,7 @@ const Orders: React.FC = () => {
                           <ChevronDown className="h-5 w-5 text-gray-600 shrink-0" />
                         )}
                       </div>
-                      
+
                     </div>
                   </div>
 
@@ -277,7 +279,7 @@ const Orders: React.FC = () => {
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Order Items */}
                         <div className="lg:col-span-2">
-                          <h4 className="font-semibold text-gray-900 mb-4">Produtos</h4>
+                          <h4 className="font-semibold text-gray-900 mb-4">{t('admin.nav.products')}</h4>
                           <div className="space-y-4">
                             {order.order_items.map((item) => (
                               <div
@@ -325,7 +327,7 @@ const Orders: React.FC = () => {
                               <p className="text-sm text-gray-900 capitalize">{order.payment_method}</p>
                             </div>
                             <div className="bg-white p-4 rounded-lg">
-                              <p className="text-sm text-gray-500 mb-1">Total</p>
+                              <p className="text-sm text-gray-500 mb-1">{t('cart.total')}</p>
                               <p className="text-lg font-bold text-primary-600">
                                 {Number(order.total).toFixed(2)}€
                               </p>
@@ -339,7 +341,7 @@ const Orders: React.FC = () => {
                               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                             >
                               <Eye className="h-4 w-4" />
-                              Ver Detalhes
+                              {t('checkout.success.trackOrder')}
                             </Link>
                             {order.payment_status === 'paid' && (
                               <button

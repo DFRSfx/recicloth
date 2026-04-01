@@ -2,16 +2,18 @@ import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { XCircle } from 'lucide-react';
 import SEO from '../components/SEO';
+import { useLanguage } from '../context/LanguageContext';
 
 const CheckoutFail: React.FC = () => {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('order');
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <SEO
-        title="Pagamento Não Concluído"
-        description="O seu pagamento não foi processado"
+        title={t('checkout.fail.title')}
+        description={t('checkout.fail.desc')}
         canonical="/checkout/fail"
         ogType="website"
       />
@@ -22,44 +24,43 @@ const CheckoutFail: React.FC = () => {
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Pagamento Não Concluído
+            {t('checkout.fail.title')}
           </h1>
 
           <p className="text-gray-600 mb-8">
-            O seu pagamento não foi processado. Isto pode ter acontecido por diversos motivos:
+            {t('checkout.fail.desc')}
           </p>
 
           <div className="bg-gray-50 rounded-lg p-6 mb-6 text-left">
             <ul className="space-y-2 text-sm text-gray-700">
-              <li>• Pagamento cancelado pelo utilizador</li>
-              <li>• Dados do cartão incorretos ou inválidos</li>
-              <li>• Saldo insuficiente</li>
-              <li>• Limite de crédito excedido</li>
-              <li>• Erro de comunicação com o banco</li>
+              <li>• {t('checkout.fail.reason.cancelled')}</li>
+              <li>• {t('checkout.fail.reason.invalidCard')}</li>
+              <li>• {t('checkout.fail.reason.insufficient')}</li>
+              <li>• {t('checkout.fail.reason.creditLimit')}</li>
+              <li>• {t('checkout.fail.reason.bankError')}</li>
             </ul>
           </div>
 
           {orderId && (
             <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-left">
               <p className="text-sm text-yellow-800">
-                <strong>Nota:</strong> A sua encomenda #{orderId} foi criada mas não foi paga.
-                Pode tentar efetuar o pagamento novamente nas suas encomendas ou criar uma nova encomenda.
+                <strong>{t('checkout.fail.note')}</strong> {t('checkout.fail.orderNote')}
               </p>
             </div>
           )}
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              to="/checkout"
+              to="/"
               className="flex-1 px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors"
             >
-              Tentar Novamente
+              {t('common.backToHome')}
             </Link>
             <Link
-              to="/"
+              to="/carrinho"
               className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors"
             >
-              Voltar ao Início
+              {t('checkout.fail.retry')}
             </Link>
           </div>
         </div>

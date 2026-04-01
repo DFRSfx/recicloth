@@ -5,19 +5,23 @@ import {
 } from 'lucide-react';
 import SEO from '../components/SEO';
 import { getLocalBusinessSchema, getFAQSchema } from '../utils/schemas';
-
-const subjectOptions = [
-  { value: 'produto', label: 'Dúvida sobre produto', icon: ShoppingBag },
-  { value: 'pedido', label: 'Estado do pedido', icon: Package },
-  { value: 'tamanhos', label: 'Informação sobre tamanhos', icon: Sparkles },
-  { value: 'geral', label: 'Informação geral', icon: MessageCircle },
-  { value: 'outro', label: 'Outro', icon: FileText },
-];
+import { useLanguage } from '../context/LanguageContext';
 
 type FormData = { name: string; email: string; subject: string; message: string };
 type FormErrors = Partial<FormData>;
 
 const Contact: React.FC = () => {
+  const { t } = useLanguage();
+
+  // Move subjectOptions inside the component to access t()
+  const subjectOptions = [
+    { value: 'produto', label: t('contact.form.subjects.product'), icon: ShoppingBag },
+    { value: 'pedido', label: t('contact.form.subjects.order'), icon: Package },
+    { value: 'tamanhos', label: t('contact.form.subjects.sizing'), icon: Sparkles },
+    { value: 'geral', label: t('contact.form.subjects.general'), icon: MessageCircle },
+    { value: 'outro', label: t('contact.form.subjects.other'), icon: FileText },
+  ];
+
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
@@ -42,14 +46,14 @@ const Contact: React.FC = () => {
 
   const validate = (): FormErrors => {
     const errs: FormErrors = {};
-    if (!formData.name.trim()) errs.name = 'Por favor introduza o seu nome.';
+    if (!formData.name.trim()) errs.name = t('contact.form.errors.name');
     if (!formData.email.trim()) {
-      errs.email = 'Por favor introduza o seu email.';
+      errs.email = t('contact.form.errors.email');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errs.email = 'Email inválido.';
+      errs.email = t('contact.form.errors.emailInvalid');
     }
-    if (!formData.subject) errs.subject = 'Por favor selecione um assunto.';
-    if (!formData.message.trim()) errs.message = 'Por favor escreva a sua mensagem.';
+    if (!formData.subject) errs.subject = t('contact.form.errors.subject');
+    if (!formData.message.trim()) errs.message = t('contact.form.errors.message');
     return errs;
   };
 
@@ -95,16 +99,16 @@ const Contact: React.FC = () => {
   // SEO setup with FAQ schema
   const faqs = [
     {
-      question: 'As peças são realmente recicladas?',
-      answer: 'Sim! Todas as nossas peças são recicladas, de segunda mão ou upcycled. Cada item é cuidadosamente selecionado e verificado para garantir qualidade e autenticidade.',
+      question: t('contact.faq.q1'),
+      answer: t('contact.faq.a1'),
     },
     {
-      question: 'Fazem entregas em toda a União Europeia?',
-      answer: 'Sim! Fazemos entregas em todos os países da União Europeia. Envios para Portugal continental e ilhas têm custos reduzidos.',
+      question: t('contact.faq.q2'),
+      answer: t('contact.faq.a2'),
     },
     {
-      question: 'Qual é a política de devolução?',
-      answer: 'Tem 14 dias para devolver qualquer artigo. As peças devem estar nas mesmas condições em que foram recebidas. Consulte a nossa política de devolução para mais detalhes.',
+      question: t('contact.faq.q3'),
+      answer: t('contact.faq.a3'),
     },
   ];
 
@@ -125,10 +129,9 @@ const Contact: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Entre em Contacto</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('contact.title')}</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Tem dúvidas sobre as nossas peças de roupa reciclada ou precisa de ajuda com o seu pedido?
-            Estamos aqui para ajudar!
+            {t('contact.subtitle')}
           </p>
         </div>
 
@@ -136,16 +139,16 @@ const Contact: React.FC = () => {
           {/* Contact Information */}
           <div className="flex flex-col h-full">
             <div className="bg-white rounded-lg shadow-sm p-8 h-full">
-              <h2 className="text-2xl font-semibold mb-8">Informações de Contacto</h2>
+              <h2 className="text-2xl font-semibold mb-8">{t('contact.info.title')}</h2>
               <div className="space-y-8">
                 <div className="flex items-start">
                   <div className="p-3 bg-primary-50 rounded-full mr-4 flex-shrink-0">
                     <Phone className="h-6 w-6 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">Telefone</h3>
-                    <p className="text-gray-600 mt-1">+351 919 626 697</p>
-                    <p className="text-sm text-gray-400 mt-1">Segunda a Sexta, 9h às 18h</p>
+                    <h3 className="font-semibold text-gray-900 text-lg">{t('contact.info.phone')}</h3>
+                    <p className="text-gray-600 mt-1">{t('contact.info.phoneValue')}</p>
+                    <p className="text-sm text-gray-400 mt-1">{t('contact.info.hours')}</p>
                   </div>
                 </div>
 
@@ -154,14 +157,14 @@ const Contact: React.FC = () => {
                     <Mail className="h-6 w-6 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">Email</h3>
+                    <h3 className="font-semibold text-gray-900 text-lg">{t('form.email')}</h3>
                     <a
                       href="mailto:recicloth1972@gmail.com"
                       className="text-gray-600 hover:text-primary-600 transition-colors mt-1 block"
                     >
                       recicloth1972@gmail.com
                     </a>
-                    <p className="text-sm text-gray-400 mt-1">Respondemos em 24h</p>
+                    <p className="text-sm text-gray-400 mt-1">{t('contact.info.emailResponse')}</p>
                   </div>
                 </div>
 
@@ -170,16 +173,16 @@ const Contact: React.FC = () => {
                     <Instagram className="h-6 w-6 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">Instagram</h3>
+                    <h3 className="font-semibold text-gray-900 text-lg">{t('contact.info.instagram')}</h3>
                     <a
                       href="https://www.instagram.com/recicloth.croche/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-primary-600 transition-colors mt-1 block"
                     >
-                      @recicloth.croche
+                      {t('contact.info.instagramHandle')}
                     </a>
-                    <p className="text-sm text-gray-400 mt-1">Veja as nossas peças únicas</p>
+                    <p className="text-sm text-gray-400 mt-1">{t('contact.info.instagramDesc')}</p>
                   </div>
                 </div>
               </div>
@@ -189,23 +192,23 @@ const Contact: React.FC = () => {
           {/* Contact Form */}
           <div className="flex flex-col h-full">
             <div className="bg-white rounded-lg shadow-sm p-8 h-full">
-              <h2 className="text-2xl font-semibold mb-6">Envie-nos uma Mensagem</h2>
+              <h2 className="text-2xl font-semibold mb-6">{t('contact.form.title')}</h2>
               {submitted ? (
                 <div className="flex flex-col items-center justify-center h-full py-8">
                   <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
                     <Send className="h-10 w-10 text-green-600" />
                   </div>
                   <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-                    Mensagem Enviada!
+                    {t('contact.form.success.title')}
                   </h3>
                   <p className="text-gray-600 text-center max-w-xs mb-8">
-                    Obrigado pelo seu contacto. Responderemos o mais breve possível.
+                    {t('contact.form.success.desc')}
                   </p>
                   <button
                     onClick={() => setSubmitted(false)}
                     className="text-primary-600 hover:text-primary-700 font-medium underline underline-offset-4"
                   >
-                    Enviar Nova Mensagem
+                    {t('contact.form.success.newMessage')}
                   </button>
                 </div>
               ) : (
@@ -213,7 +216,7 @@ const Contact: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nome <span className="text-primary-500">*</span>
+                        {t('form.name')} <span className="text-primary-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -221,7 +224,7 @@ const Contact: React.FC = () => {
                         value={formData.name}
                         onChange={handleInputChange}
                         className={inputClass('name')}
-                        placeholder="O seu nome"
+                        placeholder={t('contact.form.namePlaceholder')}
                       />
                       {errors.name && (
                         <p className="mt-1 text-xs text-red-500">{errors.name}</p>
@@ -229,7 +232,7 @@ const Contact: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email <span className="text-primary-500">*</span>
+                        {t('form.email')} <span className="text-primary-500">*</span>
                       </label>
                       <input
                         type="email"
@@ -237,7 +240,7 @@ const Contact: React.FC = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         className={inputClass('email')}
-                        placeholder="email@exemplo.com"
+                        placeholder={t('contact.form.emailPlaceholder')}
                       />
                       {errors.email && (
                         <p className="mt-1 text-xs text-red-500">{errors.email}</p>
@@ -248,7 +251,7 @@ const Contact: React.FC = () => {
                   {/* Custom subject dropdown */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Assunto <span className="text-primary-500">*</span>
+                      {t('contact.form.subject')} <span className="text-primary-500">*</span>
                     </label>
                     <div ref={subjectRef} className="relative">
                       <button
@@ -265,7 +268,7 @@ const Contact: React.FC = () => {
                               {selectedSubject.label}
                             </>
                           ) : (
-                            'Selecione um assunto'
+                            t('contact.form.subjectPlaceholder')
                           )}
                         </span>
                         <ChevronDown
@@ -303,7 +306,7 @@ const Contact: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Mensagem <span className="text-primary-500">*</span>
+                      {t('contact.form.message')} <span className="text-primary-500">*</span>
                     </label>
                     <textarea
                       name="message"
@@ -311,7 +314,7 @@ const Contact: React.FC = () => {
                       value={formData.message}
                       onChange={handleInputChange}
                       className={`${inputClass('message')} resize-y`}
-                      placeholder="Como podemos ajudar?"
+                      placeholder={t('contact.form.messagePlaceholder')}
                       style={{ minHeight: '120px' }}
                     />
                     {errors.message && (
@@ -325,11 +328,11 @@ const Contact: React.FC = () => {
                     className="w-full flex items-center justify-center gap-2 bg-primary-600 text-white py-3 px-6 rounded-md hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow active:scale-[0.99] font-semibold"
                   >
                     {isSubmitting ? (
-                      'A Enviar...'
+                      t('contact.form.sending')
                     ) : (
                       <>
                         <Send className="h-5 w-5" />
-                        Enviar Mensagem
+                        {t('contact.form.submit')}
                       </>
                     )}
                   </button>
@@ -343,10 +346,10 @@ const Contact: React.FC = () => {
         <div className="mt-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Perguntas Frequentes
+              {t('common.faqTitle')}
             </h2>
             <p className="text-lg text-gray-600">
-              Respostas às dúvidas mais comuns dos nossos clientes
+              {t('contact.faq.subtitle')}
             </p>
           </div>
 

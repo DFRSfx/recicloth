@@ -11,6 +11,7 @@ import { useCategories } from '../hooks/useCategories';
 import { Product } from '../types';
 import AuthModal from './AuthModal';
 import LanguageSwitcher from './LanguageSwitcher';
+import { useLanguage } from '../context/LanguageContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -23,6 +24,7 @@ const Navbar: React.FC = () => {
   const { itemCount } = useCart();
   const { favorites } = useFavorites();
   const { success, info } = useToast();
+  const { t } = useLanguage();
 
   const getCategoryImage = (categoryName: string): string | null => {
     const categoryProducts = products.filter(p => p.category === categoryName);
@@ -104,23 +106,23 @@ const Navbar: React.FC = () => {
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const searchRef = useRef<HTMLDivElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const megaMenuRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
-  
+
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(''); // stores slug
   const [hasMoved, setHasMoved] = useState(false);
 
   const navigation = [
-    { name: 'Início', href: '/' },
-    { name: 'Loja', href: '/loja' },
-    { name: 'Contato', href: '/contacto' },
+    { name: t('nav.home'), href: '/' },
+    { name: t('nav.shop'), href: '/loja' },
+    { name: t('nav.contact'), href: '/contacto' },
   ];
 
   const isActive = (href: string) => {
@@ -132,20 +134,11 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const pathParts = location.pathname.split('/');
     if (pathParts[1] === 'loja' && pathParts[2]) {
-      const slug = pathParts[2];
-      const category = categories.find(cat => {
-        const catSlug = cat.name.toLowerCase().replace(/\s+/g, '-');
-        return catSlug === slug;
-      });
-      if (category) {
-        setSelectedCategory(category.name);
-      }
-    } else if (pathParts[1] === 'loja') {
-      setSelectedCategory('');
+      setSelectedCategory(pathParts[2]); // store slug directly from URL
     } else {
       setSelectedCategory('');
     }
-  }, [location.pathname, categories]);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (searchQuery.trim().length > 0 && products.length > 0) {
@@ -247,17 +240,11 @@ const Navbar: React.FC = () => {
 
   const handleTouchEnd = () => setIsDragging(false);
 
-  const handleCategoryClick = (categoryName: string) => {
-    if (hasMoved) return; 
-    const wasSelected = selectedCategory === categoryName;
-    setSelectedCategory(wasSelected ? '' : categoryName);
-
-    if (wasSelected) {
-      navigate('/loja');
-    } else {
-      const slug = categoryName.toLowerCase().replace(/\s+/g, '-');
-      navigate(`/loja/${slug}`);
-    }
+  const handleCategoryClick = (slug: string) => {
+    if (hasMoved) return;
+    const wasSelected = selectedCategory === slug;
+    setSelectedCategory(wasSelected ? '' : slug);
+    navigate(wasSelected ? '/loja' : `/loja/${slug}`);
   };
 
   const handleSearchToggle = () => {
@@ -285,8 +272,8 @@ const Navbar: React.FC = () => {
 
             <div className="hidden md:flex items-center space-x-10">
               {navigation.map((item) => (
-                item.name === 'Loja' ? (
-                  <div key={item.name} className="relative h-full flex items-center" ref={megaMenuRef}>
+                item.href === '/loja' ? (
+                  <div key={item.href} className="relative h-full flex items-center" ref={megaMenuRef}>
                     <button
                       onMouseEnter={() => setMegaMenuOpen(true)}
                       onClick={() => navigate('/loja')}
@@ -307,7 +294,7 @@ const Navbar: React.FC = () => {
                         onMouseLeave={() => setMegaMenuOpen(false)}
                       >
                         <div className="p-8">
-                          <h3 className="text-xl font-semibold text-gray-900 mb-6">Explorar Categorias</h3>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-6">{t('megaMenu.exploreCategories')}</h3>
                           {categoriesLoading ? (
                             <div className="grid grid-cols-3 gap-6">
                               {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -330,9 +317,9 @@ const Navbar: React.FC = () => {
                                 </div>
                                 <div className="p-4 bg-white">
                                   <h4 className="font-semibold text-gray-900 group-hover:text-[#1E4D3B] transition-colors">
-                                    Todas as Categorias
+                                    {t('megaMenu.allCategories')}
                                   </h4>
-                                  <p className="text-sm text-gray-600 mt-1">Ver todos os produtos</p>
+                                  <p className="text-sm text-gray-600 mt-1">{t('megaMenu.viewAllProducts')}</p>
                                 </div>
                               </Link>
 
@@ -367,7 +354,7 @@ const Navbar: React.FC = () => {
                                         {category.name}
                                       </h4>
                                       <p className="text-sm text-gray-600 mt-1">
-                                        {category.description || 'Explorar produtos'}
+                                        {category.description || t('megaMenu.exploreCategoryFallback')}
                                       </p>
                                     </div>
                                   </Link>
@@ -381,7 +368,7 @@ const Navbar: React.FC = () => {
                   </div>
                 ) : (
                   <Link
-                    key={item.name}
+                    key={item.href}
                     to={item.href}
                     className={`text-[16px] font-medium transition-colors duration-200 pb-1 border-b-2 ${
                       isActive(item.href)
@@ -403,7 +390,7 @@ const Navbar: React.FC = () => {
               <input
                 type="text"
                 name="search"
-                placeholder="Procurar produtos..."
+                placeholder={t('common.searchProducts')}
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -629,10 +616,10 @@ const Navbar: React.FC = () => {
               ) : categories.length > 0 ? (
                 categories.map((category) => (
                   <button
-                    key={category.name}
-                    onClick={() => handleCategoryClick(category.name)}
+                    key={category.id}
+                    onClick={() => handleCategoryClick(category.slug)}
                     className={`flex-shrink-0 transition-colors duration-200 whitespace-nowrap text-[15px] ${
-                      selectedCategory === category.name
+                      selectedCategory === category.slug
                         ? 'text-[#1E4D3B] font-bold'
                         : 'text-gray-600 hover:text-[#1E4D3B]'
                     }`}
@@ -664,10 +651,10 @@ const Navbar: React.FC = () => {
           ) : categories.length > 0 ? (
             categories.map((category) => (
               <button
-                key={category.name}
-                onClick={() => handleCategoryClick(category.name)}
+                key={category.id}
+                onClick={() => handleCategoryClick(category.slug)}
                 className={`flex-shrink-0 transition-colors duration-200 whitespace-nowrap text-[15px] ${
-                  selectedCategory === category.name
+                  selectedCategory === category.slug
                     ? 'text-[#1E4D3B] font-bold border-b-2 border-[#1E4D3B] pb-1'
                     : 'text-gray-600 font-medium hover:text-[#1E4D3B] pb-1'
                 }`}
