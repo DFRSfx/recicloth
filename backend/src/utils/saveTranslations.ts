@@ -87,10 +87,16 @@ export async function saveCategoryTranslations(
     [categoryId, sourceLang, name, description]
   );
 
-  const [translatedName, translatedDesc] = await Promise.all([
-    translate(name, sourceLang, targetLang),
-    description ? translate(description, sourceLang, targetLang) : Promise.resolve(null),
-  ]);
+  let translatedName = name;
+  let translatedDesc = description;
+  try {
+    [translatedName, translatedDesc] = await Promise.all([
+      translate(name, sourceLang, targetLang),
+      description ? translate(description, sourceLang, targetLang) : Promise.resolve(null),
+    ]) as [string, string | null];
+  } catch (err) {
+    console.error(`⚠️ Translation failed for category ${categoryId}, saving original text as ${targetLang}:`, err);
+  }
 
   await pool.query(
     `INSERT INTO category_translations (category_id, lang, name, description)
