@@ -110,6 +110,13 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
     city: '',
     postalCode: '',
   });
+  const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
+  const [billingInfo, setBillingInfo] = useState({
+    name: '',
+    address: '',
+    city: '',
+    postalCode: '',
+  });
   const [isProcessing, setIsProcessing] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const [isPaymentReady, setIsPaymentReady] = useState(false);
@@ -128,6 +135,10 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
   const addressRef = useRef<HTMLInputElement>(null);
   const cityRef = useRef<HTMLInputElement>(null);
   const postalCodeRef = useRef<HTMLInputElement>(null);
+  const billingNameRef = useRef<HTMLInputElement>(null);
+  const billingAddressRef = useRef<HTMLInputElement>(null);
+  const billingCityRef = useRef<HTMLInputElement>(null);
+  const billingPostalCodeRef = useRef<HTMLInputElement>(null);
 
   const clearFieldError = (field: string) => {
     setFieldErrors(prev => { const next = { ...prev }; delete next[field]; return next; });
@@ -207,11 +218,24 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
       errors.postalCode = 'Formato inválido (ex: 1234-567)';
     }
 
+    if (!billingSameAsShipping) {
+      if (!billingInfo.name.trim()) errors.billingName = 'Nome de faturação é obrigatório';
+      if (!billingInfo.address.trim()) errors.billingAddress = 'Endereço de faturação é obrigatório';
+      if (!billingInfo.city.trim()) errors.billingCity = 'Cidade de faturação é obrigatória';
+      if (!billingInfo.postalCode.trim()) {
+        errors.billingPostalCode = 'Código postal de faturação é obrigatório';
+      } else if (!/^\d{4}-\d{3}$/.test(billingInfo.postalCode.trim())) {
+        errors.billingPostalCode = 'Formato inválido (ex: 1234-567)';
+      }
+    }
+
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       const refs: Record<string, React.RefObject<HTMLInputElement>> = {
         name: nameRef, email: emailRef, phone: phoneRef,
         address: addressRef, city: cityRef, postalCode: postalCodeRef,
+        billingName: billingNameRef, billingAddress: billingAddressRef,
+        billingCity: billingCityRef, billingPostalCode: billingPostalCodeRef,
       };
       const firstKey = Object.keys(errors)[0];
       refs[firstKey]?.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -239,6 +263,10 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
       return;
     }
 
+    const effectiveBilling = billingSameAsShipping
+      ? { billing_name: customerInfo.name, billing_address: customerInfo.address, billing_city: customerInfo.city, billing_postal_code: customerInfo.postalCode }
+      : { billing_name: billingInfo.name, billing_address: billingInfo.address, billing_city: billingInfo.city, billing_postal_code: billingInfo.postalCode };
+
     const finalizeBody = {
       payment_intent_id: paymentIntentId,
       customer_name: customerInfo.name,
@@ -247,6 +275,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
       customer_address: customerInfo.address,
       customer_city: customerInfo.city,
       customer_postal_code: customerInfo.postalCode,
+      ...effectiveBilling,
       user_id: user?.id || null,
       save_address: isAuthenticated && saveAddress,
     };
@@ -503,6 +532,73 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
                   </div>
                 </>
               )}
+
+              {/* ── Billing address ──────────────────────────────── */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Morada de Faturação</h3>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={billingSameAsShipping}
+                    onChange={(e) => setBillingSameAsShipping(e.target.checked)}
+                    className="w-4 h-4 text-primary-600 bg-gray-50 border-gray-300 rounded focus:ring-primary-500"
+                  />
+                  <span className="text-sm text-gray-700">Igual à morada de entrega</span>
+                </label>
+
+                {!billingSameAsShipping && (
+                  <div className="mt-5 space-y-5">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Nome *</label>
+                      <input
+                        type="text"
+                        ref={billingNameRef}
+                        value={billingInfo.name}
+                        onChange={(e) => { setBillingInfo(prev => ({ ...prev, name: e.target.value })); clearFieldError('billingName'); }}
+                        className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.billingName ? 'border-red-500' : 'border-gray-300'}`}
+                      />
+                      {fieldErrors.billingName && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.billingName}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Endereço *</label>
+                      <input
+                        type="text"
+                        ref={billingAddressRef}
+                        value={billingInfo.address}
+                        onChange={(e) => { setBillingInfo(prev => ({ ...prev, address: e.target.value })); clearFieldError('billingAddress'); }}
+                        className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.billingAddress ? 'border-red-500' : 'border-gray-300'}`}
+                      />
+                      {fieldErrors.billingAddress && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.billingAddress}</p>}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Cidade *</label>
+                        <input
+                          type="text"
+                          ref={billingCityRef}
+                          value={billingInfo.city}
+                          onChange={(e) => { setBillingInfo(prev => ({ ...prev, city: e.target.value })); clearFieldError('billingCity'); }}
+                          className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.billingCity ? 'border-red-500' : 'border-gray-300'}`}
+                        />
+                        {fieldErrors.billingCity && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.billingCity}</p>}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Código Postal *</label>
+                        <input
+                          type="text"
+                          ref={billingPostalCodeRef}
+                          value={billingInfo.postalCode}
+                          onChange={(e) => { setBillingInfo(prev => ({ ...prev, postalCode: e.target.value })); clearFieldError('billingPostalCode'); }}
+                          placeholder="1234-567"
+                          className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.billingPostalCode ? 'border-red-500' : 'border-gray-300'}`}
+                        />
+                        {fieldErrors.billingPostalCode && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.billingPostalCode}</p>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
             </div>
 
             {/* ── Right: order summary + payment ─────────────────────────── */}

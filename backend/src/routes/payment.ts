@@ -42,6 +42,7 @@ async function createOrderFromData(
   const {
     customer_name, customer_email, customer_phone,
     customer_address, customer_city, customer_postal_code,
+    billing_name, billing_address, billing_city, billing_postal_code,
     payment_method, items, total, user_id, save_address
   } = data;
 
@@ -51,11 +52,13 @@ async function createOrderFromData(
     `INSERT INTO orders (
       tracking_token, user_id, customer_name, customer_email, customer_phone,
       customer_address, customer_city, customer_postal_code,
+      billing_name, billing_address, billing_city, billing_postal_code,
       payment_method, total, status, payment_status, payment_intent_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       trackingToken, user_id || null, customer_name, customer_email, customer_phone,
       customer_address, customer_city, customer_postal_code,
+      billing_name || null, billing_address || null, billing_city || null, billing_postal_code || null,
       payment_method, total, 'pending', 'pending', paymentIntentId
     ]
   );
@@ -262,11 +265,16 @@ router.post(
       // Merge address fields from request body (new flow) with stored data (old flow)
       const { customer_name, customer_email, customer_phone,
               customer_address, customer_city, customer_postal_code,
+              billing_name, billing_address, billing_city, billing_postal_code,
               user_id, save_address } = req.body;
       const checkoutData = {
         ...pendingData,
         ...(customer_name && { customer_name, customer_email, customer_phone,
           customer_address, customer_city, customer_postal_code,
+          billing_name: billing_name || null,
+          billing_address: billing_address || null,
+          billing_city: billing_city || null,
+          billing_postal_code: billing_postal_code || null,
           user_id: user_id || pendingData.user_id || null,
           save_address: save_address || false }),
       };
