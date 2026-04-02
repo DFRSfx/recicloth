@@ -50,7 +50,7 @@ router.post(
         // If setting as default, unset all other defaults
         if (is_default) {
           await connection.query(
-            'UPDATE shipping_addresses SET is_default = 0 WHERE user_id = ?',
+            'UPDATE shipping_addresses SET is_default = FALSE WHERE user_id = ?',
             [req.user?.id]
           );
         }
@@ -124,7 +124,7 @@ router.put(
         // If setting as default, unset all other defaults
         if (updates.is_default) {
           await connection.query(
-            'UPDATE shipping_addresses SET is_default = 0 WHERE user_id = ?',
+            'UPDATE shipping_addresses SET is_default = FALSE WHERE user_id = ?',
             [req.user?.id]
           );
         }

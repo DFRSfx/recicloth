@@ -83,7 +83,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose, a
         <div className="px-4 pt-4 pb-2">
           <div className="flex flex-wrap gap-2">
             {sizes.map(({ size, stock }) => {
-              const outOfStock = stock === 0;
+              const outOfStock = Number(stock) <= 0;
               return (
                 <button
                   key={size}

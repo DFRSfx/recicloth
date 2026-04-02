@@ -63,14 +63,13 @@ class EmailVerification {
   static async verifyEmailToken(token: string): Promise<EmailVerificationResult> {
     try {
       console.log('🔍 Verificando token:', token);
-      
-      // Buscar token na tabela email_verification_tokens
+
+      // Fetch the token regardless of is_used — we inspect state manually below
       const [tokenRows]: any = await pool.query(
-        `SELECT evt.*, u.email, u.email_verified 
+        `SELECT evt.*, u.email, u.email_verified
          FROM email_verification_tokens evt
          JOIN users u ON evt.user_id = u.id
-         WHERE evt.token = ? 
-         AND evt.is_used = FALSE`,
+         WHERE evt.token = ?`,
         [token]
       );
 
@@ -84,25 +83,37 @@ class EmailVerification {
       }
 
       const tokenData = tokenRows[0];
-      
+
+      // Token already consumed — but if the email is verified the goal was reached
+      if (tokenData.is_used) {
+        if (tokenData.email_verified) {
+          return {
+            success: true,
+            message: 'Email verificado com sucesso!'
+          };
+        }
+        return {
+          success: false,
+          message: 'Token inválido ou já utilizado'
+        };
+      }
+
+      // Email already verified via another path (e.g. Google OAuth) and token unused
+      // → mark as used and return success so the user sees the correct screen
       if (tokenData.email_verified) {
-        // Marcar token como usado
         await pool.query(
           `UPDATE email_verification_tokens SET is_used = TRUE WHERE id = ?`,
           [tokenData.id]
         );
-        
+        console.log('✅ Email já verificado, token marcado como usado para user:', tokenData.user_id);
         return {
-          success: false,
-          message: 'Email já foi verificado anteriormente'
+          success: true,
+          message: 'Email verificado com sucesso!'
         };
       }
 
       const now = new Date();
       const expiresAt = new Date(tokenData.expires_at);
-
-      console.log('⏰ Now:', now);
-      console.log('⏰ Expires:', expiresAt);
 
       if (now > expiresAt) {
         return {
@@ -111,21 +122,24 @@ class EmailVerification {
         };
       }
 
-      // Marcar email como verificado
-      await pool.query(
-        `UPDATE users 
-         SET email_verified = TRUE,
-             status = 'active'
-         WHERE id = ?`,
-        [tokenData.user_id]
+      // Mark token as used FIRST — prevents a second concurrent request from also succeeding
+      const [updateResult]: any = await pool.query(
+        `UPDATE email_verification_tokens SET is_used = TRUE WHERE id = ? AND is_used = FALSE`,
+        [tokenData.id]
       );
 
-      // Marcar token como usado
+      if (updateResult.affectedRows === 0) {
+        // Another concurrent request beat us to it
+        return {
+          success: true,
+          message: 'Email verificado com sucesso!'
+        };
+      }
+
+      // Now mark the user's email as verified
       await pool.query(
-        `UPDATE email_verification_tokens 
-         SET is_used = TRUE 
-         WHERE id = ?`,
-        [tokenData.id]
+        `UPDATE users SET email_verified = TRUE, status = 'active' WHERE id = ?`,
+        [tokenData.user_id]
       );
 
       console.log('✅ Email verificado com sucesso para user:', tokenData.user_id);
