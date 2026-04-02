@@ -13,6 +13,12 @@ import { fireCartToast } from '../components/CartToastManager';
 import { useLanguage } from '../context/LanguageContext';
 import { getProductPath, getRoutePath, withQuery } from '../utils/routes';
 
+const fixHtmlArtifacts = (html: string): string =>
+  html
+    .replace(/&\s+([a-z]+);/gi, '&$1;')      // "& amp;" → "&amp;"
+    .replace(/<\s*\/\s*(\w+)\s*>/g, '</$1>') // "< / p>" → "</p>"
+    .replace(/<\s+(\w)/g, '<$1');             // "< p" → "<p"
+
 const toColorSlug = (value: string): string =>
   value
     .toLowerCase()
@@ -353,7 +359,7 @@ const Product: React.FC = () => {
                 {expandedSections.description ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
               </button>
               <div className={`overflow-hidden transition-all duration-300 ${expandedSections.description ? 'max-h-[2000px] pb-6' : 'max-h-0'}`}>
-                <div className="product-description" dangerouslySetInnerHTML={{ __html: product.description }} />
+                <div className="product-description" dangerouslySetInnerHTML={{ __html: fixHtmlArtifacts(product.description) }} />
 
                 <div className="flex flex-wrap gap-2">
                   {product.featured && <span className="border border-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 uppercase tracking-wider">{t('product.tag.featured')}</span>}

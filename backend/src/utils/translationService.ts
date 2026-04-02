@@ -12,9 +12,12 @@ async function translateDeepL(text: string, from: string | null, to: string): Pr
   const targetMap: Record<string, string> = { pt: 'PT-PT', en: 'EN' };
   const sourceMap: Record<string, string> = { pt: 'PT',    en: 'EN' };
 
+  const isHtml = /<[a-z][\s\S]*>/i.test(text);
+
   const body = new URLSearchParams({
     text,
     target_lang: targetMap[to] ?? to.toUpperCase(),
+    ...(isHtml ? { tag_handling: 'html' } : {}),
   });
   // Omit source_lang to let DeepL auto-detect when from is null
   if (from && from !== 'auto') {
