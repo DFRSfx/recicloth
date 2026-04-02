@@ -1,6 +1,6 @@
 // Type adapters to convert backend types to frontend types
 
-import { Product as FrontendProduct } from '../types';
+import { Product as FrontendProduct, SizeStockItem } from '../types';
 
 // Backend product type (from API)
 // Note: MySQL returns some fields as strings that need conversion
@@ -15,6 +15,8 @@ export interface BackendProduct {
   images?: string[]; // Array of image file paths (e.g. ["/public/produtos/1/image-1-1.webp"])
   colors?: { name: string; hex: string }[] | string; // JSON field
   stock: number | string; // May come as string
+  stock_mode?: 'unit' | 'apparel' | 'shoes';
+  size_stock?: SizeStockItem[] | string; // JSON field
   featured: boolean | number; // MySQL BOOLEAN (TINYINT) comes as 0/1
   created_at: string;
   updated_at: string;
@@ -103,6 +105,19 @@ export function adaptProductToFrontend(backendProduct: BackendProduct): Frontend
     }
   }
 
+  // Parse size_stock if it's a JSON string
+  let sizeStockArray: SizeStockItem[] = [];
+  if (backendProduct.size_stock) {
+    try {
+      const raw = typeof backendProduct.size_stock === 'string'
+        ? JSON.parse(backendProduct.size_stock)
+        : backendProduct.size_stock;
+      if (Array.isArray(raw)) sizeStockArray = raw;
+    } catch (e) {
+      // ignore
+    }
+  }
+
   return {
     id: backendProduct.id.toString(),
     name: backendProduct.name,
@@ -112,10 +127,12 @@ export function adaptProductToFrontend(backendProduct: BackendProduct): Frontend
     category: backendProduct.category_name || 'Sem Categoria',
     colors: colorsArray,
     inStock: stock > 0,
+    stock_mode: backendProduct.stock_mode || 'unit',
+    size_stock: sizeStockArray,
     featured: featured,
     new: isNew,
-    tags: [], // TODO: Add tags support in backend
-    stock: stock, // Add stock info for favorites page
+    tags: [],
+    stock: stock,
   };
 }
 

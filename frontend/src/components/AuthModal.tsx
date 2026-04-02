@@ -283,7 +283,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         // Update auth context directly (no reload needed)
         setAuthState(data.token, data.user);
 
-        success('Bem-vindo! Login efetuado com sucesso 🎉');
+        success('Bem-vindo! Login efetuado com sucesso');
       } catch (err: any) {
         setError(err.message || 'Erro ao fazer login com Google');
         showError(err.message || 'Erro ao fazer login com Google');
@@ -388,7 +388,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       </svg>
                       <div className="flex-1">
                         <h4 className="text-sm font-bold text-yellow-800 mb-1">
-                          ⚠️ Email não verificado
+                          Email não verificado
                         </h4>
                         <p className="text-xs text-yellow-700 mb-2">
                           {error}
@@ -663,7 +663,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                    Conta Criada com Sucesso! 🎉
+                    Conta Criada com Sucesso! 
                   </h3>
                   <p className="text-gray-600 mb-4">
                     Enviámos um email de verificação para:
@@ -680,7 +680,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                     </svg>
                     <div className="flex-1">
                       <h4 className="text-sm font-bold text-yellow-800 mb-2">
-                        ⚠️ Ação Necessária
+                        Ação Necessária
                       </h4>
                       <p className="text-sm text-yellow-700 mb-2">
                         <strong>Tem de verificar o seu email antes de aceder à sua conta.</strong>
@@ -710,7 +710,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
                       <span>Faça login para aceder à sua conta</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-gray-500">💡</span>
                       <span className="text-xs text-gray-600">Não se esqueça de verificar a pasta de spam</span>
                     </li>
                   </ul>

@@ -3,6 +3,11 @@ export interface ProductColor {
   hex: string;
 }
 
+export interface SizeStockItem {
+  size: string;
+  stock: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -12,7 +17,9 @@ export interface Product {
   category: string;
   colors: ProductColor[];
   inStock: boolean;
-  stock?: number; // Stock quantity (for Favorites page)
+  stock?: number;
+  stock_mode?: 'unit' | 'apparel' | 'shoes';
+  size_stock?: SizeStockItem[];
   featured: boolean;
   new: boolean;
   tags: string[];
@@ -23,6 +30,7 @@ export interface CartItem {
   product: Product;
   quantity: number;
   selectedColor?: string;
+  selectedSize?: string;
 }
 
 export interface Order {

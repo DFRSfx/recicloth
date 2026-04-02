@@ -365,7 +365,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
             <div className="flex items-start gap-4">
               <User className="h-8 w-8 text-blue-600 shrink-0" />
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">💡 Crie uma conta para uma melhor experiência!</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Crie uma conta para uma melhor experiência!</h3>
                 <ul className="space-y-1 mb-4 text-sm text-gray-700">
                   <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Guardar endereços de entrega</li>
                   <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Ver histórico completo de encomendas</li>

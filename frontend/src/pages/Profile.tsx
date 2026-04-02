@@ -71,7 +71,7 @@ const Profile: React.FC = () => {
   const newPasswordRef = useRef<HTMLInputElement>(null);
   const confirmPasswordRef = useRef<HTMLInputElement>(null);
 
-  const API = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api`;
+  const API = '/api';
 
   React.useEffect(() => {
     if (!isAuthenticated) navigate('/');

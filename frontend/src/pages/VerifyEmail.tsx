@@ -19,38 +19,38 @@ const VerifyEmail: React.FC = () => {
   const token = searchParams.get('token');
 
   useEffect(() => {
-    const verifyEmail = async () => {
-      if (!token) {
-        setStatus('error');
-        setMessage(t('verifyEmail.error.title'));
-        return;
-      }
+    if (!token) {
+      setStatus('error');
+      setMessage(t('verifyEmail.error.title'));
+      return;
+    }
 
+    let cancelled = false;
+
+    const verifyEmail = async () => {
       try {
         const response = await fetch('/api/auth/verify-email', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token }),
         });
+
+        if (cancelled) return;
 
         const data = await response.json();
 
         if (response.ok) {
           setStatus('success');
           setMessage(data.message || t('verifyEmail.success.title'));
-          
-          // Update user in context if logged in
           if (user) {
-            const updatedUser = { ...user, emailVerified: true };
-            updateUser(updatedUser);
+            updateUser({ ...user, emailVerified: true });
           }
         } else {
           setStatus('error');
           setMessage(data.error || t('verifyEmail.error.title'));
         }
       } catch (error) {
+        if (cancelled) return;
         console.error('Verification error:', error);
         setStatus('error');
         setMessage(t('verifyEmail.error.title'));
@@ -58,7 +58,10 @@ const VerifyEmail: React.FC = () => {
     };
 
     verifyEmail();
-  }, [token, user, updateUser, t]);
+
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]); // Only re-run if the token itself changes, not on user/context updates
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center px-4">

@@ -85,7 +85,7 @@ const Navbar: React.FC = () => {
         const data = await res.json();
         setAuthState(data.token, data.user);
         window.history.replaceState({}, document.title, window.location.pathname);
-        success('Bem-vindo! Login efetuado com sucesso 🎉');
+        success('Bem-vindo! Login efetuado com sucesso');
       } catch {
         sessionStorage.removeItem('google_oauth_processed_code');
         window.history.replaceState({}, document.title, window.location.pathname);

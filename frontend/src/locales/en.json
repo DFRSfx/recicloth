@@ -88,6 +88,8 @@
   "product.linkCopied": "Link copied to clipboard!",
   "product.linkCopyError": "Error copying link",
   "product.shareError": "Error sharing product",
+  "product.selectSize": "Choose size",
+  "product.selectSizeFirst": "Choose a size",
   "cart.empty.title": "Your cart is empty",
   "cart.empty.desc": "Add some products to your collection and they will appear here.",
   "cart.title": "Shopping Cart",

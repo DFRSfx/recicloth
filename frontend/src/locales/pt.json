@@ -88,6 +88,8 @@
   "product.linkCopied": "Link copiado para a área de transferência!",
   "product.linkCopyError": "Erro ao copiar link",
   "product.shareError": "Erro ao partilhar produto",
+  "product.selectSize": "Escolher tamanho",
+  "product.selectSizeFirst": "Escolha um tamanho",
   "cart.empty.title": "O seu carrinho está vazio",
   "cart.empty.desc": "Adicione alguns produtos à sua coleção e eles aparecerão aqui.",
   "cart.title": "Carrinho de Compras",

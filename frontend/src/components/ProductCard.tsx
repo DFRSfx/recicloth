@@ -8,6 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 import { fireCartToast } from './CartToastManager';
 import { getProductPath } from '../utils/routes';
+import ProductModal from './ProductModal';
 
 interface ProductCardProps {
   product: Product;
@@ -30,6 +31,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
   const [startX, setStartX] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [isAdded, setIsAdded] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const hasSizes = (product.stock_mode === 'apparel' || product.stock_mode === 'shoes') && (product.size_stock?.length ?? 0) > 0;
 
   // O ÚNICO ESTADO DE ÍNDICE: Controla a imagem, o dot e a cor em simultâneo
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -89,11 +93,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
     e.preventDefault();
     if (!product.inStock || isAdded) return;
 
+    if (hasSizes) {
+      setIsModalOpen(true);
+      return;
+    }
+
     addItem(product, activeColor);
 
     const previewImage = imgVariant(carouselImages[currentIndex] || carouselImages[0], 'sm');
     fireCartToast({ productId: product.id, colorName: activeColor, productName: product.name, image: previewImage, type: 'added' });
 
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000);
+  };
+
+  const handleModalAdded = () => {
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -152,6 +166,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
 
   return (
     <>
+      {hasSizes && (
+        <ProductModal
+          product={product}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          activeColor={activeColor}
+          activeImage={carouselImages[currentIndex] || carouselImages[0]}
+          onAdded={handleModalAdded}
+        />
+      )}
       <div className="flex flex-col group relative h-full">
 
         {/* --- IMAGE CAROUSEL CONTAINER --- */}

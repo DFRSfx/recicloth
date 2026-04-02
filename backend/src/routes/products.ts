@@ -524,7 +524,11 @@ router.put(
           updates.push('size_stock = ?');
           values.push(JSON.stringify(sizeStockArray));
           updates.push('stock = ?');
-          values.push(sizeStockArray.reduce((sum, item) => sum + item.stock, 0));
+          values.push(
+            sizeStockArray.length > 0
+              ? sizeStockArray.reduce((sum, item) => sum + item.stock, 0)
+              : Number(stock) || 0
+          );
         } catch (e) {
           console.error('Error parsing sizeStock:', e);
         }
