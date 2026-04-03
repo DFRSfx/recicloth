@@ -10,6 +10,9 @@ import { getRoutePath, getShopPath } from '../utils/routes';
 
 const PRODUCTS_PER_LOAD = 12;
 
+// Função utilitária para converter nomes de categorias em slugs seguros
+const toSlug = (text: string) => text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
+
 const Shop: React.FC = () => {
   const { t, lang } = useLanguage();
   const { categorySlug } = useParams<{ categorySlug?: string }>();
@@ -60,15 +63,24 @@ const Shop: React.FC = () => {
     setExpandedFilters(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  // LÓGICA CORRIGIDA: Determina a categoria selecionada com base no slug do URL
   const selectedCategory = useMemo(() => {
     if (!categorySlug) return '';
-    const cat = allCategories.find(c => c.name.toLowerCase().replace(/\s+/g, '-') === categorySlug.toLowerCase());
-    return cat ? cat.name : '';
+    
+    // Procura na lista de categorias se alguma tem um slug que corresponda ao do URL
+    const cat = allCategories.find(c => toSlug(c.name) === categorySlug.toLowerCase());
+    
+    // Retorna o nome real da categoria (com maiúsculas e espaços) ou, em último caso, o próprio slug
+    return cat ? cat.name : categorySlug;
   }, [categorySlug, allCategories]);
 
-  const handleCategoryChange = (category: string) => {
-    if (!category || category === selectedCategory) navigate(getShopPath(lang));
-    else navigate(getShopPath(lang, category.toLowerCase().replace(/\s+/g, '-')));
+  // LÓGICA CORRIGIDA: Navega para a categoria selecionada convertendo o nome num slug limpo
+  const handleCategoryChange = (categoryName: string) => {
+    if (!categoryName || categoryName === selectedCategory) {
+      navigate(getShopPath(lang)); // Vai para a raiz da loja ("Todas")
+    } else {
+      navigate(getShopPath(lang, toSlug(categoryName))); // Vai para a categoria específica
+    }
   };
 
   const toggleColor = (color: string) => {
@@ -173,7 +185,10 @@ const Shop: React.FC = () => {
   const filteredProducts = useMemo(() => {
     let filtered = allProducts.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = !selectedCategory || product.category === selectedCategory;
+      
+      // LÓGICA CORRIGIDA: Compara o slug da categoria do produto com o slug da categoria selecionada
+      const matchesCategory = !selectedCategory || toSlug(product.category) === toSlug(selectedCategory);
+      
       const matchesColor = selectedColors.length === 0 || product.colors.some(c => selectedColors.includes(c.hex));
 
       const matchesPrice = selectedPrices.length === 0 || selectedPrices.some(bracket => {
