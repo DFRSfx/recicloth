@@ -112,6 +112,7 @@
   "cart.clearConfirm.yes": "Sim, Limpar",
   "cartItem.perUnit": "/ unidade",
   "cartItem.colorLabel": "Cor:",
+  "cartItem.sizeLabel": "Tamanho:",
   "cartItem.decreaseQty": "Diminuir quantidade",
   "cartItem.remove": "Remover produto",
   "contact.title": "Entre em Contacto",

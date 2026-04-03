@@ -38,6 +38,7 @@ const Product: React.FC = () => {
   const shopPath = getRoutePath('shop', lang);
 
   const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const [mobileImageIndex, setMobileImageIndex] = useState(0);
@@ -55,6 +56,7 @@ const Product: React.FC = () => {
     } else {
       setSelectedColor('');
     }
+    setSelectedSize('');
   }, [product?.id, product?.colors]);
 
   // THE ENGINE: Separação Inteligente das Imagens
@@ -138,10 +140,13 @@ const Product: React.FC = () => {
   const relatedProducts = allProducts.filter(p => p.id !== product.id && p.category === product.category).slice(0, 4);
   const isFavorite = favorites.some(fav => fav.product_id === String(product.id));
 
-  const handleAddToCart = () => {
-    if (!product.inStock || isAdded) return;
+  const hasSizes = (product.stock_mode === 'apparel' || product.stock_mode === 'shoes') && (product.size_stock?.length ?? 0) > 0;
+  const sizeRequired = hasSizes && !selectedSize;
 
-    addItem(product, selectedColor);
+  const handleAddToCart = () => {
+    if (!product.inStock || isAdded || sizeRequired) return;
+
+    addItem(product, selectedColor, selectedSize || undefined);
     const previewImage = matchedImages[0] || product.images[0];
     fireCartToast({ productId: product.id, colorName: selectedColor, productName: product.name, image: imgVariant(previewImage, 'sm'), type: 'added' });
 
@@ -327,19 +332,52 @@ const Product: React.FC = () => {
             </div>
           )}
 
+          {hasSizes && (
+            <div className="mb-8">
+              <div className="flex items-center gap-1.5 mb-3">
+                <span className="font-medium text-sm text-gray-900">{t('product.selectSize')}</span>
+                {selectedSize && <span className="text-sm font-bold text-gray-900">{selectedSize}</span>}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {product.size_stock!.map(({ size, stock }) => {
+                  const outOfStock = Number(stock) <= 0;
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      disabled={outOfStock}
+                      onClick={() => setSelectedSize(size)}
+                      className={`min-w-[48px] px-3 py-2 text-sm font-medium border transition-all rounded-sm ${
+                        outOfStock
+                          ? 'border-gray-200 text-gray-300 cursor-not-allowed line-through'
+                          : selectedSize === size
+                          ? 'border-black bg-black text-white'
+                          : 'border-gray-300 text-gray-900 hover:border-black'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center gap-3 mb-10">
             <button
               onClick={handleAddToCart}
-              disabled={!product.inStock || isAdded}
+              disabled={!product.inStock || isAdded || sizeRequired}
               className={`flex-1 h-14 font-bold text-[15px] transition-all rounded-sm flex items-center justify-center gap-2 ${
                 !product.inStock
                   ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : isAdded
                   ? 'bg-[#1E4D3B] text-white border border-[#1E4D3B]'
+                  : sizeRequired
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : 'bg-black text-white hover:bg-gray-900 shadow-[0_4px_14px_rgba(0,0,0,0.15)]'
               }`}
             >
-              {!product.inStock ? t('product.soldOut') : isAdded ? <><Check size={18} strokeWidth={3} /> {t('product.added')}</> : t('product.addToCart')}
+              {!product.inStock ? t('product.soldOut') : isAdded ? <><Check size={18} strokeWidth={3} /> {t('product.added')}</> : sizeRequired ? t('product.selectSizeFirst') : t('product.addToCart')}
             </button>
 
             <button

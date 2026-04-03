@@ -64,6 +64,11 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
                   {t('cartItem.colorLabel')} {item.selectedColor}
                 </p>
               )}
+              {item.selectedSize && (
+                <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
+                  {t('cartItem.sizeLabel')} {item.selectedSize}
+                </p>
+              )}
             </div>
             
             <button

@@ -112,6 +112,7 @@
   "cart.clearConfirm.yes": "Yes, Clear",
   "cartItem.perUnit": "/ unit",
   "cartItem.colorLabel": "Color:",
+  "cartItem.sizeLabel": "Size:",
   "cartItem.decreaseQty": "Decrease quantity",
   "cartItem.remove": "Remove product",
   "contact.title": "Get in Touch",
