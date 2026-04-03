@@ -17,7 +17,7 @@ const fixHtmlArtifacts = (html: string): string =>
   html
     .replace(/&\s+([a-z]+);/gi, '&$1;')      // "& amp;" → "&amp;"
     .replace(/<\s*\/\s*(\w+)\s*>/g, '</$1>') // "< / p>" → "</p>"
-    .replace(/<\s+(\w)/g, '<$1');             // "< p" → "<p"
+    .replace(/<\s+(\w)/g, '<$1');            // "< p" → "<p"
 
 const toColorSlug = (value: string): string =>
   value
@@ -59,43 +59,41 @@ const Product: React.FC = () => {
     setSelectedSize('');
   }, [product?.id, product?.colors]);
 
-  // THE ENGINE: Separação Inteligente das Imagens
-  const { matchedImages, unmatchedImages, visibleImages } = useMemo(() => {
-    if (!product) return { matchedImages: [], unmatchedImages: [], visibleImages: [] };
+  // A NOVA LÓGICA: 1 Imagem Principal (Gigante) e Restantes Imagens (Pequenas)
+  const { mainImage, otherImages, visibleImages } = useMemo(() => {
+    if (!product || !product.images || product.images.length === 0) {
+      return { mainImage: null, otherImages: [], visibleImages: [] };
+    }
+
     const selectedColorSlug = selectedColor ? toColorSlug(selectedColor) : '';
+    let mainIdx = 0;
 
-    if (!selectedColorSlug) {
-      return {
-        matchedImages: product.images,
-        unmatchedImages: [],
-        visibleImages: product.images
-      };
+    if (selectedColorSlug) {
+      // Procura a primeira imagem que tenha o slug da cor no nome do ficheiro
+      const foundIdx = product.images.findIndex(img => img.toLowerCase().includes(`-${selectedColorSlug}`));
+      if (foundIdx !== -1) {
+        mainIdx = foundIdx;
+      }
     }
 
-    const matched = product.images.filter(img => img.includes(`-${selectedColorSlug}.webp`));
-    const unmatched = product.images.filter(img => !img.includes(`-${selectedColorSlug}.webp`));
-
-    // Se por algum motivo o slug falhar ou os ficheiros não tiverem o nome correto,
-    // fazemos fallback para mostrar tudo como matched
-    if (matched.length === 0) {
-      return {
-        matchedImages: product.images,
-        unmatchedImages: [],
-        visibleImages: product.images
-      };
-    }
+    const main = product.images[mainIdx];
+    // Filtra para remover a imagem principal do array das "restantes"
+    const others = product.images.filter((_, idx) => idx !== mainIdx);
 
     return {
-      matchedImages: matched,
-      unmatchedImages: unmatched,
-      visibleImages: [...matched, ...unmatched] // Mobile mostra todas por ordem
+      mainImage: main,
+      otherImages: others,
+      visibleImages: [main, ...others] // Mobile carrega tudo com a principal primeiro
     };
   }, [selectedColor, product]);
 
+  // Reinicia o carrossel mobile para a primeira posição quando a cor muda
   useEffect(() => {
     setMobileImageIndex(0);
     const slider = document.getElementById('mobile-image-slider');
-    if (slider) slider.scrollLeft = 0;
+    if (slider) {
+      setTimeout(() => { slider.scrollLeft = 0; }, 10);
+    }
   }, [selectedColor, product?.id]);
 
   const handleMobileScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -104,11 +102,11 @@ const Product: React.FC = () => {
     const newIndex = Math.round(scrollLeft / width);
     setMobileImageIndex(newIndex);
 
-    // Sync selectedColor to whichever color's image is now visible
+    // Sincroniza a cor baseada na imagem que o utilizador está a ver no Swipe
     const image = visibleImages[newIndex];
     if (image && product?.colors?.length) {
       for (const color of product.colors) {
-        if (image.includes(`-${toColorSlug(color.name)}`)) {
+        if (image.toLowerCase().includes(`-${toColorSlug(color.name)}`)) {
           setSelectedColor(color.name);
           return;
         }
@@ -147,7 +145,7 @@ const Product: React.FC = () => {
     if (!product.inStock || isAdded || sizeRequired) return;
 
     addItem(product, selectedColor, selectedSize || undefined);
-    const previewImage = matchedImages[0] || product.images[0];
+    const previewImage = mainImage || product.images[0];
     fireCartToast({ productId: product.id, colorName: selectedColor, productName: product.name, image: imgVariant(previewImage, 'sm'), type: 'added' });
 
     setIsAdded(true);
@@ -246,37 +244,30 @@ const Product: React.FC = () => {
           {/* DESKTOP IMAGE GRID: Hierarquia Visual */}
           <div className="hidden lg:grid grid-cols-2 gap-2">
 
-            {/* Imagens Selecionadas (Gigantes / Largura Total) */}
-            {matchedImages.map((image, index) => (
-              <div key={`matched-${index}`} className="col-span-2 w-full bg-[#f2f2f2] relative">
+            {/* Imagem Principal (Largura Total - col-span-2) */}
+            {mainImage && (
+              <div className="col-span-2 w-full bg-[#f2f2f2] relative">
                 <img
-                  src={getAbsoluteImageUrl(imgVariant(image, 'lg'))}
-                  alt={`${product.name} em ${selectedColor} ${index + 1}`}
+                  src={getAbsoluteImageUrl(imgVariant(mainImage, 'lg'))}
+                  alt={`${product.name} - Cor principal`}
                   className="w-full h-auto object-cover mix-blend-multiply"
                 />
               </div>
-            ))}
-
-            {/* Imagens das Outras Cores (Pequenas / Opacas) */}
-            {unmatchedImages.length > 0 && (
-              <>
-                <div className="col-span-2 mt-8 mb-2 px-2">
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">{t('product.moreColors')}</h3>
-                </div>
-                {unmatchedImages.map((image, index) => (
-                  <div
-                    key={`unmatched-${index}`}
-                    className="col-span-1 w-full bg-[#f2f2f2] relative aspect-[4/5] opacity-60 hover:opacity-100 transition-opacity duration-300"
-                  >
-                    <img
-                      src={getAbsoluteImageUrl(imgVariant(image, 'md'))}
-                      alt={`Outra cor de ${product.name}`}
-                      className="w-full h-full object-cover mix-blend-multiply"
-                    />
-                  </div>
-                ))}
-              </>
             )}
+
+            {/* Outras Imagens (Metade da largura - col-span-1) */}
+            {otherImages.map((image, index) => (
+              <div
+                key={`other-${index}`}
+                className="col-span-1 w-full bg-[#f2f2f2] relative aspect-[4/5] hover:opacity-90 transition-opacity duration-300"
+              >
+                <img
+                  src={getAbsoluteImageUrl(imgVariant(image, 'md'))}
+                  alt={`${product.name} detalhe ${index + 2}`}
+                  className="w-full h-full object-cover mix-blend-multiply"
+                />
+              </div>
+            ))}
 
           </div>
         </div>
@@ -399,7 +390,7 @@ const Product: React.FC = () => {
               <div className={`overflow-hidden transition-all duration-300 ${expandedSections.description ? 'max-h-[2000px] pb-6' : 'max-h-0'}`}>
                 <div className="product-description" dangerouslySetInnerHTML={{ __html: fixHtmlArtifacts(product.description) }} />
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mt-4">
                   {product.featured && <span className="border border-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 uppercase tracking-wider">{t('product.tag.featured')}</span>}
                   {product.new && <span className="border border-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 uppercase tracking-wider">{t('product.tag.new')}</span>}
                   {product.category && <span className="border border-gray-200 text-gray-600 text-xs font-bold px-2.5 py-1 uppercase tracking-wider">{product.category}</span>}
