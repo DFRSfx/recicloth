@@ -19,15 +19,6 @@ const fixHtmlArtifacts = (html: string): string =>
     .replace(/<\s*\/\s*(\w+)\s*>/g, '</$1>') // "< / p>" → "</p>"
     .replace(/<\s+(\w)/g, '<$1');            // "< p" → "<p"
 
-const toColorSlug = (value: string): string =>
-  value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 40);
-
 const Product: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { addItem } = useCart();
@@ -59,20 +50,20 @@ const Product: React.FC = () => {
     setSelectedSize('');
   }, [product?.id, product?.colors]);
 
-  // A NOVA LÓGICA: 1 Imagem Principal (Gigante) e Restantes Imagens (Pequenas)
+  // A NOVA LÓGICA: Mapeamento 1:1 (A Cor 1 = Imagem 1, Cor 2 = Imagem 2, etc.)
   const { mainImage, otherImages, visibleImages } = useMemo(() => {
     if (!product || !product.images || product.images.length === 0) {
       return { mainImage: null, otherImages: [], visibleImages: [] };
     }
 
-    const selectedColorSlug = selectedColor ? toColorSlug(selectedColor) : '';
     let mainIdx = 0;
 
-    if (selectedColorSlug) {
-      // Procura a primeira imagem que tenha o slug da cor no nome do ficheiro
-      const foundIdx = product.images.findIndex(img => img.toLowerCase().includes(`-${selectedColorSlug}`));
-      if (foundIdx !== -1) {
-        mainIdx = foundIdx;
+    // Descobre em que posição do array está a cor selecionada
+    if (selectedColor && product.colors) {
+      const colorIndex = product.colors.findIndex(c => c.name === selectedColor);
+      // Se encontrou a cor e existe uma imagem na mesma posição, esse é o índice principal
+      if (colorIndex >= 0 && colorIndex < product.images.length) {
+        mainIdx = colorIndex;
       }
     }
 
@@ -102,14 +93,14 @@ const Product: React.FC = () => {
     const newIndex = Math.round(scrollLeft / width);
     setMobileImageIndex(newIndex);
 
-    // Sincroniza a cor baseada na imagem que o utilizador está a ver no Swipe
+    // Sincroniza a cor baseada na imagem original (Mapeamento 1:1)
     const image = visibleImages[newIndex];
-    if (image && product?.colors?.length) {
-      for (const color of product.colors) {
-        if (image.toLowerCase().includes(`-${toColorSlug(color.name)}`)) {
-          setSelectedColor(color.name);
-          return;
-        }
+    if (image && product?.images && product?.colors) {
+      // Descobre qual era o índice original desta imagem
+      const originalIdx = product.images.indexOf(image);
+      // Atualiza a cor para corresponder a esse índice
+      if (originalIdx >= 0 && product.colors[originalIdx]) {
+        setSelectedColor(product.colors[originalIdx].name);
       }
     }
   };
