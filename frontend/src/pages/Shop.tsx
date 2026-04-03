@@ -67,8 +67,8 @@ const Shop: React.FC = () => {
   const selectedCategory = useMemo(() => {
     if (!categorySlug) return '';
     
-    // Procura na lista de categorias se alguma tem um slug que corresponda ao do URL
-    const cat = allCategories.find(c => toSlug(c.name) === categorySlug.toLowerCase());
+    // Match by DB slug first (language-agnostic), then fall back to name-derived slug
+    const cat = allCategories.find(c => c.slug === categorySlug.toLowerCase() || toSlug(c.name) === categorySlug.toLowerCase());
     
     // Retorna o nome real da categoria (com maiúsculas e espaços) ou, em último caso, o próprio slug
     return cat ? cat.name : categorySlug;
