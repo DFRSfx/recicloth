@@ -118,7 +118,7 @@ const Navbar: React.FC = () => {
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(''); // stores slug
-  const [hasMoved, setHasMoved] = useState(false);
+  const hasMovedRef = useRef(false);
 
   const navigation = [
     { name: t('nav.home'), key: 'home' as const },
@@ -210,7 +210,7 @@ const Navbar: React.FC = () => {
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!categoriesRef.current) return;
     setIsDragging(true);
-    setHasMoved(false);
+    hasMovedRef.current = false;
     setStartX(e.pageX - categoriesRef.current.offsetLeft);
     setScrollLeft(categoriesRef.current.scrollLeft);
   };
@@ -220,7 +220,7 @@ const Navbar: React.FC = () => {
     e.preventDefault();
     const x = e.pageX - categoriesRef.current.offsetLeft;
     const walk = (x - startX) * 2;
-    if (Math.abs(walk) > 5) setHasMoved(true);
+    if (Math.abs(walk) > 10) hasMovedRef.current = true;
     categoriesRef.current.scrollLeft = scrollLeft - walk;
   };
 
@@ -230,7 +230,7 @@ const Navbar: React.FC = () => {
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!categoriesRef.current) return;
     setIsDragging(true);
-    setHasMoved(false);
+    hasMovedRef.current = false;
     setStartX(e.touches[0].pageX - categoriesRef.current.offsetLeft);
     setScrollLeft(categoriesRef.current.scrollLeft);
   };
@@ -239,14 +239,14 @@ const Navbar: React.FC = () => {
     if (!isDragging || !categoriesRef.current) return;
     const x = e.touches[0].pageX - categoriesRef.current.offsetLeft;
     const walk = (x - startX) * 2;
-    if (Math.abs(walk) > 5) setHasMoved(true);
+    if (Math.abs(walk) > 10) hasMovedRef.current = true;
     categoriesRef.current.scrollLeft = scrollLeft - walk;
   };
 
   const handleTouchEnd = () => setIsDragging(false);
 
   const handleCategoryClick = (slug: string) => {
-    if (hasMoved) return;
+    if (hasMovedRef.current) return;
     const wasSelected = selectedCategory === slug;
     setSelectedCategory(wasSelected ? '' : slug);
     navigate(wasSelected ? getShopPath(lang) : getShopPath(lang, slug));
