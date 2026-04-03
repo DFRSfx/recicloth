@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Heart, Share2, ChevronDown, ChevronUp, ChevronLeft, Star, Check } from 'lucide-react';
 import SEO from '../components/SEO';
@@ -34,6 +34,9 @@ const Product: React.FC = () => {
 
   const [mobileImageIndex, setMobileImageIndex] = useState(0);
   const [isAdded, setIsAdded] = useState(false);
+  
+  // Referência para impedir o loop de scroll no mobile
+  const isSwipingRef = useRef(false);
 
   const [expandedSections, setExpandedSections] = useState({
     description: true,
@@ -50,57 +53,73 @@ const Product: React.FC = () => {
     setSelectedSize('');
   }, [product?.id, product?.colors]);
 
-  // A NOVA LÓGICA: Mapeamento 1:1 (A Cor 1 = Imagem 1, Cor 2 = Imagem 2, etc.)
-  const { mainImage, otherImages, visibleImages } = useMemo(() => {
+  // --- LÓGICA DESKTOP: Reordena as imagens (Principal Gigante + Pequenas) ---
+  const { mainImage, otherImages } = useMemo(() => {
     if (!product || !product.images || product.images.length === 0) {
-      return { mainImage: null, otherImages: [], visibleImages: [] };
+      return { mainImage: null, otherImages: [] };
     }
 
     let mainIdx = 0;
 
-    // Descobre em que posição do array está a cor selecionada
+    // Descobre o índice da cor selecionada e associa à imagem desse índice (Mapeamento 1:1)
     if (selectedColor && product.colors) {
       const colorIndex = product.colors.findIndex(c => c.name === selectedColor);
-      // Se encontrou a cor e existe uma imagem na mesma posição, esse é o índice principal
       if (colorIndex >= 0 && colorIndex < product.images.length) {
         mainIdx = colorIndex;
       }
     }
 
     const main = product.images[mainIdx];
-    // Filtra para remover a imagem principal do array das "restantes"
     const others = product.images.filter((_, idx) => idx !== mainIdx);
 
     return {
       mainImage: main,
-      otherImages: others,
-      visibleImages: [main, ...others] // Mobile carrega tudo com a principal primeiro
+      otherImages: others
     };
   }, [selectedColor, product]);
 
-  // Reinicia o carrossel mobile para a primeira posição quando a cor muda
-  useEffect(() => {
-    setMobileImageIndex(0);
-    const slider = document.getElementById('mobile-image-slider');
-    if (slider) {
-      setTimeout(() => { slider.scrollLeft = 0; }, 10);
-    }
-  }, [selectedColor, product?.id]);
+  // --- LÓGICA MOBILE: Array original estático para impedir glitchs no swipe ---
+  const mobileImages = product?.images || [];
 
+  // Efeito que move o slider do mobile apenas se o clique for manual
+  useEffect(() => {
+    // Se a cor mudou por causa de um swipe, cancelamos para evitar o loop
+    if (isSwipingRef.current) {
+      isSwipingRef.current = false;
+      return;
+    }
+
+    // Se o clique veio de uma bolinha de cor, fazemos scroll para a imagem certa
+    if (product && product.colors) {
+      const idx = product.colors.findIndex(c => c.name === selectedColor);
+      if (idx >= 0 && idx < mobileImages.length && idx !== mobileImageIndex) {
+        const slider = document.getElementById('mobile-image-slider');
+        if (slider) {
+          slider.scrollTo({ left: idx * slider.clientWidth, behavior: 'smooth' });
+          setMobileImageIndex(idx);
+        }
+      }
+    }
+  }, [selectedColor, product, mobileImages.length]);
+
+  // Regista o swipe do dedo no telemóvel e muda a bolinha da cor sem forçar scroll
   const handleMobileScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const scrollLeft = e.currentTarget.scrollLeft;
     const width = e.currentTarget.clientWidth;
+    if (width === 0) return;
+    
     const newIndex = Math.round(scrollLeft / width);
-    setMobileImageIndex(newIndex);
+    
+    if (newIndex !== mobileImageIndex) {
+      setMobileImageIndex(newIndex);
 
-    // Sincroniza a cor baseada na imagem original (Mapeamento 1:1)
-    const image = visibleImages[newIndex];
-    if (image && product?.images && product?.colors) {
-      // Descobre qual era o índice original desta imagem
-      const originalIdx = product.images.indexOf(image);
-      // Atualiza a cor para corresponder a esse índice
-      if (originalIdx >= 0 && product.colors[originalIdx]) {
-        setSelectedColor(product.colors[originalIdx].name);
+      // Sincroniza a bolinha de cor com a imagem que o utilizador arrastou
+      if (product?.colors && product.colors[newIndex]) {
+        const newColor = product.colors[newIndex].name;
+        if (newColor !== selectedColor) {
+          isSwipingRef.current = true; // Avisa o useEffect que foi swipe!
+          setSelectedColor(newColor);
+        }
       }
     }
   };
@@ -218,16 +237,16 @@ const Product: React.FC = () => {
               className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar scroll-smooth"
               onScroll={handleMobileScroll}
             >
-              {visibleImages.map((image, index) => (
+              {mobileImages.map((image, index) => (
                 <div key={`${image}-${index}`} className="w-full flex-shrink-0 snap-center relative aspect-[4/5] bg-[#f2f2f2]">
                   <img src={getAbsoluteImageUrl(imgVariant(image, 'md'))} alt={`${product.name} ${index + 1}`} className="w-full h-full object-cover mix-blend-multiply" />
                 </div>
               ))}
             </div>
 
-            {visibleImages.length > 1 && (
+            {mobileImages.length > 1 && (
               <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-black text-xs font-bold px-3 py-1.5 rounded-full shadow-sm pointer-events-none">
-                {mobileImageIndex + 1}/{visibleImages.length}
+                {mobileImageIndex + 1}/{mobileImages.length}
               </div>
             )}
           </div>
@@ -250,7 +269,14 @@ const Product: React.FC = () => {
             {otherImages.map((image, index) => (
               <div
                 key={`other-${index}`}
-                className="col-span-1 w-full bg-[#f2f2f2] relative aspect-[4/5] hover:opacity-90 transition-opacity duration-300"
+                onClick={() => {
+                  // Ao clicar na miniatura no desktop, muda a cor ativa
+                  const origIdx = product.images.indexOf(image);
+                  if (origIdx >= 0 && product.colors && product.colors[origIdx]) {
+                    setSelectedColor(product.colors[origIdx].name);
+                  }
+                }}
+                className="col-span-1 w-full bg-[#f2f2f2] relative aspect-[4/5] hover:opacity-90 transition-opacity duration-300 cursor-pointer"
               >
                 <img
                   src={getAbsoluteImageUrl(imgVariant(image, 'md'))}
