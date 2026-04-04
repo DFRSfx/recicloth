@@ -19,6 +19,9 @@ interface FavoriteItem {
   description: string;
   price: number;
   stock: number;
+  stock_mode: 'unit' | 'apparel' | 'shoes';
+  size_stock: { size: string; stock: number }[];
+  colors: { name: string; hex: string }[];
   images: string[];
   category: string;
   category_id: number;

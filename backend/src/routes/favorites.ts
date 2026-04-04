@@ -33,6 +33,9 @@ router.get('/', async (req: AuthRequest, res) => {
         p.description,
         p.price,
         p.stock,
+        p.stock_mode,
+        p.size_stock,
+        p.colors,
         p.category_id,
         c.name as category,
         p.featured,
@@ -53,6 +56,13 @@ router.get('/', async (req: AuthRequest, res) => {
       description: item.description,
       price: parseFloat(item.price),
       stock: item.stock,
+      stock_mode: item.stock_mode || 'unit',
+      size_stock: item.size_stock
+        ? (typeof item.size_stock === 'string' ? JSON.parse(item.size_stock) : item.size_stock)
+        : [],
+      colors: item.colors
+        ? (typeof item.colors === 'string' ? JSON.parse(item.colors) : item.colors)
+        : [],
       category_id: item.category_id,
       category: item.category || '',
       featured: item.featured,

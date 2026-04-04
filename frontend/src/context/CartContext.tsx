@@ -12,6 +12,11 @@ const getSessionId = (): string => {
   return sessionId;
 };
 
+// Helper para criar uma chave verdadeiramente única para cada variação do produto
+export const getCartItemUniqueId = (productId: string | number, color?: string, size?: string) => {
+  return `${productId}-${color || ''}-${size || ''}`;
+};
+
 interface CartState {
   items: CartItem[];
   total: number;
@@ -19,15 +24,15 @@ interface CartState {
 
 type CartAction =
   | { type: 'ADD_ITEM'; payload: { product: Product; selectedColor?: string; selectedSize?: string } }
-  | { type: 'REMOVE_ITEM'; payload: string }
-  | { type: 'UPDATE_QUANTITY'; payload: { productId: string; quantity: number } }
+  | { type: 'REMOVE_ITEM'; payload: string } // payload is uniqueId
+  | { type: 'UPDATE_QUANTITY'; payload: { uniqueId: string; quantity: number } }
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: CartState };
 
 interface CartContextType extends CartState {
   addItem: (product: Product, selectedColor?: string, selectedSize?: string) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (uniqueId: string) => void;
+  updateQuantity: (uniqueId: string, quantity: number) => void;
   clearCart: () => void;
   syncCart: () => Promise<void>;
   itemCount: number;
@@ -38,17 +43,14 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
     case 'ADD_ITEM': {
+      const uniqueId = getCartItemUniqueId(action.payload.product.id, action.payload.selectedColor, action.payload.selectedSize);
       const existingItem = state.items.find(
-        item => item.product.id === action.payload.product.id &&
-        item.selectedColor === action.payload.selectedColor &&
-        item.selectedSize === action.payload.selectedSize
+        item => getCartItemUniqueId(item.product.id, item.selectedColor, item.selectedSize) === uniqueId
       );
 
       if (existingItem) {
         const updatedItems = state.items.map(item =>
-          item.product.id === action.payload.product.id &&
-          item.selectedColor === action.payload.selectedColor &&
-          item.selectedSize === action.payload.selectedSize
+          getCartItemUniqueId(item.product.id, item.selectedColor, item.selectedSize) === uniqueId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
@@ -67,20 +69,25 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     }
 
     case 'REMOVE_ITEM': {
-      const newItems = state.items.filter(item => item.product.id !== action.payload);
+      // Usa a chave composta para comparar exatamente com o que enviámos ("25-Verde bacia-S")
+      const newItems = state.items.filter(item => 
+        getCartItemUniqueId(item.product.id, item.selectedColor, item.selectedSize) !== action.payload
+      );
       const total = newItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
       return { items: newItems, total };
     }
 
     case 'UPDATE_QUANTITY': {
       if (action.payload.quantity <= 0) {
-        const newItems = state.items.filter(item => item.product.id !== action.payload.productId);
+        const newItems = state.items.filter(item => 
+          getCartItemUniqueId(item.product.id, item.selectedColor, item.selectedSize) !== action.payload.uniqueId
+        );
         const total = newItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
         return { items: newItems, total };
       }
 
       const newItems = state.items.map(item =>
-        item.product.id === action.payload.productId
+        getCartItemUniqueId(item.product.id, item.selectedColor, item.selectedSize) === action.payload.uniqueId
           ? { ...item, quantity: action.payload.quantity }
           : item
       );
@@ -105,7 +112,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [sessionId] = useState(getSessionId());
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Helper to get headers
   const getHeaders = () => {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -117,7 +123,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return headers;
   };
 
-  // Load cart from database
   const loadCartFromDB = async () => {
     try {
       const response = await fetch('/api/cart', {
@@ -126,9 +131,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.ok) {
         const data = await response.json();
-        // Transform DB items to CartItem format
+        
         const cartItems: CartItem[] = data.items.map((item: any) => ({
-          cartItemId: item.id, // Store the cart_item ID for deletions
+          cartItemId: item.id, 
           product: {
             id: item.product_id,
             name: item.product_name,
@@ -138,7 +143,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             categoryId: item.category_id,
           },
           quantity: item.quantity,
-          selectedColor: undefined, // TODO: Add color to DB if needed
+          // Agora tenta extrair a cor e tamanho da DB (caso a API já os esteja a enviar)
+          selectedColor: item.color || item.selectedColor || item.selected_color || undefined,
+          selectedSize: item.size || item.selectedSize || item.selected_size || undefined,
         }));
 
         const total = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
@@ -146,7 +153,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error('Error loading cart from DB:', error);
-      // Fallback to localStorage
       const savedCart = localStorage.getItem('cart');
       if (savedCart) {
         try {
@@ -159,13 +165,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Sync cart to database
   const syncCart = async () => {
     if (isSyncing) return;
     setIsSyncing(true);
 
     try {
-      // If user just logged in, merge session cart with user cart
       if (isAuthenticated && token) {
         await fetch('/api/cart/merge', {
           method: 'POST',
@@ -173,8 +177,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           body: JSON.stringify({ sessionId }),
         });
       }
-
-      // Reload cart from DB
       await loadCartFromDB();
     } catch (error) {
       console.error('Error syncing cart:', error);
@@ -183,28 +185,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Load cart on mount and when auth changes
   useEffect(() => {
     loadCartFromDB();
   }, [isAuthenticated, token]);
 
-  // Sync cart when user logs in
   useEffect(() => {
     if (isAuthenticated && token) {
       syncCart();
     }
   }, [isAuthenticated, token]);
 
-  // Save to localStorage as backup
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(state));
   }, [state]);
 
   const addItem = async (product: Product, selectedColor?: string, selectedSize?: string) => {
-    // Optimistically update UI
     dispatch({ type: 'ADD_ITEM', payload: { product, selectedColor, selectedSize } });
 
-    // Sync with database
     try {
       await fetch('/api/cart/add', {
         method: 'POST',
@@ -212,25 +209,24 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({
           productId: product.id,
           quantity: 1,
+          color: selectedColor, // Envia a cor para a Base de Dados
+          size: selectedSize    // Envia o tamanho para a Base de Dados
         }),
       });
     } catch (error) {
       console.error('Error adding item to cart:', error);
-      // The optimistic update is already done, so user won't notice
     }
   };
 
-  const removeItem = async (productId: string) => {
-    // Find the cart item to get its database ID
-    const cartItem = state.items.find(item => item.product.id === productId);
+  const removeItem = async (uniqueId: string) => {
+    const cartItem = state.items.find(item => 
+      getCartItemUniqueId(item.product.id, item.selectedColor, item.selectedSize) === uniqueId
+    );
 
-    // Optimistically update UI
-    dispatch({ type: 'REMOVE_ITEM', payload: productId });
+    dispatch({ type: 'REMOVE_ITEM', payload: uniqueId });
 
-    // Sync with database
     try {
       if (cartItem?.cartItemId) {
-        // Use the cart_items table ID
         await fetch(`/api/cart/${cartItem.cartItemId}`, {
           method: 'DELETE',
           headers: getHeaders(),
@@ -241,14 +237,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateQuantity = async (productId: string, quantity: number) => {
-    // Find the cart item to get its database ID
-    const cartItem = state.items.find(item => item.product.id === productId);
+  const updateQuantity = async (uniqueId: string, quantity: number) => {
+    const cartItem = state.items.find(item => 
+      getCartItemUniqueId(item.product.id, item.selectedColor, item.selectedSize) === uniqueId
+    );
 
-    // Optimistically update UI
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity } });
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { uniqueId, quantity } });
 
-    // Sync with database
     try {
       if (!cartItem?.cartItemId) return;
 
@@ -270,10 +265,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearCart = async () => {
-    // Optimistically update UI
     dispatch({ type: 'CLEAR_CART' });
-
-    // Sync with database
     try {
       await fetch('/api/cart', {
         method: 'DELETE',

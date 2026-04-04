@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, X } from 'lucide-react';
 import { CartItem as CartItemType } from '../types';
@@ -12,26 +12,20 @@ interface CartItemProps {
   item: CartItemType;
 }
 
-// LÓGICA CORRIGIDA: Mapeamento 1:1 baseado no índice da cor
+// Mapeamento 1:1 baseado no índice da cor
 const getColorImage = (item: CartItemType): string => {
   const images = item.product.images;
   const colors = item.product.colors;
 
-  // Se não houver imagens, retorna vazio
   if (!images || images.length === 0) return '';
-  
-  // Se não houver cor selecionada ou o produto não tiver array de cores, retorna a 1ª imagem
   if (!item.selectedColor || !colors || colors.length === 0) return images[0];
 
-  // Procura o índice da cor selecionada no array de cores do produto
   const colorIndex = colors.findIndex(c => c.name === item.selectedColor);
 
-  // Se encontrar o índice e houver uma imagem correspondente nessa posição, usa-a
   if (colorIndex >= 0 && colorIndex < images.length) {
     return images[colorIndex];
   }
 
-  // Fallback para a primeira imagem
   return images[0];
 };
 
@@ -40,13 +34,10 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { t, lang } = useLanguage();
   const productPath = getProductPath(lang, item.product.id);
 
-  // Usa o novo helper baseado em índices
   const colorImage = getColorImage(item);
 
-  // Chave Única Composta (Crucial para não fundir cores/tamanhos diferentes do mesmo produto)
-  const cartItemId = useMemo(() => {
-    return `${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`;
-  }, [item]);
+  // ID composto gerado em tempo real
+  const cartItemId = `${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`;
 
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -57,15 +48,16 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
         image: imgVariant(colorImage, 'sm'), 
         type: 'removed' 
       });
-      // ATENÇÃO: Se o teu removeItem no CartContext espera o ID do produto, e tu tens 
-      // cores diferentes, vais apagar todas! O teu contexto deve receber o `cartItemId` único.
       removeItem(cartItemId);
     } else {
       updateQuantity(cartItemId, newQuantity);
     }
   };
 
-  const handleRemove = () => {
+  const handleRemove = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     fireCartToast({ 
       productId: item.product.id, 
       colorName: item.selectedColor, 
@@ -73,6 +65,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
       image: imgVariant(colorImage, 'sm'), 
       type: 'removed' 
     });
+    
     removeItem(cartItemId);
   };
 
@@ -94,14 +87,12 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
           
           <div className="flex items-start justify-between gap-3 mb-1">
             <div className="flex-1 min-w-0">
-              {/* Product Name */}
               <Link to={productPath} className="group/name block mb-1">
                 <h3 className="text-[15px] sm:text-[16px] font-bold text-gray-900 group-hover/name:text-[#1E4D3B] transition-colors leading-snug">
                   {item.product.name}
                 </h3>
               </Link>
 
-              {/* Color & Size Specs */}
               <div className="space-y-0.5 mt-2">
                 {item.selectedColor && (
                   <p className="text-[13px] text-gray-500">
