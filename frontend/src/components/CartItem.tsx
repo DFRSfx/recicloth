@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, X } from 'lucide-react';
 import { CartItem as CartItemType } from '../types';
@@ -8,123 +8,164 @@ import { fireCartToast } from './CartToastManager';
 import { useLanguage } from '../context/LanguageContext';
 import { getProductPath } from '../utils/routes';
 
-const toColorSlug = (value: string): string =>
-  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-
-const getColorImage = (images: string[], colorName?: string): string => {
-  if (!colorName || !images?.length) return images?.[0] ?? '';
-  const slug = toColorSlug(colorName);
-  return images.find(img => img.includes(`-${slug}.webp`) || img.includes(`-${slug}-`)) ?? images[0];
-};
-
 interface CartItemProps {
   item: CartItemType;
 }
+
+// LÓGICA CORRIGIDA: Mapeamento 1:1 baseado no índice da cor
+const getColorImage = (item: CartItemType): string => {
+  const images = item.product.images;
+  const colors = item.product.colors;
+
+  // Se não houver imagens, retorna vazio
+  if (!images || images.length === 0) return '';
+  
+  // Se não houver cor selecionada ou o produto não tiver array de cores, retorna a 1ª imagem
+  if (!item.selectedColor || !colors || colors.length === 0) return images[0];
+
+  // Procura o índice da cor selecionada no array de cores do produto
+  const colorIndex = colors.findIndex(c => c.name === item.selectedColor);
+
+  // Se encontrar o índice e houver uma imagem correspondente nessa posição, usa-a
+  if (colorIndex >= 0 && colorIndex < images.length) {
+    return images[colorIndex];
+  }
+
+  // Fallback para a primeira imagem
+  return images[0];
+};
 
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { updateQuantity, removeItem } = useCart();
   const { t, lang } = useLanguage();
   const productPath = getProductPath(lang, item.product.id);
 
-  const colorImage = getColorImage(item.product.images, item.selectedColor);
+  // Usa o novo helper baseado em índices
+  const colorImage = getColorImage(item);
+
+  // Chave Única Composta (Crucial para não fundir cores/tamanhos diferentes do mesmo produto)
+  const cartItemId = useMemo(() => {
+    return `${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`;
+  }, [item]);
 
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity <= 0) {
-      fireCartToast({ productId: item.product.id, colorName: item.selectedColor, productName: item.product.name, image: imgVariant(colorImage, 'sm'), type: 'removed' });
-      removeItem(item.product.id);
+      fireCartToast({ 
+        productId: item.product.id, 
+        colorName: item.selectedColor, 
+        productName: item.product.name, 
+        image: imgVariant(colorImage, 'sm'), 
+        type: 'removed' 
+      });
+      // ATENÇÃO: Se o teu removeItem no CartContext espera o ID do produto, e tu tens 
+      // cores diferentes, vais apagar todas! O teu contexto deve receber o `cartItemId` único.
+      removeItem(cartItemId);
     } else {
-      updateQuantity(item.product.id, newQuantity);
+      updateQuantity(cartItemId, newQuantity);
     }
   };
 
+  const handleRemove = () => {
+    fireCartToast({ 
+      productId: item.product.id, 
+      colorName: item.selectedColor, 
+      productName: item.product.name, 
+      image: imgVariant(colorImage, 'sm'), 
+      type: 'removed' 
+    });
+    removeItem(cartItemId);
+  };
+
   return (
-    <div className="p-4 sm:p-6 border-b border-gray-200 last:border-b-0">
-      <div className="flex gap-3 sm:gap-4">
+    <div className="p-5 sm:p-6 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors">
+      <div className="flex gap-4 sm:gap-6 items-start">
+        
         {/* Product Image */}
-        <Link to={productPath} className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 overflow-hidden rounded-lg hover:opacity-90 transition-opacity">
+        <Link to={productPath} className="w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 overflow-hidden rounded bg-[#f2f2f2] border border-gray-100 hover:opacity-90 transition-opacity">
           <img
             src={getAbsoluteImageUrl(imgVariant(colorImage, 'sm'))}
             alt={item.product.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover mix-blend-multiply"
           />
         </Link>
 
         {/* Product Info & Actions */}
-        <div className="flex-1 min-w-0 flex flex-col">
-          {/* Header: Name + Remove Button */}
-          <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex-1 min-w-0 flex flex-col h-full justify-between">
+          
+          <div className="flex items-start justify-between gap-3 mb-1">
             <div className="flex-1 min-w-0">
-              <Link to={productPath} className="group/name">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover/name:text-primary-600 transition-colors line-clamp-2">
+              {/* Product Name */}
+              <Link to={productPath} className="group/name block mb-1">
+                <h3 className="text-[15px] sm:text-[16px] font-bold text-gray-900 group-hover/name:text-[#1E4D3B] transition-colors leading-snug">
                   {item.product.name}
                 </h3>
               </Link>
-              {item.selectedColor && (
-                <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                  {t('cartItem.colorLabel')} {item.selectedColor}
-                </p>
-              )}
-              {item.selectedSize && (
-                <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
-                  {t('cartItem.sizeLabel')} {item.selectedSize}
-                </p>
-              )}
+
+              {/* Color & Size Specs */}
+              <div className="space-y-0.5 mt-2">
+                {item.selectedColor && (
+                  <p className="text-[13px] text-gray-500">
+                    <span className="font-medium text-gray-700">Cor: </span>{item.selectedColor}
+                  </p>
+                )}
+                {item.selectedSize && (
+                  <p className="text-[13px] text-gray-500">
+                    <span className="font-medium text-gray-700">Tamanho: </span>{item.selectedSize}
+                  </p>
+                )}
+              </div>
             </div>
             
+            {/* Remove Button */}
             <button
-              onClick={() => {
-                fireCartToast({ productId: item.product.id, colorName: item.selectedColor, productName: item.product.name, image: imgVariant(colorImage, 'sm'), type: 'removed' });
-                removeItem(item.product.id);
-              }}
-              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors flex-shrink-0"
-              title={t('cartItem.remove')}
+              onClick={handleRemove}
+              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors flex-shrink-0 -mt-1 -mr-1"
+              title="Remover produto"
+              aria-label="Remover"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5" strokeWidth={1.5} />
             </button>
           </div>
 
-          {/* Price */}
-          <div className="mb-3">
-            <p className="text-base sm:text-lg font-bold text-primary-600">
-              {item.product.price.toFixed(2)}€
-              <span className="text-xs sm:text-sm text-gray-500 font-normal ml-1">
-                {t('cartItem.perUnit')}
-              </span>
-            </p>
-          </div>
+          <div className="mt-4 flex items-end justify-between gap-3">
+            
+            <div className="flex flex-col gap-3">
+              {/* Unit Price */}
+              <p className="text-[14px] font-bold text-gray-900">
+                {item.product.price.toFixed(2)}€
+                <span className="text-[12px] text-gray-400 font-normal ml-1">/ unidade</span>
+              </p>
 
-          {/* Bottom Row: Quantity Controls + Total */}
-          <div className="flex items-center justify-between gap-3 mt-auto">
-            {/* Quantity Controls */}
-            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-              <button
-                onClick={() => handleQuantityChange(item.quantity - 1)}
-                className="p-2 sm:p-2.5 hover:bg-gray-50 transition-colors active:bg-gray-100"
-                aria-label={t('cartItem.decreaseQty')}
-              >
-                <Minus className="h-4 w-4 text-gray-600" />
-              </button>
-              <span className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-900 min-w-[2.5rem] sm:min-w-[3rem] text-center border-l border-r border-gray-300">
-                {item.quantity}
-              </span>
-              <button
-                onClick={() => handleQuantityChange(item.quantity + 1)}
-                className="p-2 sm:p-2.5 hover:bg-gray-50 transition-colors active:bg-gray-100"
-                aria-label="Aumentar quantidade"
-              >
-                <Plus className="h-4 w-4 text-gray-600" />
-              </button>
+              {/* Quantity Controls */}
+              <div className="flex items-center border border-gray-200 rounded h-10 w-fit bg-white">
+                <button
+                  onClick={() => handleQuantityChange(item.quantity - 1)}
+                  className="px-3 h-full flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-600 active:bg-gray-100"
+                  aria-label="Diminuir quantidade"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <span className="px-3 min-w-[2.5rem] text-center text-[14px] font-bold text-gray-900 border-l border-r border-gray-200 h-full flex items-center justify-center">
+                  {item.quantity}
+                </span>
+                <button
+                  onClick={() => handleQuantityChange(item.quantity + 1)}
+                  className="px-3 h-full flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-600 active:bg-gray-100"
+                  aria-label="Aumentar quantidade"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
 
             {/* Total Price */}
             <div className="text-right">
-              <p className="text-xs sm:text-sm text-gray-500 mb-0.5">
-                Total
-              </p>
-              <p className="text-lg sm:text-xl font-bold text-gray-900">
+              <p className="text-[11px] font-medium text-gray-500 mb-0.5">Total</p>
+              <p className="text-[16px] sm:text-[18px] font-bold text-gray-900 leading-none">
                 {(item.product.price * item.quantity).toFixed(2)}€
               </p>
             </div>
+
           </div>
         </div>
       </div>

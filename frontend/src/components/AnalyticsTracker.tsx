@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID as string;
@@ -8,27 +8,35 @@ declare function gtag(...args: unknown[]): void;
 
 const AnalyticsTracker = () => {
   const location = useLocation();
-  const consentGranted = useRef(false);
+  const locationRef = useRef(location);
+  locationRef.current = location;
 
-  useEffect(() => {
+  const sendPageView = useCallback(() => {
     if (!MEASUREMENT_ID || typeof gtag === 'undefined') return;
     if (localStorage.getItem(CONSENT_KEY) !== 'true') return;
 
-    // Grant consent once per session
-    if (!consentGranted.current) {
-      gtag('consent', 'update', { analytics_storage: 'granted' });
-      consentGranted.current = true;
-    }
+    gtag('consent', 'update', { analytics_storage: 'granted' });
 
     // Defer one tick so page-level title effects (SEO/helmet) run first
-    const id = setTimeout(() => {
+    setTimeout(() => {
       gtag('event', 'page_view', {
-        page_path: location.pathname + location.search,
+        page_path: locationRef.current.pathname + locationRef.current.search,
         page_title: document.title,
       });
     }, 0);
-    return () => clearTimeout(id);
-  }, [location]);
+  }, []);
+
+  // Track on every route change
+  useEffect(() => {
+    sendPageView();
+  }, [location, sendPageView]);
+
+  // Track immediately when user accepts cookies mid-session
+  useEffect(() => {
+    const handler = () => sendPageView();
+    window.addEventListener('recicloth:cookie-consent-changed', handler);
+    return () => window.removeEventListener('recicloth:cookie-consent-changed', handler);
+  }, [sendPageView]);
 
   return null;
 };
