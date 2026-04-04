@@ -29,9 +29,14 @@ const fetchCartItems = async (userId: number | null, sessionId: string | null) =
         ci.id,
         ci.product_id,
         ci.quantity,
+        ci.color,
+        ci.size,
         p.name as product_name,
         p.price,
         p.stock,
+        p.stock_mode,
+        p.size_stock,
+        p.colors,
         p.category_id,
         p.images
       FROM cart_items ci
@@ -60,7 +65,9 @@ router.get('/', async (req: AuthRequest, res) => {
     const formattedItems = items.map(item => ({
       ...item,
       price: Number(item.price),
-      images: item.images ? (typeof item.images === 'string' ? JSON.parse(item.images) : item.images) : []
+      images: item.images ? (typeof item.images === 'string' ? JSON.parse(item.images) : item.images) : [],
+      colors: item.colors ? (typeof item.colors === 'string' ? JSON.parse(item.colors) : item.colors) : [],
+      size_stock: item.size_stock ? (typeof item.size_stock === 'string' ? JSON.parse(item.size_stock) : item.size_stock) : [],
     }));
 
     const totals = calculateTotals(formattedItems);
@@ -84,7 +91,7 @@ router.get('/', async (req: AuthRequest, res) => {
 const addToCartHandler = async (req: AuthRequest, res: any) => {
   try {
     const { userId, sessionId } = getUserOrSession(req);
-    const { productId, quantity = 1 } = req.body;
+    const { productId, quantity = 1, color = null, size = null } = req.body;
 
     if (!productId) {
       res.status(400).json({ error: 'Product ID é obrigatório' });
@@ -112,9 +119,14 @@ const addToCartHandler = async (req: AuthRequest, res: any) => {
       return;
     }
 
+    // Match by product + color + size so each variant is a separate cart row
     const [existingItems]: any = await pool.query(
-      `SELECT id, quantity FROM cart_items WHERE product_id = ? AND ${userId ? 'user_id = ?' : 'session_id = ?'}`,
-      [productId, userId || sessionId]
+      `SELECT id, quantity FROM cart_items
+       WHERE product_id = ?
+         AND COALESCE(color, '') = COALESCE(?, '')
+         AND COALESCE(size, '') = COALESCE(?, '')
+         AND ${userId ? 'user_id = ?' : 'session_id = ?'}`,
+      [productId, color, size, userId || sessionId]
     );
 
     let cartItemId: number;
@@ -129,8 +141,8 @@ const addToCartHandler = async (req: AuthRequest, res: any) => {
       cartItemId = Number(existingItems[0].id);
     } else {
       const [result]: any = await pool.query(
-        'INSERT INTO cart_items (user_id, session_id, product_id, quantity) VALUES (?, ?, ?, ?)',
-        [userId || null, userId ? null : sessionId, productId, quantity]
+        'INSERT INTO cart_items (user_id, session_id, product_id, quantity, color, size) VALUES (?, ?, ?, ?, ?, ?)',
+        [userId || null, userId ? null : sessionId, productId, quantity, color, size]
       );
       cartItemId = Number(result.insertId);
     }
@@ -139,7 +151,9 @@ const addToCartHandler = async (req: AuthRequest, res: any) => {
     const formattedItems = items.map(item => ({
       ...item,
       price: Number(item.price),
-      images: item.images ? (typeof item.images === 'string' ? JSON.parse(item.images) : item.images) : []
+      images: item.images ? (typeof item.images === 'string' ? JSON.parse(item.images) : item.images) : [],
+      colors: item.colors ? (typeof item.colors === 'string' ? JSON.parse(item.colors) : item.colors) : [],
+      size_stock: item.size_stock ? (typeof item.size_stock === 'string' ? JSON.parse(item.size_stock) : item.size_stock) : [],
     }));
     const totals = calculateTotals(formattedItems);
 
@@ -288,7 +302,7 @@ router.post('/merge', async (req: AuthRequest, res) => {
     }
 
     const [sessionItems]: any = await pool.query(
-      'SELECT product_id, quantity FROM cart_items WHERE session_id = ?',
+      'SELECT product_id, quantity, color, size FROM cart_items WHERE session_id = ?',
       [sessionId]
     );
 
@@ -299,14 +313,20 @@ router.post('/merge', async (req: AuthRequest, res) => {
 
     for (const item of sessionItems) {
       const [existingItems]: any = await pool.query(
-        'SELECT id, quantity FROM cart_items WHERE user_id = ? AND product_id = ?',
-        [userId, item.product_id]
+        `SELECT id, quantity FROM cart_items
+         WHERE user_id = ? AND product_id = ?
+           AND COALESCE(color, '') = COALESCE(?, '')
+           AND COALESCE(size, '') = COALESCE(?, '')`,
+        [userId, item.product_id, item.color, item.size]
       );
 
       if (existingItems.length > 0) {
         await pool.query('UPDATE cart_items SET quantity = quantity + ? WHERE id = ?', [item.quantity, existingItems[0].id]);
       } else {
-        await pool.query('INSERT INTO cart_items (user_id, product_id, quantity) VALUES (?, ?, ?)', [userId, item.product_id, item.quantity]);
+        await pool.query(
+          'INSERT INTO cart_items (user_id, product_id, quantity, color, size) VALUES (?, ?, ?, ?, ?)',
+          [userId, item.product_id, item.quantity, item.color, item.size]
+        );
       }
     }
 

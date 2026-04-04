@@ -133,19 +133,27 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const data = await response.json();
         
         const cartItems: CartItem[] = data.items.map((item: any) => ({
-          cartItemId: item.id, 
+          cartItemId: item.id,
           product: {
             id: item.product_id,
             name: item.product_name,
             price: item.price,
-            images: item.images,
+            images: item.images || [],
             stock: item.stock,
+            inStock: item.stock > 0,
+            stock_mode: item.stock_mode || 'unit',
+            size_stock: item.size_stock || [],
+            colors: item.colors || [],
+            category: item.category || '',
             categoryId: item.category_id,
+            description: item.description || '',
+            featured: false,
+            new: false,
+            tags: [],
           },
           quantity: item.quantity,
-          // Agora tenta extrair a cor e tamanho da DB (caso a API já os esteja a enviar)
-          selectedColor: item.color || item.selectedColor || item.selected_color || undefined,
-          selectedSize: item.size || item.selectedSize || item.selected_size || undefined,
+          selectedColor: item.color || undefined,
+          selectedSize: item.size || undefined,
         }));
 
         const total = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);

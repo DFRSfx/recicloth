@@ -65,8 +65,10 @@ const Product: React.FC = () => {
     let mainIdx = 0;
 
     if (selectedColor) {
-      // Primary: match by color slug in image filename
-      const slug = toColorSlug(selectedColor);
+      // Use original_name (English) for slug matching — color.name may be translated
+      const colorObj = product.colors?.find(c => c.name === selectedColor);
+      const slugSource = colorObj?.original_name || selectedColor;
+      const slug = toColorSlug(slugSource);
       const slugIdx = product.images.findIndex(img => img.toLowerCase().includes(slug));
       if (slugIdx >= 0) {
         mainIdx = slugIdx;

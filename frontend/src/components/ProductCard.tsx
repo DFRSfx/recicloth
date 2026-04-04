@@ -59,7 +59,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
     if (displayColors.length === 0) return images;
 
     return displayColors.map((color, index) => {
-      const slug = toColorSlug(color.name);
+      const slug = toColorSlug(color.original_name || color.name);
       const match = images.find(img => img.toLowerCase().includes(slug));
       // Se encontrar a imagem da cor, usa-a. Senão, faz fallback para a imagem na mesma posição.
       return match || images[index] || images[0];

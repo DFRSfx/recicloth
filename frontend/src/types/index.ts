@@ -1,6 +1,7 @@
 export interface ProductColor {
   name: string;
   hex: string;
+  original_name?: string; // English name used for image slug matching (set by backend i18n)
 }
 
 export interface SizeStockItem {
