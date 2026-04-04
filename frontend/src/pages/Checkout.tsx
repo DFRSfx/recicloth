@@ -607,7 +607,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
                 <h3 className="text-lg font-semibold mb-5">Resumo do Pedido</h3>
                 <div className="space-y-4 mb-6">
                   {items.map((item) => (
-                    <div key={item.product.id} className="flex items-center gap-3">
+                    <div key={`${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`} className="flex items-center gap-3">
                       <img
                         src={getAbsoluteImageUrl(
                           (item.product.images?.[0] ?? '').replace(/(-md|-sm)?(\.webp)$/, '-sm$2') || '/images/placeholder.jpg'

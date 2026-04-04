@@ -100,7 +100,7 @@ const Cart: React.FC = () => {
               <div className={`divide-y divide-gray-100 ${items.length > 3 ? 'max-h-[600px] overflow-y-auto hide-scrollbar' : ''}`}>
                 {items.map((item) => (
                   <CartItem
-                    key={`${item.product.id}-${item.selectedColor || 'default'}`}
+                    key={`${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`}
                     item={item}
                   />
                 ))}

@@ -13,6 +13,9 @@ import { fireCartToast } from '../components/CartToastManager';
 import { useLanguage } from '../context/LanguageContext';
 import { getProductPath, getRoutePath, withQuery } from '../utils/routes';
 
+const toColorSlug = (value: string): string =>
+  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+
 const fixHtmlArtifacts = (html: string): string =>
   html
     .replace(/&\s+([a-z]+);/gi, '&$1;')      // "& amp;" → "&amp;"
@@ -61,11 +64,18 @@ const Product: React.FC = () => {
 
     let mainIdx = 0;
 
-    // Descobre o índice da cor selecionada e associa à imagem desse índice (Mapeamento 1:1)
-    if (selectedColor && product.colors) {
-      const colorIndex = product.colors.findIndex(c => c.name === selectedColor);
-      if (colorIndex >= 0 && colorIndex < product.images.length) {
-        mainIdx = colorIndex;
+    if (selectedColor) {
+      // Primary: match by color slug in image filename
+      const slug = toColorSlug(selectedColor);
+      const slugIdx = product.images.findIndex(img => img.toLowerCase().includes(slug));
+      if (slugIdx >= 0) {
+        mainIdx = slugIdx;
+      } else if (product.colors) {
+        // Fallback: index-based mapping
+        const colorIndex = product.colors.findIndex(c => c.name === selectedColor);
+        if (colorIndex >= 0 && colorIndex < product.images.length) {
+          mainIdx = colorIndex;
+        }
       }
     }
 
