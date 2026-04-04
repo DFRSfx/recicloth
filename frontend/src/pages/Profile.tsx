@@ -17,6 +17,95 @@ interface ShippingAddress {
 
 const emptyAddressForm = { name: '', address: '', city: '', postal_code: '', phone: '', is_default: false };
 
+const InputField = ({
+  label,
+  id,
+  icon: Icon,
+  type = 'text',
+  value,
+  onChange,
+  disabled,
+  fieldError,
+  inputRef,
+}: {
+  label: string;
+  id: string;
+  icon: React.ElementType;
+  type?: string;
+  value: string;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+  disabled: boolean;
+  fieldError?: string;
+  inputRef?: React.RefObject<HTMLInputElement>;
+}) => (
+  <div className="space-y-1.5">
+    <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+      {label}
+    </label>
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <Icon className={`h-5 w-5 transition-colors ${disabled ? 'text-gray-300' : 'text-primary-700'}`} aria-hidden="true" />
+      </div>
+      <input
+        ref={inputRef}
+        type={type}
+        name={id}
+        id={id}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        className={`block w-full pl-10 pr-3 py-2.5 sm:text-sm rounded-lg transition-all duration-300 outline-none
+          ${disabled
+            ? 'bg-tertiary-100 border-transparent text-gray-500 shadow-none'
+            : `bg-white text-gray-900 shadow-sm border focus:ring-2 focus:ring-primary-600 focus:border-primary-600 hover:border-gray-400 ${fieldError ? 'border-red-500' : 'border-gray-300'}`
+          }`}
+      />
+    </div>
+    {fieldError && !disabled && (
+      <p className="mt-1 text-sm text-red-500">{fieldError}</p>
+    )}
+  </div>
+);
+
+const PasswordField = ({
+  label,
+  id,
+  value,
+  onChange,
+  fieldError,
+  inputRef,
+}: {
+  label: string;
+  id: string;
+  value: string;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+  fieldError?: string;
+  inputRef?: React.RefObject<HTMLInputElement>;
+}) => (
+  <div className="space-y-1.5">
+    <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+      {label}
+    </label>
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <Lock className={`h-5 w-5 transition-colors text-primary-700`} aria-hidden="true" />
+      </div>
+      <input
+        ref={inputRef}
+        type="password"
+        name={id}
+        id={id}
+        value={value}
+        onChange={onChange}
+        className={`block w-full pl-10 pr-3 py-2.5 sm:text-sm rounded-lg transition-all duration-300 outline-none bg-white text-gray-900 shadow-sm border focus:ring-2 focus:ring-primary-600 focus:border-primary-600 hover:border-gray-400 ${fieldError ? 'border-red-500' : 'border-gray-300'}`}
+      />
+    </div>
+    {fieldError && (
+      <p className="mt-1 text-sm text-red-500">{fieldError}</p>
+    )}
+  </div>
+);
+
 const Profile: React.FC = () => {
   const { user, token, isAuthenticated } = useAuth();
   const { error, success } = useToast();
@@ -311,97 +400,6 @@ const Profile: React.FC = () => {
   };
 
   if (!isAuthenticated) return null;
-
-  // Local input component — no required on the DOM input
-  const InputField = ({
-    label,
-    id,
-    icon: Icon,
-    type = 'text',
-    value,
-    onChange,
-    disabled,
-    fieldError,
-    inputRef,
-  }: {
-    label: string;
-    id: string;
-    icon: React.ElementType;
-    type?: string;
-    value: string;
-    onChange: React.ChangeEventHandler<HTMLInputElement>;
-    disabled: boolean;
-    fieldError?: string;
-    inputRef?: React.RefObject<HTMLInputElement>;
-  }) => (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Icon className={`h-5 w-5 transition-colors ${disabled ? 'text-gray-300' : 'text-primary-700'}`} aria-hidden="true" />
-        </div>
-        <input
-          ref={inputRef}
-          type={type}
-          name={id}
-          id={id}
-          value={value}
-          onChange={onChange}
-          disabled={disabled}
-          className={`block w-full pl-10 pr-3 py-2.5 sm:text-sm rounded-lg transition-all duration-300 outline-none
-            ${disabled
-              ? 'bg-tertiary-100 border-transparent text-gray-500 shadow-none'
-              : `bg-white text-gray-900 shadow-sm border focus:ring-2 focus:ring-primary-600 focus:border-primary-600 hover:border-gray-400 ${fieldError ? 'border-red-500' : 'border-gray-300'}`
-            }`}
-        />
-      </div>
-      {fieldError && !disabled && (
-        <p className="mt-1 text-sm text-red-500">{fieldError}</p>
-      )}
-    </div>
-  );
-
-  // Password input component
-  const PasswordField = ({
-    label,
-    id,
-    value,
-    onChange,
-    fieldError,
-    inputRef,
-  }: {
-    label: string;
-    id: string;
-    value: string;
-    onChange: React.ChangeEventHandler<HTMLInputElement>;
-    fieldError?: string;
-    inputRef?: React.RefObject<HTMLInputElement>;
-  }) => (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Lock className={`h-5 w-5 transition-colors text-primary-700`} aria-hidden="true" />
-        </div>
-        <input
-          ref={inputRef}
-          type="password"
-          name={id}
-          id={id}
-          value={value}
-          onChange={onChange}
-          className={`block w-full pl-10 pr-3 py-2.5 sm:text-sm rounded-lg transition-all duration-300 outline-none bg-white text-gray-900 shadow-sm border focus:ring-2 focus:ring-primary-600 focus:border-primary-600 hover:border-gray-400 ${fieldError ? 'border-red-500' : 'border-gray-300'}`}
-        />
-      </div>
-      {fieldError && (
-        <p className="mt-1 text-sm text-red-500">{fieldError}</p>
-      )}
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-tertiary-100 py-8 sm:py-12">
