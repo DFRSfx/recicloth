@@ -215,7 +215,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
     const errors: Record<string, string> = {};
     if (!registerData.name.trim()) errors.name = t('common.required');
-    if (!registerData.email.trim()) errors.email = t('common.required');
+    if (!registerData.email.trim()) {
+      errors.email = t('common.required');
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerData.email)) {
+      errors.email = t('contact.form.errors.emailInvalid');
+    }
     if (!registerData.password.trim()) errors.password = t('common.required');
     if (!privacyPolicy) errors.privacyPolicy = 'Deve aceitar os Termos e a Política de Privacidade';
 
@@ -235,8 +239,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     }
 
     if (!isPasswordValid) {
-      setError('A password não cumpre os requisitos mínimos');
-      showError('A password não cumpre os requisitos mínimos');
+      setError(t('auth.register.passwordWeak'));
+      setFieldErrors(prev => ({ ...prev, password: t('auth.register.passwordWeak') }));
+      registerPasswordRef.current?.focus();
       return;
     }
 
@@ -249,9 +254,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       setShowVerificationNotice(true);
       setRegisterData({ name: '', email: '', password: '' });
       // Don't show success toast, show verification notice instead
-    } catch (err) {
-      setError('Erro ao criar conta. Email pode já estar em uso.');
-      showError('Erro ao criar conta. Email pode já estar em uso.');
+    } catch (err: any) {
+      const msg = err?.message || '';
+      const isEmailInUse = /registado|em uso|in use|already/i.test(msg);
+      const errorKey = isEmailInUse ? 'auth.register.emailInUse' : 'auth.register.error';
+      setError(t(errorKey));
+      showError(t(errorKey));
     } finally {
       setIsLoading(false);
     }

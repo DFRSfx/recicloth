@@ -115,7 +115,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (!response.ok) {
-        throw new Error('Registration failed');
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Registration failed');
       }
 
       // NÃO fazer login automático - user precisa verificar email primeiro

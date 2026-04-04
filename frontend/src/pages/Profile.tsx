@@ -211,7 +211,11 @@ const Profile: React.FC = () => {
 
     const errors: Record<string, string> = {};
     if (!formData.name.trim()) errors.name = t('common.required');
-    if (!formData.email.trim()) errors.email = t('common.required');
+    if (!formData.email.trim()) {
+      errors.email = t('common.required');
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = t('form.emailInvalid');
+    }
 
     if (Object.keys(errors).length > 0) {
       setProfileFieldErrors(errors);
@@ -304,7 +308,11 @@ const Profile: React.FC = () => {
 
     const errors: Record<string, string> = {};
     if (!addressForm.name.trim()) errors.name = t('common.required');
-    if (!addressForm.phone.trim()) errors.phone = t('common.required');
+    if (!addressForm.phone.trim()) {
+      errors.phone = t('common.required');
+    } else if (!/^\d{9}$/.test(addressForm.phone.replace(/\s/g, ''))) {
+      errors.phone = t('form.phoneInvalid');
+    }
     if (!addressForm.address.trim()) errors.address = t('common.required');
     if (!addressForm.city.trim()) errors.city = t('common.required');
     if (!addressForm.postal_code.trim()) errors.postal_code = t('common.required');
