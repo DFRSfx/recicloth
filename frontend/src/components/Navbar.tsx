@@ -294,9 +294,10 @@ const Navbar: React.FC = () => {
                       {/* Mega Menu */}
                       {megaMenuOpen && (
                         <div
-                          className="absolute top-full left-0 mt-6 w-screen max-w-4xl bg-white rounded-lg shadow-2xl z-50 animate-fadeIn border border-gray-100"
+                          className="absolute top-full left-0 mt-6 w-screen max-w-4xl bg-white rounded-lg shadow-2xl z-50 animate-fadeIn border border-gray-100 overflow-y-auto max-h-[70vh]"
                           onMouseEnter={() => setMegaMenuOpen(true)}
                           onMouseLeave={() => setMegaMenuOpen(false)}
+                          onWheel={(e) => e.stopPropagation()}
                         >
                           <div className="p-8">
                             <h3 className="text-xl font-semibold text-gray-900 mb-6">{t('megaMenu.exploreCategories')}</h3>
