@@ -208,7 +208,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [state]);
 
   const addItem = async (product: Product, selectedColor?: string, selectedSize?: string) => {
-    dispatch({ type: 'ADD_ITEM', payload: { product, selectedColor, selectedSize } });
+    // Always store the original English color name so image slug matching works
+    // regardless of the active language. The display name is derived from product.colors.
+    const colorObj = selectedColor ? product.colors?.find(c => c.name === selectedColor) : undefined;
+    const colorToStore = colorObj?.original_name || selectedColor;
+
+    dispatch({ type: 'ADD_ITEM', payload: { product, selectedColor: colorToStore, selectedSize } });
 
     try {
       await fetch('/api/cart/add', {
@@ -217,8 +222,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({
           productId: product.id,
           quantity: 1,
-          color: selectedColor, // Envia a cor para a Base de Dados
-          size: selectedSize    // Envia o tamanho para a Base de Dados
+          color: colorToStore,
+          size: selectedSize
         }),
       });
     } catch (error) {

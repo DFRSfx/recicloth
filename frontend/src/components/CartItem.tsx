@@ -12,21 +12,38 @@ interface CartItemProps {
   item: CartItemType;
 }
 
-// Mapeamento 1:1 baseado no índice da cor
+const toColorSlug = (value: string): string =>
+  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+
+// selectedColor is always the original English name (set by CartContext.addItem)
 const getColorImage = (item: CartItemType): string => {
   const images = item.product.images;
-  const colors = item.product.colors;
-
   if (!images || images.length === 0) return '';
-  if (!item.selectedColor || !colors || colors.length === 0) return images[0];
+  if (!item.selectedColor) return images[0];
 
-  const colorIndex = colors.findIndex(c => c.name === item.selectedColor);
+  const slug = toColorSlug(item.selectedColor);
+  const slugMatch = images.find(img => img.toLowerCase().includes(slug));
+  if (slugMatch) return slugMatch;
 
-  if (colorIndex >= 0 && colorIndex < images.length) {
-    return images[colorIndex];
+  // Fallback: index-based using original_name or name match
+  const colors = item.product.colors;
+  if (colors) {
+    const colorIndex = colors.findIndex(
+      c => (c.original_name || c.name) === item.selectedColor
+    );
+    if (colorIndex >= 0 && colorIndex < images.length) return images[colorIndex];
   }
 
   return images[0];
+};
+
+// Returns the translated display name for the stored English color key
+const getDisplayColor = (item: CartItemType): string | undefined => {
+  if (!item.selectedColor) return undefined;
+  const colorObj = item.product.colors?.find(
+    c => (c.original_name || c.name) === item.selectedColor
+  );
+  return colorObj?.name || item.selectedColor;
 };
 
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
@@ -35,6 +52,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const productPath = getProductPath(lang, item.product.id);
 
   const colorImage = getColorImage(item);
+  const displayColor = getDisplayColor(item);
 
   // ID composto gerado em tempo real
   const cartItemId = `${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`;
@@ -94,9 +112,9 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
               </Link>
 
               <div className="space-y-0.5 mt-2">
-                {item.selectedColor && (
+                {displayColor && (
                   <p className="text-[13px] text-gray-500">
-                    <span className="font-medium text-gray-700">Cor: </span>{item.selectedColor}
+                    <span className="font-medium text-gray-700">Cor: </span>{displayColor}
                   </p>
                 )}
                 {item.selectedSize && (

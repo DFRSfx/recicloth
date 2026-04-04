@@ -734,6 +734,8 @@ const Checkout: React.FC = () => {
           product_id: item.product.id,
           quantity: item.quantity,
           price: item.product.price,
+          color: item.selectedColor || null,
+          size: item.selectedSize || null,
         })),
         user_id: user?.id || null,
       }),

@@ -4,17 +4,32 @@ import { Package, CheckCircle, Truck, Clock, XCircle, ArrowLeft } from 'lucide-r
 import SEO from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
 import { getTrackOrderPath } from '../utils/routes';
+import { getAbsoluteImageUrl } from '../utils/imageUtils';
 
 interface OrderItem {
   id: number;
   quantity: number;
   price: number;
+  color?: string;
+  size?: string;
   product: {
     id: number;
     name: string;
     image: string;
+    images?: string[];
   };
 }
+
+const toColorSlug = (value: string): string =>
+  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+
+const getOrderItemImage = (item: OrderItem): string => {
+  const images = item.product.images;
+  if (!images || images.length === 0) return item.product.image || '';
+  if (!item.color) return images[0];
+  const slug = toColorSlug(item.color);
+  return images.find(img => img.toLowerCase().includes(slug)) || images[0];
+};
 
 interface Order {
   id: number;
@@ -333,15 +348,18 @@ const TrackOrder: React.FC = () => {
               {order.order_items.map((item) => (
                 <div key={item.id} className="flex items-center gap-4">
                   <img
-                    src={item.product.image}
+                    src={getAbsoluteImageUrl(getOrderItemImage(item))}
                     alt={item.product.name}
                     className="w-16 h-16 object-cover rounded"
+                    onError={(e) => { e.currentTarget.src = '/images/placeholder.jpg'; }}
                   />
                   <div className="flex-1">
                     <p className="font-medium">{item.product.name}</p>
-                    <p className="text-sm text-gray-600">
-                      Quantidade: {item.quantity} × {parseFloat(String(item.price)).toFixed(2)}€
-                    </p>
+                    <div className="text-sm text-gray-600 space-y-0.5">
+                      {item.color && <p>Cor: {item.color}</p>}
+                      {item.size && <p>Tamanho: {item.size}</p>}
+                      <p>Quantidade: {item.quantity} × {parseFloat(String(item.price)).toFixed(2)}€</p>
+                    </div>
                   </div>
                   <span className="font-medium">
                     {(item.quantity * parseFloat(String(item.price))).toFixed(2)}€

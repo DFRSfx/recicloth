@@ -45,9 +45,12 @@ router.get('/', ...requireAdmin, async (_req: AuthRequest, res) => {
               'id', oi.id,
               'quantity', oi.quantity,
               'price', oi.price,
+              'color', oi.color,
+              'size', oi.size,
               'product', json_build_object(
                 'id', p.id,
                 'name', p.name,
+                'images', COALESCE(p.images::jsonb, '[]'::jsonb),
                 'image', COALESCE((p.images::jsonb ->> 0), '')
               )
             )
@@ -85,9 +88,12 @@ router.get('/my-orders', authenticateToken, async (req: AuthRequest, res) => {
               'id', oi.id,
               'quantity', oi.quantity,
               'price', oi.price,
+              'color', oi.color,
+              'size', oi.size,
               'product', json_build_object(
                 'id', p.id,
                 'name', p.name,
+                'images', COALESCE(p.images::jsonb, '[]'::jsonb),
                 'image', COALESCE((p.images::jsonb ->> 0), '')
               )
             )
@@ -128,9 +134,12 @@ router.get('/:id', ...requireAdmin, async (req: AuthRequest, res) => {
               'id', oi.id,
               'quantity', oi.quantity,
               'price', oi.price,
+              'color', oi.color,
+              'size', oi.size,
               'product', json_build_object(
                 'id', p.id,
                 'name', p.name,
+                'images', COALESCE(p.images::jsonb, '[]'::jsonb),
                 'image', COALESCE((p.images::jsonb ->> 0), '')
               )
             )
@@ -251,8 +260,8 @@ router.post(
         }
 
         await connection.query(
-          'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
-          [orderId, item.product_id, item.quantity, item.price]
+          'INSERT INTO order_items (order_id, product_id, quantity, price, color, size) VALUES (?, ?, ?, ?, ?, ?)',
+          [orderId, item.product_id, item.quantity, item.price, item.color || null, item.size || null]
         );
 
         await connection.query(
@@ -447,9 +456,12 @@ router.get('/track/:token', async (req, res) => {
               'id', oi.id,
               'quantity', oi.quantity,
               'price', oi.price,
+              'color', oi.color,
+              'size', oi.size,
               'product', json_build_object(
                 'id', p.id,
                 'name', p.name,
+                'images', COALESCE(p.images::jsonb, '[]'::jsonb),
                 'image', COALESCE((p.images::jsonb ->> 0), '')
               )
             )

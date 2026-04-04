@@ -13,10 +13,13 @@ interface OrderItem {
   id: number;
   quantity: number;
   price: number;
+  color?: string;
+  size?: string;
   product: {
     id: number;
     name: string;
     image: string;
+    images?: string[];
   };
 }
 
@@ -36,6 +39,17 @@ interface Order {
   customer_postal_code: string;
   order_items: OrderItem[];
 }
+
+const toColorSlug = (value: string): string =>
+  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+
+const getOrderItemImage = (item: OrderItem): string => {
+  const images = item.product.images;
+  if (!images || images.length === 0) return item.product.image || '';
+  if (!item.color) return images[0];
+  const slug = toColorSlug(item.color);
+  return images.find(img => img.toLowerCase().includes(slug)) || images[0];
+};
 
 const Orders: React.FC = () => {
   const { isAuthenticated, token } = useAuth();
@@ -291,7 +305,7 @@ const Orders: React.FC = () => {
                                 className="flex items-center gap-4 bg-white p-4 rounded-lg"
                               >
                                 <img
-                                  src={getAbsoluteImageUrl(item.product.image)}
+                                  src={getAbsoluteImageUrl(getOrderItemImage(item))}
                                   alt={item.product.name}
                                   className="w-20 h-20 object-cover rounded-lg"
                                   onError={(e) => {
@@ -305,9 +319,11 @@ const Orders: React.FC = () => {
                                   >
                                     {item.product.name}
                                   </Link>
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    {t('orders.quantityLabel')}: {item.quantity} × {item.price.toFixed(2)}€
-                                  </p>
+                                  <div className="text-sm text-gray-600 mt-1 space-y-0.5">
+                                    {item.color && <p>{t('cartItem.colorLabel')} {item.color}</p>}
+                                    {item.size && <p>{t('cartItem.sizeLabel')} {item.size}</p>}
+                                    <p>{t('orders.quantityLabel')}: {item.quantity} × {item.price.toFixed(2)}€</p>
+                                  </div>
                                 </div>
                                 <p className="font-semibold text-gray-900">
                                   {(item.quantity * item.price).toFixed(2)}€

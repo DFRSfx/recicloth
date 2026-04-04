@@ -66,8 +66,8 @@ async function createOrderFromData(
 
   for (const item of items) {
     await connection.query(
-      'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
-      [orderId, item.product_id, item.quantity, item.price]
+      'INSERT INTO order_items (order_id, product_id, quantity, price, color, size) VALUES (?, ?, ?, ?, ?, ?)',
+      [orderId, item.product_id, item.quantity, item.price, item.color || null, item.size || null]
     );
     await connection.query(
       'UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?',
