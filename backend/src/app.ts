@@ -46,12 +46,15 @@ app.use(helmet());
 // CORS configuration - allow multiple origins from environment variable
 const allowedOrigins = process.env.FRONTEND_URL?.split(',').map((url) => url.trim()) || ['http://localhost:5173'];
 
+// Vercel preview deployment pattern (e.g. recicloth-abc123-team.vercel.app)
+const vercelPreviewPattern = /^https:\/\/[\w-]+-[\w-]+\.vercel\.app$/;
+
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.indexOf(origin) !== -1) {
+      if (allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));

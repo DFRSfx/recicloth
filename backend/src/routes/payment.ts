@@ -261,7 +261,8 @@ router.post(
         return;
       }
 
-      const pendingData = JSON.parse(pendingRows[0].data);
+      const raw = pendingRows[0].data;
+      const pendingData = typeof raw === 'string' ? JSON.parse(raw) : raw;
       // Merge address fields from request body (new flow) with stored data (old flow)
       const { customer_name, customer_email, customer_phone,
               customer_address, customer_city, customer_postal_code,
