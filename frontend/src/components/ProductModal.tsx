@@ -56,12 +56,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose, a
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <span className="font-bold text-[15px] tracking-wide text-gray-900 uppercase">
-            Escolher Tamanho
+            {t('product.selectSize')}
           </span>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-black transition-colors focus:outline-none"
-            aria-label="Fechar"
+            aria-label={t('common.close')}
           >
             <X size={20} strokeWidth={1.5} />
           </button>
@@ -127,7 +127,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose, a
                 : 'bg-black text-white hover:bg-gray-900'
             }`}
           >
-            {selectedSize ? 'Adicionar ao Carrinho' : 'Escolha um tamanho'}
+            {selectedSize ? t('product.addToCart') : t('product.selectSizeFirst')}
           </button>
         </div>
 

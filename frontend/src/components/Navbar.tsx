@@ -411,9 +411,10 @@ const Navbar: React.FC = () => {
                     {searchResults.length > 0 ? (
                       <div className="py-2">
                         {searchResults.map((product) => (
-                          <button
+                          <Link
                             key={product.id}
-                            onClick={() => handleProductClick(product.id)}
+                            to={getProductPath(lang, product.id)}
+                            onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
                             className="w-full px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-left transition-colors"
                           >
                             <img
@@ -426,7 +427,7 @@ const Navbar: React.FC = () => {
                               <p className="text-xs text-gray-500">{product.category}</p>
                             </div>
                             <p className="text-sm font-semibold text-[#1E4D3B]">{product.price.toFixed(2)}€</p>
-                          </button>
+                          </Link>
                         ))}
                       </div>
                     ) : (
@@ -517,9 +518,10 @@ const Navbar: React.FC = () => {
                     {searchResults.length > 0 ? (
                       <div className="py-2">
                         {searchResults.map((product) => (
-                          <button
+                          <Link
                             key={product.id}
-                            onClick={() => handleProductClick(product.id)}
+                            to={getProductPath(lang, product.id)}
+                            onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
                             className="w-full px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-left transition-colors"
                           >
                             <img src={getAbsoluteImageUrl(imgVariant(product.images[0], 'sm'))} alt={product.name} className="w-12 h-12 object-cover rounded" />
@@ -528,7 +530,7 @@ const Navbar: React.FC = () => {
                               <p className="text-xs text-gray-500">{product.category}</p>
                             </div>
                             <p className="text-sm font-semibold text-[#1E4D3B]">{product.price.toFixed(2)}€</p>
-                          </button>
+                          </Link>
                         ))}
                       </div>
                     ) : (

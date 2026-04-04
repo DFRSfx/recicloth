@@ -70,21 +70,23 @@ export function adaptProductToFrontend(backendProduct: BackendProduct): Frontend
   // Parse colors if it's a JSON string
   let colorsArray: { name: string; hex: string }[] = [];
   if (backendProduct.colors) {
+    const mapColor = (item: any): { name: string; hex: string; original_name?: string } | null => {
+      if (typeof item === 'string') return { name: item, hex: '' };
+      if (item && typeof item.name === 'string') {
+        return {
+          name: item.name,
+          hex: typeof item.hex === 'string' ? item.hex : '',
+          original_name: typeof item.original_name === 'string' ? item.original_name : undefined,
+        };
+      }
+      return null;
+    };
+
     if (typeof backendProduct.colors === 'string') {
       try {
         const parsed = JSON.parse(backendProduct.colors);
         colorsArray = Array.isArray(parsed)
-          ? parsed
-              .map((item: any) => {
-                if (typeof item === 'string') {
-                  return { name: item, hex: '' };
-                }
-                if (item && typeof item.name === 'string') {
-                  return { name: item.name, hex: typeof item.hex === 'string' ? item.hex : '' };
-                }
-                return null;
-              })
-              .filter((item): item is { name: string; hex: string } => !!item)
+          ? parsed.map(mapColor).filter((item): item is { name: string; hex: string } => !!item)
           : [];
       } catch (e) {
         console.warn('Failed to parse colors JSON:', e);
@@ -92,15 +94,7 @@ export function adaptProductToFrontend(backendProduct: BackendProduct): Frontend
       }
     } else if (Array.isArray(backendProduct.colors)) {
       colorsArray = backendProduct.colors
-        .map((item: any) => {
-          if (typeof item === 'string') {
-            return { name: item, hex: '' };
-          }
-          if (item && typeof item.name === 'string') {
-            return { name: item.name, hex: typeof item.hex === 'string' ? item.hex : '' };
-          }
-          return null;
-        })
+        .map(mapColor)
         .filter((item): item is { name: string; hex: string } => !!item);
     }
   }
