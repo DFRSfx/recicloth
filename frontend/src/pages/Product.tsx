@@ -150,6 +150,17 @@ const Product: React.FC = () => {
     setSelectedImageIndex(null);
   }, [selectedColor, product?.id]);
 
+  const getColorForImage = useCallback((image: string) => {
+    if (!product?.colors || product.colors.length === 0) return null;
+    const lower = image.toLowerCase();
+    const match = product.colors.find((color) => {
+      const slugSource = color.original_name || color.name;
+      const slug = toColorSlug(slugSource);
+      return slug ? lower.includes(slug) : false;
+    });
+    return match?.name || null;
+  }, [product?.colors]);
+
   const mobileImages = product?.images || [];
 
   useEffect(() => {
@@ -178,12 +189,13 @@ const Product: React.FC = () => {
     
     if (newIndex !== mobileImageIndex) {
       setMobileImageIndex(newIndex);
-      if (product?.colors && product.colors[newIndex]) {
-        const newColor = product.colors[newIndex].name;
-        if (newColor !== selectedColor) {
-          isSwipingRef.current = true;
-          setSelectedColor(newColor);
-        }
+      const image = mobileImages[newIndex];
+      const matchedColor = image ? getColorForImage(image) : null;
+      const fallbackColor = product?.colors?.[newIndex]?.name || null;
+      const newColor = matchedColor || fallbackColor;
+      if (newColor && newColor !== selectedColor) {
+        isSwipingRef.current = true;
+        setSelectedColor(newColor);
       }
     }
   };
@@ -539,8 +551,11 @@ const Product: React.FC = () => {
                   if (origIdx >= 0) {
                     isThumbnailSelectionRef.current = true;
                     setSelectedImageIndex(origIdx);
-                    if (product.colors && product.colors[origIdx]) {
-                      setSelectedColor(product.colors[origIdx].name);
+                    const matchedColor = getColorForImage(image);
+                    const fallbackColor = product.colors?.[origIdx]?.name || null;
+                    const newColor = matchedColor || fallbackColor;
+                    if (newColor) {
+                      setSelectedColor(newColor);
                     }
                   }
                 }}
