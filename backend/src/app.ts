@@ -20,6 +20,7 @@ import shippingAddressesRouter from './routes/shipping-addresses.js';
 import paymentRouter from './routes/payment.js';
 import imagesRouter from './routes/images.js';
 import geoRouter from './routes/geo.js';
+import contactRouter from './routes/contact.js';
 import pool from './config/database.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { warmCaches } from './utils/dataWarmer.js';
@@ -140,6 +141,7 @@ app.use('/api/shipping-addresses', shippingAddressesRouter);
 app.use('/api/payment', paymentRouter);
 app.use('/api/images', imagesRouter);
 app.use('/api/geo', geoRouter);
+app.use('/api/contact', contactRouter);
 
 // Optional: Expose cache warming endpoint for manual triggers or cron jobs
 app.get('/api/admin/warm-cache', async (_req, res) => {

@@ -19,7 +19,7 @@ export const getOrganizationSchema = (lang: Lang = 'pt') => ({
     'Loja online de roupa reciclada, upcycled e de segunda mão. ' +
     'Moda sustentável para homem e mulher, acessórios sustentáveis e peças únicas ' +
     'selecionadas com critério ambiental — entregue em toda a União Europeia.',
-  email: 'recicloth1972@gmail.com',
+  email: 'general@recicloth.com',
   sameAs: ['https://www.instagram.com/recicloth.croche/'],
   hasMap: `${SITE_URL}${getRoutePath('contact', lang)}`,
   currenciesAccepted: 'EUR',
@@ -55,7 +55,7 @@ export const getLocalBusinessSchema = (lang: Lang = 'pt') => ({
   name: 'Recicloth',
   url: SITE_URL,
   image: `${SITE_URL}/images/logo.svg`,
-  email: 'recicloth1972@gmail.com',
+  email: 'general@recicloth.com',
   description:
     'Loja online de roupa reciclada e moda sustentável. ' +
     'Peças de segunda mão, upcycled e recicladas para homem e mulher, ' +
@@ -67,7 +67,7 @@ export const getLocalBusinessSchema = (lang: Lang = 'pt') => ({
   sameAs: ['https://www.instagram.com/recicloth.croche/'],
   contactPoint: {
     '@type': 'ContactPoint',
-    email: 'recicloth1972@gmail.com',
+    email: 'general@recicloth.com',
     contactType: 'customer service',
     areaServed: 'PT',
     availableLanguage: [lang === 'pt' ? 'Portuguese' : 'English'],

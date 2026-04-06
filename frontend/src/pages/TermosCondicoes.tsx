@@ -61,7 +61,7 @@ const TermosCondicoes: React.FC = () => {
               <h2 className="text-xl font-bold mb-3">Garantia dos Produtos</h2>
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li><strong>Condições da garantia:</strong> Os produtos físicos vendidos na União Europeia têm uma garantia legal mínima de 3 anos para defeitos de conformidade.</li>
-                <li><strong>Como proceder:</strong> Em caso de defeito ou avaria, contacte-nos em <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a> com o número da encomenda e descrição do problema.</li>
+                <li><strong>Como proceder:</strong> Em caso de defeito ou avaria, contacte-nos em <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a> com o número da encomenda e descrição do problema.</li>
                 <li><strong>Garantia legal vs. adicional:</strong> A Recicloth aplica a garantia legal. Não existe garantia adicional, salvo indicação expressa.</li>
               </ul>
             </section>
@@ -102,7 +102,7 @@ const TermosCondicoes: React.FC = () => {
               <p className="text-sm mb-3">Nos termos do Regulamento (UE) n.º 524/2013, informamos que os consumidores da União Europeia podem recorrer à Plataforma de Resolução de Litígios em Linha (ODR) da Comissão Europeia:</p>
               <ul className="text-sm space-y-1">
                 <li>Plataforma ODR: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-[#2D6A4F] underline">https://ec.europa.eu/consumers/odr</a></li>
-                <li>E-mail para efeitos de ODR: <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a></li>
+                <li>E-mail para efeitos de ODR: <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a></li>
               </ul>
             </section>
 
@@ -168,7 +168,7 @@ const TermosCondicoes: React.FC = () => {
               <h2 className="text-xl font-bold mb-3">Product Warranty</h2>
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li><strong>Warranty terms:</strong> Physical products sold in the European Union have a minimum legal warranty of 3 years for lack of conformity.</li>
-                <li><strong>How to proceed:</strong> In case of defect or malfunction, contact us at <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a> with your order number and a description of the issue.</li>
+                <li><strong>How to proceed:</strong> In case of defect or malfunction, contact us at <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a> with your order number and a description of the issue.</li>
                 <li><strong>Legal vs. additional warranty:</strong> Recicloth applies the legal warranty. No additional warranty is offered unless explicitly stated.</li>
               </ul>
             </section>
@@ -209,7 +209,7 @@ const TermosCondicoes: React.FC = () => {
               <p className="text-sm mb-3">Under Regulation (EU) No. 524/2013, we inform EU consumers that they may use the European Commission's Online Dispute Resolution (ODR) platform to resolve consumer disputes:</p>
               <ul className="text-sm space-y-1">
                 <li>ODR Platform: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-[#2D6A4F] underline">https://ec.europa.eu/consumers/odr</a></li>
-                <li>E-mail for ODR purposes: <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a></li>
+                <li>E-mail for ODR purposes: <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a></li>
               </ul>
             </section>
 

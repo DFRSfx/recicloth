@@ -402,10 +402,10 @@ const TrackOrder: React.FC = () => {
             Se tiver alguma dúvida sobre a sua encomenda, entre em contacto connosco.
           </p>
           <a
-            href="mailto:arteemponto1972@gmail.com"
+            href="mailto:general@recicloth.com"
             className="text-sm text-primary-600 hover:text-primary-700 font-medium"
           >
-            arteemponto1972@gmail.com
+            general@recicloth.com
           </a>
         </div>
       </div>

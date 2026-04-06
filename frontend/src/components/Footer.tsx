@@ -27,7 +27,7 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex space-x-3">
               <a
-                href="https://www.instagram.com/recicloth.croche/"
+                href="https://www.instagram.com/recicloth/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={t('footer.instagramAria')}
@@ -36,7 +36,7 @@ const Footer: React.FC = () => {
                 <Instagram className="h-[18px] w-[18px]" strokeWidth={2} />
               </a>
               <a
-                href="mailto:recicloth1972@gmail.com"
+                href="mailto:general@recicloth.com"
                 aria-label={t('footer.emailAria')}
                 className="flex items-center justify-center w-10 h-10 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
               >
@@ -93,9 +93,9 @@ const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <a href="mailto:recicloth1972@gmail.com" className="flex items-center hover:text-white transition-colors group">
+                <a href="mailto:general@recicloth.com" className="flex items-center hover:text-white transition-colors group">
                   <Mail className="h-[18px] w-[18px] mr-3 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-                  <span>recicloth1972@gmail.com</span>
+                  <span>general@recicloth.com</span>
                 </a>
               </li>
             </ul>

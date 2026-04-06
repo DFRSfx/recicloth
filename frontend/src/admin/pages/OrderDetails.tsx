@@ -5,6 +5,7 @@ import { ArrowLeft, Package, User, MapPin, CreditCard, Calendar } from 'lucide-r
 import AdminSelect from '../components/AdminSelect';
 import { getAbsoluteImageUrl } from '../../utils/imageUtils';
 import { getPaymentMethodLabel } from '../../utils/paymentLabels';
+import { useConfirmStore } from '../../hooks/useConfirm';
 
 interface OrderItem {
   id: number;
@@ -38,6 +39,7 @@ export default function OrderDetails() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const { openConfirm } = useConfirmStore();
 
   const loadOrder = useCallback(async () => {
     try {
@@ -54,22 +56,29 @@ export default function OrderDetails() {
     loadOrder();
   }, [loadOrder]);
 
-  const updateStatus = async (newStatus: string) => {
+  const updateStatus = (newStatus: string) => {
     const statusLabels: Record<string, string> = {
       pending: 'Pendente', processing: 'Em processamento',
       shipped: 'Enviado', delivered: 'Entregue', cancelled: 'Cancelado'
     };
-    if (!confirm(`Tem a certeza que pretende alterar o estado para "${statusLabels[newStatus] ?? newStatus}"?`)) return;
-
-    setUpdating(true);
-    try {
-      await ordersApi.updateStatus(Number(id), newStatus);
-      loadOrder();
-    } catch (error) {
-      console.error('Error updating status:', error);
-    } finally {
-      setUpdating(false);
-    }
+    openConfirm({
+      title: 'Alterar estado',
+      message: `Tem a certeza que pretende alterar o estado para "${statusLabels[newStatus] ?? newStatus}"?`,
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      confirmButtonClass: 'bg-primary-600 hover:bg-primary-700',
+      onConfirm: async () => {
+        setUpdating(true);
+        try {
+          await ordersApi.updateStatus(Number(id), newStatus);
+          loadOrder();
+        } catch (error) {
+          console.error('Error updating status:', error);
+        } finally {
+          setUpdating(false);
+        }
+      },
+    });
   };
 
   const formatDate = (dateString: string) => {

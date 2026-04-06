@@ -25,7 +25,7 @@ const Navbar: React.FC = () => {
   const { itemCount } = useCart();
   const { favorites } = useFavorites();
   const { success, info } = useToast();
-  const { t, lang } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
 
   const getCategoryImage = (categoryName: string): string | null => {
     const categoryProducts = products.filter(p => p.category === categoryName);
@@ -608,9 +608,27 @@ const Navbar: React.FC = () => {
                 <div className="border-t border-gray-100 my-2 mx-2"></div>
 
                 {/* Language Switcher Mobile */}
-                <div className="px-4 py-3 flex items-center gap-3">
-                  <span className="text-[15px] text-gray-500">{t('nav.language')}</span>
-                  <LanguageSwitcher />
+                <div className="px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 mb-2.5">{t('nav.language')}</p>
+                  <div className="flex gap-2">
+                    {([
+                      { code: 'pt', label: 'Português', flag: '/images/flags/pt.svg' },
+                      { code: 'en', label: 'English',   flag: '/images/flags/en.svg' },
+                    ] as const).map((l) => (
+                      <button
+                        key={l.code}
+                        onClick={() => { setLang(l.code); handleCloseMenu(); }}
+                        className={`flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[15px] font-medium transition-colors ${
+                          lang === l.code
+                            ? 'bg-[#f0faf4] text-[#1E4D3B] border border-[#c6e8d4]'
+                            : 'bg-gray-50 text-gray-600 border border-transparent hover:bg-gray-100'
+                        }`}
+                      >
+                        <img src={l.flag} alt={l.label} className="w-5 h-3.5 object-cover shadow-sm flex-shrink-0" />
+                        {l.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

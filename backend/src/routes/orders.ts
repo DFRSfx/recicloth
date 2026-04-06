@@ -404,7 +404,8 @@ router.patch(
 
       if (mappedStatus === 'shipped') {
         const [itemRows]: any = await pool.query(
-          `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name
+          `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name,
+                  JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]')) AS first_image
            FROM order_items oi JOIN products p ON oi.product_id = p.id
            WHERE oi.order_id = ?`, [req.params.id]
         );
@@ -415,6 +416,7 @@ router.patch(
           String(o.id),
           {
             total: parseFloat(o.total),
+            shipping_cost: parseFloat(o.shipping_cost || 0),
             created_at: o.created_at,
             customer_address: o.customer_address,
             customer_city: o.customer_city,
@@ -423,7 +425,8 @@ router.patch(
             tracking_token: o.tracking_token,
             items: itemRows.map((r: any) => ({
               name: r.name, quantity: r.quantity, price: parseFloat(r.price),
-              color: r.color || undefined, size: r.size || undefined
+              color: r.color || undefined, size: r.size || undefined,
+              image: r.first_image || undefined
             }))
           }
         ).catch((err: any) => console.error('❌ Shipping email error:', err.message));

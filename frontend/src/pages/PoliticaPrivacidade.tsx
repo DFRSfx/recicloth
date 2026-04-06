@@ -23,7 +23,7 @@ const PoliticaPrivacidade: React.FC = () => {
               <h2 className="text-xl font-bold mb-3">Responsável pelo Tratamento de Dados</h2>
               <ul className="text-sm space-y-1">
                 <li><strong>Responsável:</strong> Recicloth</li>
-                <li><strong>Contacto:</strong> <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a></li>
+                <li><strong>Contacto:</strong> <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a></li>
                 <li><strong>Morada:</strong> Vila Nova de Gaia, Porto, Portugal</li>
               </ul>
               <p className="text-sm mt-3 text-gray-600">Para qualquer questão relacionada com os seus dados pessoais, pode contactar-nos através do e-mail indicado acima.</p>
@@ -35,7 +35,7 @@ const PoliticaPrivacidade: React.FC = () => {
                 <li><strong>Recolha de Dados:</strong> Apenas os dados necessários para o envio (Nome, Morada, NIF, Email e Telefone).</li>
                 <li><strong>Finalidade:</strong> Processamento de encomendas, emissão de faturas e apoio ao cliente.</li>
                 <li><strong>Consentimento:</strong> No pop-up de newsletter, existe uma checkbox desmarcada que o utilizador deve marcar ativamente: <em>"Aceito receber comunicações de marketing e novidades sobre moda sustentável"</em>. Não é possível subscrever sem aceitar. O silêncio não é consentimento.</li>
-                <li><strong>Direitos:</strong> O utilizador pode pedir a retificação ou eliminação dos seus dados a qualquer momento enviando um e-mail para <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a>.</li>
+                <li><strong>Direitos:</strong> O utilizador pode pedir a retificação ou eliminação dos seus dados a qualquer momento enviando um e-mail para <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a>.</li>
               </ul>
             </section>
 
@@ -69,7 +69,7 @@ const PoliticaPrivacidade: React.FC = () => {
                 <li>Portabilidade dos dados</li>
                 <li>Oposição ao tratamento para fins de marketing</li>
               </ul>
-              <p className="text-sm mt-3">Para exercer qualquer um destes direitos, contacte-nos em <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a>. Responderemos no prazo máximo de 30 dias.</p>
+              <p className="text-sm mt-3">Para exercer qualquer um destes direitos, contacte-nos em <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a>. Responderemos no prazo máximo de 30 dias.</p>
             </section>
 
             <section>
@@ -101,7 +101,7 @@ const PoliticaPrivacidade: React.FC = () => {
               <h2 className="text-xl font-bold mb-3">Data Controller</h2>
               <ul className="text-sm space-y-1">
                 <li><strong>Controller:</strong> Recicloth</li>
-                <li><strong>Contact:</strong> <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a></li>
+                <li><strong>Contact:</strong> <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a></li>
                 <li><strong>Address:</strong> Vila Nova de Gaia, Porto, Portugal</li>
               </ul>
               <p className="text-sm mt-3 text-gray-600">For any questions regarding your personal data, please contact us at the e-mail address listed above.</p>
@@ -113,7 +113,7 @@ const PoliticaPrivacidade: React.FC = () => {
                 <li><strong>Data Collected:</strong> Only data necessary for shipping (Name, Address, Tax ID, Email, and Phone).</li>
                 <li><strong>Purpose:</strong> Order processing, invoice issuance, and customer support.</li>
                 <li><strong>Consent:</strong> In the newsletter pop-up, there is an unchecked box that the user must actively tick: <em>"I agree to receive marketing communications and updates about sustainable fashion"</em>. Subscribing is not possible without accepting. Silence does not constitute consent.</li>
-                <li><strong>Rights:</strong> Users may request rectification or deletion of their data at any time by emailing <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a>.</li>
+                <li><strong>Rights:</strong> Users may request rectification or deletion of their data at any time by emailing <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a>.</li>
               </ul>
             </section>
 
@@ -147,7 +147,7 @@ const PoliticaPrivacidade: React.FC = () => {
                 <li>Data portability</li>
                 <li>Objection to processing for marketing purposes</li>
               </ul>
-              <p className="text-sm mt-3">To exercise any of these rights, contact us at <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a>. We will respond within a maximum of 30 days.</p>
+              <p className="text-sm mt-3">To exercise any of these rights, contact us at <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a>. We will respond within a maximum of 30 days.</p>
             </section>
 
             <section>

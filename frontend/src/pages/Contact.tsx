@@ -67,11 +67,20 @@ const Contact: React.FC = () => {
     }
     setErrors({});
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error('send failed');
       setSubmitted(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 1000);
+    } catch {
+      setErrors({ message: t('contact.form.errors.sendFailed') });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (
@@ -160,10 +169,10 @@ const Contact: React.FC = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900 text-lg">{t('form.email')}</h3>
                     <a
-                      href="mailto:recicloth1972@gmail.com"
+                      href="mailto:general@recicloth.com"
                       className="text-gray-600 hover:text-primary-600 transition-colors mt-1 block"
                     >
-                      recicloth1972@gmail.com
+                      general@recicloth.com
                     </a>
                     <p className="text-sm text-gray-400 mt-1">{t('contact.info.emailResponse')}</p>
                   </div>
@@ -176,7 +185,7 @@ const Contact: React.FC = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900 text-lg">{t('contact.info.instagram')}</h3>
                     <a
-                      href="https://www.instagram.com/recicloth.croche/"
+                      href="https://www.instagram.com/recicloth/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-primary-600 transition-colors mt-1 block"

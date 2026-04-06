@@ -771,13 +771,14 @@ ${content.copyright.replace('{{year}}', year)}
     orderNumber: string,
     orderDetails: {
       total: number;
+      shipping_cost?: number;
       created_at?: string;
       customer_address?: string;
       customer_city?: string;
       customer_postal_code?: string;
       payment_method?: string;
       tracking_token?: string;
-      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string; image?: string }>;
     },
     language = 'pt'
   ) {
@@ -814,13 +815,14 @@ ${content.copyright.replace('{{year}}', year)}
     orderNumber: string,
     orderDetails: {
       total: number;
+      shipping_cost?: number;
       created_at?: string;
       customer_address?: string;
       customer_city?: string;
       customer_postal_code?: string;
       payment_method?: string;
       tracking_token?: string;
-      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string; image?: string }>;
     },
     content: any
   ): string {
@@ -850,11 +852,17 @@ ${content.copyright.replace('{{year}}', year)}
       const price = parseFloat(String(item.price));
       const lineTotal = (price * item.quantity).toFixed(2);
       const meta = [item.color, item.size].filter(Boolean).join(' · ');
+      const imgSrc = item.image ? `${frontendUrl}${item.image}` : null;
       return `
       <tr>
         <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; vertical-align: top;">
-          <div style="font-size: 14px; font-weight: 600; color: #1a2e25; margin-bottom: 2px;">${item.name}</div>
-          ${meta ? `<div style="font-size: 12px; color: #6b7280;">${meta}</div>` : ''}
+          <div style="display: flex; align-items: flex-start; gap: 12px;">
+            ${imgSrc ? `<img src="${imgSrc}" alt="${item.name}" width="56" height="56" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;flex-shrink:0;" />` : ''}
+            <div>
+              <div style="font-size: 14px; font-weight: 600; color: #1a2e25; margin-bottom: 2px;">${item.name}</div>
+              ${meta ? `<div style="font-size: 12px; color: #6b7280;">${meta}</div>` : ''}
+            </div>
+          </div>
         </td>
         <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; text-align: center; font-size: 14px; color: #374151; vertical-align: top; white-space: nowrap;">× ${item.quantity}</td>
         <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; text-align: right; font-size: 14px; font-weight: 600; color: #1a2e25; vertical-align: top; white-space: nowrap;">${lineTotal}€</td>
@@ -934,11 +942,16 @@ ${content.copyright.replace('{{year}}', year)}
                 <tbody>${itemsHTML}</tbody>
               </table>
 
-              <!-- Total -->
+              <!-- Totals -->
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px;">
+                ${orderDetails.shipping_cost != null && orderDetails.shipping_cost > 0 ? `
                 <tr>
-                  <td style="padding: 12px 0; font-size: 16px; font-weight: 700; color: ${brand}; border-top: 2px solid #e5e7eb;">${content.total}</td>
-                  <td style="padding: 12px 0; font-size: 16px; font-weight: 700; color: ${brand}; text-align: right; border-top: 2px solid #e5e7eb;">${parseFloat(String(orderDetails.total)).toFixed(2)}€</td>
+                  <td style="padding: 6px 0; font-size: 14px; color: #6b7280; border-top: 1px solid #e5e7eb;">${content.shipping}</td>
+                  <td style="padding: 6px 0; font-size: 14px; color: #6b7280; text-align: right; border-top: 1px solid #e5e7eb;">${parseFloat(String(orderDetails.shipping_cost)).toFixed(2)}€</td>
+                </tr>` : ''}
+                <tr>
+                  <td style="padding: 12px 0 0; font-size: 16px; font-weight: 700; color: ${brand}; border-top: 2px solid #e5e7eb;">${content.total}</td>
+                  <td style="padding: 12px 0 0; font-size: 16px; font-weight: 700; color: ${brand}; text-align: right; border-top: 2px solid #e5e7eb;">${parseFloat(String(orderDetails.total)).toFixed(2)}€</td>
                 </tr>
               </table>
             </td>
@@ -966,13 +979,14 @@ ${content.copyright.replace('{{year}}', year)}
     orderNumber: string,
     orderDetails: {
       total: number;
+      shipping_cost?: number;
       created_at?: string;
       customer_address?: string;
       customer_city?: string;
       customer_postal_code?: string;
       payment_method?: string;
       tracking_token?: string;
-      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string; image?: string }>;
     },
     content: any
   ): string {
@@ -1068,6 +1082,61 @@ private getEmailVerificationHTML(verificationUrl: string, userName: string, cont
 </body>
 </html>
     `;
+  }
+
+  async sendContactMessage({ name, email, subject, message }: { name: string; email: string; subject: string; message: string }) {
+    const year = new Date().getFullYear();
+    const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <tr><td style="background:#1E4D3B;padding:28px 40px;">
+          <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">Recicloth</h1>
+          <p style="margin:4px 0 0;color:#a7d4be;font-size:13px;">Nova mensagem de contacto</p>
+        </td></tr>
+        <tr><td style="padding:32px 40px 24px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;margin-bottom:24px;">
+            <tr>
+              <td style="padding:12px 16px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Nome</span><br>
+                <span style="font-size:15px;color:#1a1a1a;font-weight:600;">${name}</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 16px;border-bottom:1px solid #e5e7eb;">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Email</span><br>
+                <a href="mailto:${email}" style="font-size:15px;color:#1E4D3B;text-decoration:none;">${email}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 16px;">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Assunto</span><br>
+                <span style="font-size:15px;color:#1a1a1a;">${subject}</span>
+              </td>
+            </tr>
+          </table>
+          <p style="margin:0 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;">Mensagem</p>
+          <div style="background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;padding:16px;font-size:15px;color:#374151;line-height:1.7;white-space:pre-wrap;">${message}</div>
+        </td></tr>
+        <tr><td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">© ${year} Recicloth — Todos os direitos reservados</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+    await this.resend.emails.send({
+      from: this.from,
+      to: 'general@recicloth.com',
+      replyTo: email,
+      subject: `[Contacto] ${subject} — ${name}`,
+      html,
+    });
   }
 
   async sendGuestOtp(email: string, code: string) {

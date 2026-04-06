@@ -47,7 +47,7 @@ const PoliticaDevolucao: React.FC = () => {
 
             <section>
               <h2 className="text-xl font-bold mb-3">Como Iniciar uma Devolução</h2>
-              <p className="text-sm">Para iniciar uma devolução, contacte-nos em <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a> com o número de encomenda e o motivo da devolução.</p>
+              <p className="text-sm">Para iniciar uma devolução, contacte-nos em <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a> com o número de encomenda e o motivo da devolução.</p>
             </section>
 
             <section className="bg-[#F2E8DC] rounded-lg p-5 text-sm">
@@ -86,7 +86,7 @@ const PoliticaDevolucao: React.FC = () => {
 
             <section>
               <h2 className="text-xl font-bold mb-3">How to Start a Return</h2>
-              <p className="text-sm">To start a return, contact us at <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a> with your order number and the reason for return.</p>
+              <p className="text-sm">To start a return, contact us at <a href="mailto:general@recicloth.com" className="text-[#2D6A4F] underline">general@recicloth.com</a> with your order number and the reason for return.</p>
             </section>
 
             <section className="bg-[#F2E8DC] rounded-lg p-5 text-sm">

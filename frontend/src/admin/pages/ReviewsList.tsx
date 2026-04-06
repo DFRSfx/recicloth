@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Search, Check, X, Trash2, Eye } from 'lucide-react';
 import AdminSelect from '../components/AdminSelect';
 import { fetchWithAuth } from '../../utils/apiHelpers';
+import { useConfirmStore } from '../../hooks/useConfirm';
 
 interface Review {
   id: number;
@@ -30,6 +31,7 @@ export default function ReviewsList() {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  const { openConfirm } = useConfirmStore();
 
   const loadReviews = useCallback(async () => {
     try {
@@ -80,17 +82,24 @@ export default function ReviewsList() {
     }
   };
 
-  const deleteReview = async (reviewId: number) => {
-    if (!window.confirm('Tens a certeza que queres eliminar esta review?')) return;
-    try {
-      setUpdatingId(reviewId);
-      await fetchWithAuth(`/products/reviews/${reviewId}`, { method: 'DELETE' });
-      setReviews(prev => prev.filter(review => review.id !== reviewId));
-    } catch (error) {
-      console.error('Error deleting review:', error);
-    } finally {
-      setUpdatingId(null);
-    }
+  const deleteReview = (reviewId: number) => {
+    openConfirm({
+      title: 'Eliminar review',
+      message: 'Tens a certeza que queres eliminar esta review? Esta ação não pode ser revertida.',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        try {
+          setUpdatingId(reviewId);
+          await fetchWithAuth(`/products/reviews/${reviewId}`, { method: 'DELETE' });
+          setReviews(prev => prev.filter(review => review.id !== reviewId));
+        } catch (error) {
+          console.error('Error deleting review:', error);
+        } finally {
+          setUpdatingId(null);
+        }
+      },
+    });
   };
 
   const formatDate = (value: string) =>

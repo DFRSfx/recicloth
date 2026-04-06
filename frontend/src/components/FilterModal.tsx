@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, Check } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -34,23 +34,44 @@ const FilterModal: React.FC<FilterModalProps> = ({
   onClearFilters = () => undefined,
 }) => {
   const { t } = useLanguage();
-  const [isAnimating, setIsAnimating] = useState(false);
+  // isVisible controls mount/unmount; showContent drives the CSS transition
+  const [isVisible, setIsVisible] = useState(false);
+  const [showContent, setShowContent] = useState(false);
+  const scrollYRef = useRef(0);
 
-  // Lock body scroll when open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      requestAnimationFrame(() => setIsAnimating(true));
+      // iOS-safe scroll lock: freeze body at current scroll position
+      scrollYRef.current = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollYRef.current}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflowY = 'scroll'; // keep scrollbar width
+      setIsVisible(true);
+      requestAnimationFrame(() => setShowContent(true));
     } else {
-      setIsAnimating(false);
-      setTimeout(() => {
-        document.body.style.overflow = 'unset';
+      // Animate out first, then unmount
+      setShowContent(false);
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        // Restore scroll position
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflowY = '';
+        window.scrollTo(0, scrollYRef.current);
       }, 300);
+      return () => clearTimeout(timer);
     }
-    return () => { document.body.style.overflow = 'unset'; };
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflowY = '';
+    };
   }, [isOpen]);
 
-  if (!isOpen && !isAnimating) return null;
+  if (!isVisible) return null;
 
   const sortOptions = [
     { value: 'name', label: t('filter.sort.alphaAZ') },
@@ -65,8 +86,8 @@ const FilterModal: React.FC<FilterModalProps> = ({
       
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black transition-opacity duration-300 pointer-events-auto ${
-          isAnimating ? 'opacity-40' : 'opacity-0'
+        className={`absolute inset-0 bg-black transition-opacity duration-300 ${
+          showContent ? 'opacity-40 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
       />
@@ -74,7 +95,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
       {/* Bottom Sheet Modal */}
       <div
         className={`relative w-full h-[90vh] bg-white rounded-t-2xl flex flex-col transform transition-transform duration-300 ease-out pointer-events-auto ${
-          isAnimating ? 'translate-y-0' : 'translate-y-full'
+          showContent ? 'translate-y-0' : 'translate-y-[110%]'
         }`}
       >
         {/* Header - Fixed */}
