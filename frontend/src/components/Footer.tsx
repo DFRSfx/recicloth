@@ -87,7 +87,7 @@ const Footer: React.FC = () => {
             <h4 className="text-lg font-bold mb-5 tracking-tight">{t('nav.contact')}</h4>
             <ul className="space-y-3.5 text-primary-100 text-[15px]">
               <li>
-                <a href="tel:+351919626697" className="flex items-center hover:text-white transition-colors group">
+                <a href="tel:+3519193792186" className="flex items-center hover:text-white transition-colors group">
                   <Phone className="h-[18px] w-[18px] mr-3 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
                   <span>{t('contact.info.phoneValue')}</span>
                 </a>

@@ -68,6 +68,7 @@ const Product: React.FC = () => {
   
   const isSwipingRef = useRef(false);
   const isThumbnailSelectionRef = useRef(false);
+  const isProgrammaticScrollRef = useRef(false);
   const reviewsRef = useRef<HTMLDivElement>(null); // Referência para a secção de avaliações
 
   // Estado dos Modais de Reviews
@@ -174,14 +175,19 @@ const Product: React.FC = () => {
       if (idx >= 0 && idx < mobileImages.length && idx !== mobileImageIndex) {
         const slider = document.getElementById('mobile-image-slider');
         if (slider) {
-          slider.scrollTo({ left: idx * slider.clientWidth, behavior: 'smooth' });
+          // Direct assignment is instant and doesn't fire intermediate scroll events
+          // (unlike scrollTo({behavior:'smooth'}) which causes race conditions via onScroll)
+          isProgrammaticScrollRef.current = true;
+          slider.scrollLeft = idx * slider.clientWidth;
           setMobileImageIndex(idx);
+          requestAnimationFrame(() => { isProgrammaticScrollRef.current = false; });
         }
       }
     }
   }, [selectedColor, product, mobileImages.length, mobileImageIndex]);
 
   const handleMobileScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (isProgrammaticScrollRef.current) return;
     const scrollLeft = e.currentTarget.scrollLeft;
     const width = e.currentTarget.clientWidth;
     if (width === 0) return;
