@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Search, SlidersHorizontal, ChevronLeft, Check } from 'lucide-react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import FilterModal from '../components/FilterModal';
 import { useProducts } from '../hooks/useProducts';
@@ -17,6 +17,7 @@ const Shop: React.FC = () => {
   const { t, lang } = useLanguage();
   const { categorySlug } = useParams<{ categorySlug?: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { products: allProducts, loading, error } = useProducts();
   const { categories: allCategories } = useCategories();
@@ -38,6 +39,12 @@ const Shop: React.FC = () => {
   const isIOS = useMemo(() => {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const query = params.get('q')?.trim() ?? '';
+    setSearchTerm(query);
+  }, [location.search]);
 
   const sortOptions = [
     { value: 'newest', label: t('shop.sort.newest') },
@@ -183,8 +190,13 @@ const Shop: React.FC = () => {
 
   // THE ENGINE
   const filteredProducts = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
     const filtered = allProducts.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = !normalizedSearch
+        || product.name.toLowerCase().includes(normalizedSearch)
+        || product.description.toLowerCase().includes(normalizedSearch)
+        || product.category.toLowerCase().includes(normalizedSearch)
+        || product.tags?.some(tag => tag.toLowerCase().includes(normalizedSearch));
       
       // LÓGICA CORRIGIDA: Compara o slug da categoria do produto com o slug da categoria selecionada
       const matchesCategory = !selectedCategory || toSlug(product.category) === toSlug(selectedCategory);
@@ -206,8 +218,8 @@ const Shop: React.FC = () => {
       const maxPrice = (priceRange[1] / 100) * maxProductPrice;
       const matchesPriceRange = product.price >= minPrice && product.price <= maxPrice;
 
-      return matchesSearch && matchesCategory && matchesColor && matchesPrice && matchesPriceRange;
-    });
+    return matchesSearch && matchesCategory && matchesColor && matchesPrice && matchesPriceRange;
+  });
 
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -257,6 +269,11 @@ const Shop: React.FC = () => {
         <p className="text-sm lg:text-base text-gray-600 max-w-2xl mb-6 lg:mb-8">
           {t('shop.tagline')}
         </p>
+        {searchTerm.trim() && (
+          <p className="text-sm text-gray-700 mb-6">
+            {t('shop.resultsFor')} <span className="font-medium">"{searchTerm.trim()}"</span>
+          </p>
+        )}
 
         {/* Top Nav */}
         <div className="-mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0">

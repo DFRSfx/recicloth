@@ -13,7 +13,7 @@ import AuthModal from './AuthModal';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useLanguage } from '../context/LanguageContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
-import { getProductPath, getRoutePath, getRoutePrefixes, getShopPath, isRouteMatch } from '../utils/routes';
+import { getProductPath, getRoutePath, getRoutePrefixes, getShopPath, isRouteMatch, withQuery } from '../utils/routes';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api`;
@@ -175,8 +175,8 @@ const Navbar: React.FC = () => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, [searchOpen]);
 
   const handleCloseMenu = () => {
@@ -249,6 +249,16 @@ const Navbar: React.FC = () => {
   const handleSearchToggle = () => {
     setSearchOpen(!searchOpen);
     if (searchOpen) setSearchQuery('');
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return;
+    const query = searchQuery.trim();
+    if (!query) return;
+    e.preventDefault();
+    setSearchOpen(false);
+    setSearchQuery('');
+    navigate(withQuery(getShopPath(lang), { q: query }));
   };
 
   return (
@@ -396,6 +406,7 @@ const Navbar: React.FC = () => {
                     setSearchOpen(true);
                   }}
                   onFocus={() => setSearchOpen(true)}
+                  onKeyDown={handleSearchKeyDown}
                   className="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-[#1E4D3B] focus:border-[#1E4D3B] text-sm placeholder-gray-400 transition-colors"
                 />
 
@@ -503,6 +514,7 @@ const Navbar: React.FC = () => {
                   placeholder={t('common.searchProducts')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:ring-1 focus:ring-[#1E4D3B] focus:border-[#1E4D3B] text-sm"
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
