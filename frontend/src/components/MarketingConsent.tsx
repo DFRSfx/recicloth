@@ -146,6 +146,12 @@ const MarketingConsent: React.FC = () => {
     }
   };
 
+  const maybeShowNewsletter = () => {
+    if (!localStorage.getItem('hasSeenNewsletter')) {
+      setTimeout(() => setShowNewsletter(true), 1500);
+    }
+  };
+
   const handlePrivacyAction = (action: 'accept' | 'decline' | 'manage') => {
     if (action === 'manage') {
       setShowPreferences(true);
@@ -163,6 +169,7 @@ const MarketingConsent: React.FC = () => {
     }
 
     setShowPrivacy(false);
+    maybeShowNewsletter();
   };
 
   const toggleCookie = (key: keyof typeof cookieConsent) => {
@@ -184,6 +191,7 @@ const MarketingConsent: React.FC = () => {
 
     setShowPreferences(false);
     setShowPrivacy(false);
+    maybeShowNewsletter();
   };
 
   if (!showNewsletter && !showPrivacy && !showPreferences) return null;
