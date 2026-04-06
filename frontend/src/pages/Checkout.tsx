@@ -160,21 +160,71 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
   };
 
   const lookupPostalCode = async (postalCode: string, country: string) => {
-    const trimmed = postalCode.trim();
-    if (!trimmed || customerInfo.city.trim()) return;
-    setPostalLookupLoading(true);
+  const trimmed = postalCode.trim();
+  if (!trimmed || customerInfo.city.trim()) return;
+  setPostalLookupLoading(true);
+
+  try {
+    // ── Provider 1: GeoAPI PT (Portugal only, CTT-sourced, most accurate) ──
+    if (country === 'PT') {
+      try {
+        const res = await fetch(`https://json.geoapi.pt/cp/${encodeURIComponent(trimmed)}`);
+        if (res.ok) {
+          const data = await res.json();
+          // Returns { concelho, distrito, cp4, cp3, ... }
+          const city = data.concelho || data.distrito;
+          if (city) {
+            setCustomerInfo(prev => ({ ...prev, city }));
+            return;
+          }
+        }
+      } catch { /* fall through to next provider */ }
+    }
+
+    // ── Provider 2: Nominatim (OpenStreetMap) ──
     try {
-      const countryLower = country.toLowerCase();
-      const res = await fetch(`https://api.zippopotam.us/${countryLower}/${trimmed}`);
+      const countryParam = country.toLowerCase();
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(trimmed)}&countrycodes=${countryParam}&format=json&limit=1`,
+        { headers: { 'Accept-Language': 'pt,en' } }
+      );
       if (res.ok) {
         const data = await res.json();
-        const city = data.places?.[0]?.['place name'];
-        if (city) setCustomerInfo(prev => ({ ...prev, city }));
+        if (data.length > 0) {
+          // display_name format: "place, city, county, country" — grab second token
+          const parts = data[0].display_name?.split(',').map((s: string) => s.trim());
+          const city = parts?.[1] || parts?.[0];
+          if (city) {
+            setCustomerInfo(prev => ({ ...prev, city }));
+            return;
+          }
+        }
       }
-    } catch { /* silent */ } finally {
-      setPostalLookupLoading(false);
-    }
-  };
+    } catch { /* fall through */ }
+
+    // ── Provider 3: Photon by Komoot (OSM-based, no key, no limits) ──
+    try {
+      const res = await fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(trimmed)}&limit=1&lang=en`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const feature = data.features?.[0]?.properties;
+        // Filter to correct country if possible
+        if (feature && (!feature.countrycode || feature.countrycode.toUpperCase() === country)) {
+          const city = feature.city || feature.county || feature.state;
+          if (city) {
+            setCustomerInfo(prev => ({ ...prev, city }));
+            return;
+          }
+        }
+      }
+    } catch { /* silent — all providers exhausted */ }
+
+  } finally {
+    setPostalLookupLoading(false);
+  }
+};
 
   useEffect(() => {
     if (isAuthenticated) {
