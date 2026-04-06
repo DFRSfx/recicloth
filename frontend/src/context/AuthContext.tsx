@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 interface User {
   id: number;
@@ -29,6 +29,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const lastUserRefreshRef = useRef<number>(
+    Number(localStorage.getItem('auth_user_refreshed_at') || 0)
+  );
+  const USER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 
   // Load token from localStorage on mount
   useEffect(() => {
@@ -67,6 +71,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Store token and user
       localStorage.setItem('auth_token', data.token);
       localStorage.setItem('auth_user', JSON.stringify(data.user));
+      const now = Date.now();
+      localStorage.setItem('auth_user_refreshed_at', String(now));
+      lastUserRefreshRef.current = now;
 
       setToken(data.token);
       setUser(data.user);
@@ -95,6 +102,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Store token and user
       localStorage.setItem('auth_token', data.token);
       localStorage.setItem('auth_user', JSON.stringify(data.user));
+      const now = Date.now();
+      localStorage.setItem('auth_user_refreshed_at', String(now));
+      lastUserRefreshRef.current = now;
 
       setToken(data.token);
       setUser(data.user);
@@ -131,6 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('auth_user_refreshed_at');
     setToken(null);
     setUser(null);
   };
@@ -138,6 +149,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setAuthState = (token: string, user: User) => {
     localStorage.setItem('auth_token', token);
     localStorage.setItem('auth_user', JSON.stringify(user));
+    const now = Date.now();
+    localStorage.setItem('auth_user_refreshed_at', String(now));
+    lastUserRefreshRef.current = now;
     setToken(token);
     setUser(user);
   };
@@ -149,6 +163,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshUser = async () => {
     if (!token) return;
+    const now = Date.now();
+    if (now - lastUserRefreshRef.current < USER_REFRESH_INTERVAL_MS) {
+      return;
+    }
+    lastUserRefreshRef.current = now;
+    localStorage.setItem('auth_user_refreshed_at', String(now));
 
     try {
       const response = await fetch('/api/auth/me', {
