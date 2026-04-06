@@ -5,6 +5,7 @@ import { requireAdmin, authenticateToken, AuthRequest } from '../middleware/auth
 import crypto from 'crypto';
 import emailService from '../emailService.js';
 import { BUSINESS_RULES, ORDER_STATUS_MAP, OrderStatusLabel } from '../config/businessRules.js';
+import { calculateShipping } from '../utils/shippingCalculator.js';
 
 const router = express.Router();
 
@@ -224,9 +225,9 @@ router.post(
 
       const subtotal = items.reduce((sum: number, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
       const vatAmount = Number((subtotal * BUSINESS_RULES.VAT_RATE).toFixed(2));
-      const shippingCost = subtotal >= BUSINESS_RULES.FREE_SHIPPING_THRESHOLD
-        ? 0
-        : Number((normalizedCountry === 'PT' ? BUSINESS_RULES.SHIPPING.PT.cost : BUSINESS_RULES.SHIPPING.EU.cost).toFixed(2));
+      const totalItemCount = items.reduce((sum: number, item: any) => sum + Number(item.quantity), 0);
+      const shipping = calculateShipping(normalizedCountry, totalItemCount, subtotal);
+      const shippingCost = Number(shipping.cost.toFixed(2));
       const total = Number((subtotal + vatAmount + shippingCost).toFixed(2));
 
       const trackingToken = generateTrackingToken();

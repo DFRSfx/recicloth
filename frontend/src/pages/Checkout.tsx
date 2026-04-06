@@ -7,6 +7,7 @@ import pt from 'react-phone-number-input/locale/pt.json';
 import 'react-phone-number-input/style.css';
 import PhoneCountrySelect from '../components/PhoneCountrySelect';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
+import { calcShipping, EU_SHIPPING_COUNTRIES } from '../utils/shippingCalculator';
 import { loadStripe } from '@stripe/stripe-js';
 import type { Appearance } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -81,10 +82,11 @@ interface ShippingAddress {
 
 interface CheckoutInnerProps {
   amount: number;
+  setAmount: (n: number) => void;
   paymentIntentId: string;
 }
 
-const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }) => {
+const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymentIntentId }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { items, clearCart } = useCart();
@@ -98,9 +100,14 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
   const ordersPath = getRoutePath('orders', lang);
   const homePath = getRoutePath('home', lang);
 
+  const API_BASE_URL = '/api';
+  const [deliveryCountry, setDeliveryCountry] = useState('PT');
+
+  const totalItemCount = items.reduce((s, i) => s + i.quantity, 0);
+  const shippingCost = calcShipping(deliveryCountry, totalItemCount, amount);
+  const displayTotal = parseFloat((amount + shippingCost).toFixed(2));
   const subtotalExVat = amount / 1.23;
   const ivaAmount = amount - subtotalExVat;
-  const API_BASE_URL = '/api';
 
   const [customerInfo, setCustomerInfo] = useState({
     name: user?.name || '',
@@ -251,6 +258,21 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
     setIsProcessing(true);
     setPayError(null);
 
+    // Update Stripe intent to include shipping before confirming
+    if (shippingCost > 0) {
+      try {
+        const updateRes = await fetch(`${API_BASE_URL}/payment/intent/${paymentIntentId}/amount`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ country: deliveryCountry }),
+        });
+        const updateData = await updateRes.json();
+        if (updateData.amount) setAmount(updateData.amount);
+      } catch {
+        // Non-blocking — proceed, backend will recalculate on finalize
+      }
+    }
+
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: { return_url: `${window.location.origin}${checkoutSuccessPath}` },
@@ -275,6 +297,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
       customer_address: customerInfo.address,
       customer_city: customerInfo.city,
       customer_postal_code: customerInfo.postalCode,
+      delivery_country: deliveryCountry,
       ...effectiveBilling,
       user_id: user?.id || null,
       save_address: isAuthenticated && saveAddress,
@@ -518,6 +541,18 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
                           {fieldErrors.postalCode && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.postalCode}</p>}
                         </div>
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">País de Entrega *</label>
+                        <select
+                          value={deliveryCountry}
+                          onChange={(e) => setDeliveryCountry(e.target.value)}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 bg-white"
+                        >
+                          {Object.entries(EU_SHIPPING_COUNTRIES).map(([code, name]) => (
+                            <option key={code} value={code}>{name}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     {isAuthenticated && showNewAddressForm && (
@@ -630,8 +665,11 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
                     <span className="font-medium text-gray-900">{subtotalExVat.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Envio</span>
-                    <span className="text-green-600 font-medium">Grátis</span>
+                    <span>Envio ({EU_SHIPPING_COUNTRIES[deliveryCountry] ?? deliveryCountry})</span>
+                    {shippingCost === 0
+                      ? <span className="text-green-600 font-medium">Grátis</span>
+                      : <span className="font-medium text-gray-900">{shippingCost.toFixed(2)}€</span>
+                    }
                   </div>
                   <div className="flex justify-between">
                     <span>IVA (23%)</span>
@@ -639,7 +677,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
                   </div>
                   <div className="flex justify-between text-lg font-bold border-t border-gray-100 pt-3 mt-2 text-gray-900">
                     <span>Total (c/ IVA)</span>
-                    <span className="text-primary-600">{amount.toFixed(2)}€</span>
+                    <span className="text-primary-600">{displayTotal.toFixed(2)}€</span>
                   </div>
                 </div>
               </div>
@@ -677,7 +715,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, paymentIntentId }
                   className="w-full mt-6 bg-primary-600 text-white py-3.5 px-6 rounded-lg hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center gap-2 text-[15px]"
                 >
                   {isProcessing && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  {isProcessing ? 'A processar...' : `Pagar ${amount.toFixed(2)} €`}
+                  {isProcessing ? 'A processar...' : `Pagar ${displayTotal.toFixed(2)} €`}
                 </button>
               </div>
             </div>
@@ -783,7 +821,7 @@ const Checkout: React.FC = () => {
 
   return (
     <Elements stripe={stripePromise} options={{ clientSecret, locale: 'pt', appearance: stripeAppearance, fonts: stripeFonts }}>
-      <CheckoutInner amount={amount} paymentIntentId={paymentIntentId} />
+      <CheckoutInner amount={amount} setAmount={setAmount} paymentIntentId={paymentIntentId} />
     </Elements>
   );
 };

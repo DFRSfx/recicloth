@@ -6,6 +6,7 @@ import CartItem from '../components/CartItem';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getRoutePath } from '../utils/routes';
+import { FREE_SHIPPING_THRESHOLD } from '../utils/shippingCalculator';
 
 const Cart: React.FC = () => {
   const { items, total, clearCart, itemCount } = useCart();
@@ -131,7 +132,10 @@ const Cart: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-[15px]">
                   <span className="text-gray-600">{t('cart.shipping')}</span>
-                  <span className="font-medium text-[#16a34a]">{t('common.free')}</span>
+                  {total >= FREE_SHIPPING_THRESHOLD
+                    ? <span className="font-medium text-[#16a34a]">{t('common.free')}</span>
+                    : <span className="font-medium text-gray-500 text-sm">{t('cart.shippingCalculated')}</span>
+                  }
                 </div>
                 <div className="flex justify-between text-gray-600 text-[15px]">
                   <span>{t('cart.vat')}</span>

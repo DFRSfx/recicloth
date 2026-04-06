@@ -99,6 +99,7 @@
   "cart.clear": "Clear Cart",
   "cart.subtotal": "Subtotal (excl. VAT)",
   "cart.shipping": "Shipping",
+  "cart.shippingCalculated": "Calculated at checkout",
   "cart.vat": "VAT (23%)",
   "cart.total": "Total (incl. VAT)",
   "cart.vatIncluded": "VAT included",

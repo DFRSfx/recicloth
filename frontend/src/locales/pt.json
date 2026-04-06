@@ -99,6 +99,7 @@
   "cart.clear": "Limpar Carrinho",
   "cart.subtotal": "Subtotal (s/ IVA)",
   "cart.shipping": "Envio",
+  "cart.shippingCalculated": "Calculado no checkout",
   "cart.vat": "IVA (23%)",
   "cart.total": "Total (c/ IVA)",
   "cart.vatIncluded": "IVA incluído",

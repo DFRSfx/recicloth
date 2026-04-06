@@ -4,6 +4,7 @@ import Stripe from 'stripe';
 import crypto from 'crypto';
 import pool from '../config/database.js';
 import emailService from '../emailService.js';
+import { calculateShipping } from '../utils/shippingCalculator.js';
 
 const router = express.Router();
 
@@ -43,8 +44,17 @@ async function createOrderFromData(
     customer_name, customer_email, customer_phone,
     customer_address, customer_city, customer_postal_code,
     billing_name, billing_address, billing_city, billing_postal_code,
-    payment_method, items, total, user_id, save_address
+    payment_method, items, total, user_id, save_address,
+    delivery_country, shipping_cost: storedShippingCost,
   } = data;
+
+  // Calculate shipping from stored data if not pre-computed
+  const normalizedCountry = delivery_country ? String(delivery_country).toUpperCase() : 'PT';
+  const itemCount = items.reduce((s: number, i: any) => s + Number(i.quantity), 0);
+  const subtotal: number = items.reduce((s: number, i: any) => s + Number(i.price) * Number(i.quantity), 0);
+  const shippingCost = storedShippingCost !== undefined
+    ? Number(storedShippingCost)
+    : calculateShipping(normalizedCountry, itemCount, subtotal).cost;
 
   const trackingToken = crypto.randomBytes(32).toString('hex');
 
@@ -53,12 +63,14 @@ async function createOrderFromData(
       tracking_token, user_id, customer_name, customer_email, customer_phone,
       customer_address, customer_city, customer_postal_code,
       billing_name, billing_address, billing_city, billing_postal_code,
+      delivery_country, shipping_cost,
       payment_method, total, status, payment_status, payment_intent_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       trackingToken, user_id || null, customer_name, customer_email, customer_phone,
       customer_address, customer_city, customer_postal_code,
       billing_name || null, billing_address || null, billing_city || null, billing_postal_code || null,
+      normalizedCountry, shippingCost,
       payment_method, total, 'pending', 'pending', paymentIntentId
     ]
   );
@@ -148,6 +160,51 @@ router.post(
     }
   }
 );
+
+// ---------------------------------------------------------------------------
+// PATCH /api/payment/intent/:id/amount
+// Updates Stripe intent amount to include shipping for the selected country.
+// Recalculates from stored pending_checkouts items — not user-supplied amounts.
+// ---------------------------------------------------------------------------
+router.patch('/intent/:id/amount', async (req: any, res: any) => {
+  try {
+    const { country } = req.body;
+    if (!country) {
+      res.status(400).json({ error: 'country is required' });
+      return;
+    }
+
+    const [rows]: any = await pool.query(
+      'SELECT data FROM pending_checkouts WHERE payment_intent_id = ?',
+      [req.params.id]
+    );
+    if (rows.length === 0) {
+      res.status(404).json({ error: 'Payment intent not found' });
+      return;
+    }
+
+    const data = typeof rows[0].data === 'string' ? JSON.parse(rows[0].data) : rows[0].data;
+    const subtotal: number = data.items.reduce((s: number, i: any) => s + Number(i.price) * Number(i.quantity), 0);
+    const itemCount: number = data.items.reduce((s: number, i: any) => s + Number(i.quantity), 0);
+    const shipping = calculateShipping(country, itemCount, subtotal);
+    const newTotal = parseFloat((subtotal + shipping.cost).toFixed(2));
+
+    await requireStripe().paymentIntents.update(req.params.id, {
+      amount: Math.round(newTotal * 100),
+    });
+
+    // Persist country + shipping in pending data so finalize can save them
+    await pool.execute(
+      'UPDATE pending_checkouts SET data = ? WHERE payment_intent_id = ?',
+      [JSON.stringify({ ...data, delivery_country: country.toUpperCase(), shipping_cost: shipping.cost }), req.params.id]
+    );
+
+    res.json({ amount: newTotal, shippingCost: shipping.cost });
+  } catch (error: any) {
+    console.error('Error updating intent amount:', error);
+    res.status(500).json({ error: error.message || 'Failed to update amount' });
+  }
+});
 
 // ---------------------------------------------------------------------------
 // POST /api/payment/initialize
@@ -266,6 +323,7 @@ router.post(
       // Merge address fields from request body (new flow) with stored data (old flow)
       const { customer_name, customer_email, customer_phone,
               customer_address, customer_city, customer_postal_code,
+              delivery_country,
               billing_name, billing_address, billing_city, billing_postal_code,
               user_id, save_address } = req.body;
       const checkoutData = {
@@ -278,6 +336,8 @@ router.post(
           billing_postal_code: billing_postal_code || null,
           user_id: user_id || pendingData.user_id || null,
           save_address: save_address || false }),
+        // delivery_country from request overrides stored value (allows correction if PATCH wasn't called)
+        ...(delivery_country && { delivery_country: String(delivery_country).toUpperCase() }),
       };
       const connection = await pool.getConnection();
 
