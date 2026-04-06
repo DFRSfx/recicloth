@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../utils/api';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
@@ -19,6 +19,7 @@ interface SlideData {
 const HeroSlider: React.FC = () => {
   const { t, lang } = useLanguage();
   const [rawSlides, setRawSlides] = useState<any[]>([]);
+  const [localizedSlides, setLocalizedSlides] = useState<SlideData[]>([]);
   const [loading, setLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState<Set<number>>(new Set());
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -63,19 +64,21 @@ const HeroSlider: React.FC = () => {
   }, []);
 
   // Re-derive display slides whenever raw data or language changes
-  const localizedSlides = useMemo<SlideData[]>(() =>
-    rawSlides.map(slide => ({
-      id: slide.id,
-      title: (lang === 'en' ? slide.title_en : slide.title_pt) || slide.title,
-      description: (lang === 'en' ? slide.description_en : slide.description_pt) || slide.description || '',
-      buttonText: (lang === 'en' ? slide.button_text_en : slide.button_text_pt) || slide.button_text,
-      buttonLink: slide.button_link,
-      backgroundImage: getAbsoluteImageUrl(slide.background_image),
-      backgroundImageMd: getAbsoluteImageUrl(slide.background_image_md),
-      backgroundImageSm: getAbsoluteImageUrl(slide.background_image_sm),
-      textColor: slide.text_color || 'white',
-    })),
-  [rawSlides, lang]);
+  useEffect(() => {
+    setLocalizedSlides(
+      rawSlides.map(slide => ({
+        id: slide.id,
+        title: (lang === 'en' ? slide.title_en : slide.title_pt) || slide.title,
+        description: (lang === 'en' ? slide.description_en : slide.description_pt) || slide.description || '',
+        buttonText: (lang === 'en' ? slide.button_text_en : slide.button_text_pt) || slide.button_text,
+        buttonLink: slide.button_link,
+        backgroundImage: getAbsoluteImageUrl(slide.background_image),
+        backgroundImageMd: getAbsoluteImageUrl(slide.background_image_md),
+        backgroundImageSm: getAbsoluteImageUrl(slide.background_image_sm),
+        textColor: slide.text_color || 'white',
+      }))
+    );
+  }, [rawSlides, lang]);
 
   // Auto-play functionality
   useEffect(() => {
