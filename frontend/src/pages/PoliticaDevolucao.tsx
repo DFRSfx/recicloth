@@ -1,36 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import SEO from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
 import { getRoutePath } from '../utils/routes';
 
 const PoliticaDevolucao: React.FC = () => {
-  const [lang, setLang] = useState<'pt' | 'en'>('pt');
-  const { lang: uiLang } = useLanguage();
+  const { lang } = useLanguage();
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
         <SEO
           title="Política de Devolução | Return Policy"
           description="Política de devolução de 14 dias da Recicloth. 14-day return policy."
-          canonical={getRoutePath('returnPolicy', uiLang)}
+          canonical={getRoutePath('returnPolicy', lang)}
         />
       <div className="max-w-4xl mx-auto px-4 py-12">
-
-        {/* Language toggle */}
-        <div className="flex gap-2 mb-8">
-          <button
-            onClick={() => setLang('pt')}
-            className={`px-4 py-1.5 text-sm border rounded-full transition-colors ${lang === 'pt' ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]' : 'text-[#2D6A4F] border-[#2D6A4F] hover:bg-[#2D6A4F]/10'}`}
-          >
-            Português
-          </button>
-          <button
-            onClick={() => setLang('en')}
-            className={`px-4 py-1.5 text-sm border rounded-full transition-colors ${lang === 'en' ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]' : 'text-[#2D6A4F] border-[#2D6A4F] hover:bg-[#2D6A4F]/10'}`}
-          >
-            English
-          </button>
-        </div>
 
         {lang === 'pt' ? (
           <div className="space-y-8 text-[#1A1A1A] leading-relaxed">

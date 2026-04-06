@@ -1,35 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import SEO from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
 import { getRoutePath } from '../utils/routes';
 
 const TermosCondicoes: React.FC = () => {
-  const [lang, setLang] = useState<'pt' | 'en'>('pt');
-  const { lang: uiLang } = useLanguage();
+  const { lang } = useLanguage();
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
         <SEO
           title="Termos e Condições | Terms & Conditions"
           description="Termos e condições de utilização da Recicloth. Terms and conditions of use."
-          canonical={getRoutePath('terms', uiLang)}
+          canonical={getRoutePath('terms', lang)}
         />
       <div className="max-w-4xl mx-auto px-4 py-12">
-
-        <div className="flex gap-2 mb-8">
-          <button
-            onClick={() => setLang('pt')}
-            className={`px-4 py-1.5 text-sm border rounded-full transition-colors ${lang === 'pt' ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]' : 'text-[#2D6A4F] border-[#2D6A4F] hover:bg-[#2D6A4F]/10'}`}
-          >
-            Português
-          </button>
-          <button
-            onClick={() => setLang('en')}
-            className={`px-4 py-1.5 text-sm border rounded-full transition-colors ${lang === 'en' ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]' : 'text-[#2D6A4F] border-[#2D6A4F] hover:bg-[#2D6A4F]/10'}`}
-          >
-            English
-          </button>
-        </div>
 
         {lang === 'pt' ? (
           <div className="space-y-10 text-[#1A1A1A] leading-relaxed">
@@ -41,6 +25,11 @@ const TermosCondicoes: React.FC = () => {
                 <li><strong>Propriedade Intelectual:</strong> Todas as fotografias das peças recicladas e o design do site pertencem à Recicloth.</li>
                 <li><strong>Uso Indevido:</strong> É proibido o uso de bots para compra automática ou qualquer tentativa de comprometer a segurança do site.</li>
               </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Projeto Académico</h2>
+              <p className="text-sm">Este website é um projeto académico e não representa uma loja em funcionamento comercial.</p>
             </section>
 
             <section>
@@ -143,6 +132,11 @@ const TermosCondicoes: React.FC = () => {
                 <li><strong>Intellectual Property:</strong> All photographs of recycled items and the site design belong to Recicloth.</li>
                 <li><strong>Misuse:</strong> The use of bots for automatic purchasing or any attempt to compromise the security of the site is strictly prohibited.</li>
               </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Academic Project</h2>
+              <p className="text-sm">This website is an academic project and does not represent a commercial store in operation.</p>
             </section>
 
             <section>
