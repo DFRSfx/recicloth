@@ -788,7 +788,7 @@ router.post('/webhook', async (req: any, res: any) => {
 // POST /api/payment/resend-confirmation/:orderId
 // Admin: manually resend order confirmation email for an existing paid order.
 // ---------------------------------------------------------------------------
-router.post('/resend-confirmation/:orderId', async (req: any, res: any) => {
+router.get('/resend-confirmation/:orderId', async (req: any, res: any) => {
   const orderId = parseInt(req.params.orderId);
   if (isNaN(orderId)) {
     res.status(400).json({ error: 'Invalid order ID' });
