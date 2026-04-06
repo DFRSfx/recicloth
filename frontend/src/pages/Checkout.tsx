@@ -171,8 +171,8 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
         const res = await fetch(`https://json.geoapi.pt/cp/${encodeURIComponent(trimmed)}`);
         if (res.ok) {
           const data = await res.json();
-          // Returns { concelho, distrito, cp4, cp3, ... }
-          const city = data.concelho || data.distrito;
+          // Only extract what we need — ignore partes, pontos, poligono, ruas, etc.
+          const city = data.Concelho || data.municipio;
           if (city) {
             setCustomerInfo(prev => ({ ...prev, city }));
             return;
