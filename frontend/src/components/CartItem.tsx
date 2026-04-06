@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Minus, Plus, X } from 'lucide-react';
+import { Minus, Plus, Trash2 } from 'lucide-react';
 import { CartItem as CartItemType } from '../types';
 import { useCart } from '../context/CartContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
@@ -132,7 +132,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
               title="Remover produto"
               aria-label="Remover"
             >
-              <X className="h-5 w-5" strokeWidth={1.5} />
+              <Trash2 className="h-5 w-5" strokeWidth={1.5} />
             </button>
           </div>
 
