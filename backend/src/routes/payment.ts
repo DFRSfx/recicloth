@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import pool from '../config/database.js';
 import emailService from '../emailService.js';
 import { calculateShipping } from '../utils/shippingCalculator.js';
+import { BUSINESS_RULES } from '../config/businessRules.js';
 
 const router = express.Router();
 
@@ -16,6 +17,53 @@ const requireStripe = () => {
     throw new Error('Stripe is not configured. Set STRIPE_SECRET_KEY in backend/.env');
   }
   return stripe;
+};
+
+const normalizePaymentMethod = (method?: string | null): string | null => {
+  if (!method) return null;
+  switch (method) {
+    case 'mb_way':
+      return 'mbway';
+    case 'multibanco':
+      return 'multibanco';
+    case 'card':
+      return 'card';
+    case 'stripe':
+      return 'stripe';
+    default:
+      return method;
+  }
+};
+
+const extractPaymentMethodType = (pi: Stripe.PaymentIntent): string | null => {
+  let methodType: string | undefined;
+  if (pi.payment_method && typeof pi.payment_method !== 'string') {
+    methodType = pi.payment_method.type;
+  }
+  if (!methodType) {
+    const latestCharge = pi.latest_charge && typeof pi.latest_charge !== 'string' ? pi.latest_charge : null;
+    methodType = latestCharge?.payment_method_details?.type;
+  }
+  if (!methodType && (pi as any).charges?.data?.length) {
+    methodType = (pi as any).charges.data[0]?.payment_method_details?.type;
+  }
+  if (!methodType && Array.isArray(pi.payment_method_types) && pi.payment_method_types.length === 1) {
+    methodType = pi.payment_method_types[0];
+  }
+  return normalizePaymentMethod(methodType);
+};
+
+const resolvePaymentMethod = async (paymentIntentId: string): Promise<string | null> => {
+  if (!stripe) return null;
+  try {
+    const pi = await requireStripe().paymentIntents.retrieve(paymentIntentId, {
+      expand: ['payment_method', 'latest_charge'],
+    });
+    return extractPaymentMethodType(pi);
+  } catch (error: any) {
+    console.error(`Error resolving payment method for PI ${paymentIntentId}:`, error.message || error);
+    return null;
+  }
 };
 
 // Payment callback base URL — used as return_url for Multibanco / MB WAY.
@@ -44,17 +92,24 @@ async function createOrderFromData(
     customer_name, customer_email, customer_phone,
     customer_address, customer_city, customer_postal_code,
     billing_name, billing_address, billing_city, billing_postal_code,
-    payment_method, items, total, user_id, save_address,
+    payment_method, items, user_id, save_address,
     delivery_country, shipping_cost: storedShippingCost,
   } = data;
 
   // Calculate shipping from stored data if not pre-computed
   const normalizedCountry = delivery_country ? String(delivery_country).toUpperCase() : 'PT';
   const itemCount = items.reduce((s: number, i: any) => s + Number(i.quantity), 0);
-  const subtotal: number = items.reduce((s: number, i: any) => s + Number(i.price) * Number(i.quantity), 0);
+  const itemsTotal: number = items.reduce((s: number, i: any) => s + Number(i.price) * Number(i.quantity), 0);
+  const subtotal = Number((itemsTotal / (1 + BUSINESS_RULES.VAT_RATE)).toFixed(2));
   const shippingCost = storedShippingCost !== undefined
     ? Number(storedShippingCost)
     : calculateShipping(normalizedCountry, itemCount, subtotal).cost;
+  const vatAmount = Number((itemsTotal - subtotal).toFixed(2));
+  const total = Number((itemsTotal + shippingCost).toFixed(2));
+  const resolvedMethod = payment_method === 'stripe'
+    ? await resolvePaymentMethod(paymentIntentId)
+    : null;
+  const finalPaymentMethod = resolvedMethod || payment_method;
 
   const trackingToken = crypto.randomBytes(32).toString('hex');
 
@@ -63,15 +118,15 @@ async function createOrderFromData(
       tracking_token, user_id, customer_name, customer_email, customer_phone,
       customer_address, customer_city, customer_postal_code,
       billing_name, billing_address, billing_city, billing_postal_code,
-      delivery_country, shipping_cost,
+      delivery_country, subtotal, vat_amount, shipping_cost,
       payment_method, total, status, payment_status, payment_intent_id
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       trackingToken, user_id || null, customer_name, customer_email, customer_phone,
       customer_address, customer_city, customer_postal_code,
       billing_name || null, billing_address || null, billing_city || null, billing_postal_code || null,
-      normalizedCountry, shippingCost,
-      payment_method, total, 'pending', 'pending', paymentIntentId
+      normalizedCountry, subtotal, vatAmount, shippingCost,
+      finalPaymentMethod, total, 'pending', 'pending', paymentIntentId
     ]
   );
   const orderId = orderResult.insertId;
@@ -560,6 +615,13 @@ router.post('/webhook', async (req: any, res: any) => {
       }
 
       if (orderId) {
+        const resolvedMethod = extractPaymentMethodType(pi);
+        if (resolvedMethod) {
+          await pool.execute(
+            "UPDATE orders SET payment_method = ? WHERE id = ? AND (payment_method IS NULL OR payment_method = 'stripe')",
+            [resolvedMethod, orderId]
+          );
+        }
         const [updateResult]: any = await pool.execute(
           "UPDATE orders SET status = 'processing', payment_status = 'paid' WHERE id = ? AND status = 'pending'",
           [orderId]

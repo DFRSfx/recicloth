@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ordersApi } from '../../utils/apiHelpers';
 import { Eye, Search, Calendar, CreditCard } from 'lucide-react';
 import AdminSelect from '../components/AdminSelect';
+import { getPaymentMethodLabel } from '../../utils/paymentLabels';
 
 interface Order {
   id: number;
@@ -166,7 +167,7 @@ export default function OrdersList() {
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <CreditCard size={14} className="mr-2 text-gray-400" />
-                    <span className="uppercase">{order.payment_method}</span>
+                    <span>{getPaymentMethodLabel(order.payment_method, 'pt')}</span>
                   </div>
                 </div>
 
@@ -231,7 +232,7 @@ export default function OrdersList() {
                       </span>
                     </td>
                     <td className="px-4 py-4 text-xs lg:text-sm text-gray-600 text-center uppercase tracking-wider whitespace-nowrap">
-                      {order.payment_method}
+                      {getPaymentMethodLabel(order.payment_method, 'pt')}
                     </td>
                     <td className="px-4 py-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end">

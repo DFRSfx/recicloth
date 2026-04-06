@@ -457,7 +457,7 @@ export default function ProductForm() {
 
       // Debug: Log all FormData entries
       console.log('📦 FormData contents:');
-      for (let [key, value] of formDataToSend.entries()) {
+      for (const [key, value] of formDataToSend.entries()) {
         if (value instanceof File) {
           console.log(`  ${key}:`, value.name, value.type, value.size);
         } else {

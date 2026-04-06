@@ -179,12 +179,6 @@ const Navbar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [searchOpen]);
 
-  const handleProductClick = (productId: string) => {
-    navigate(getProductPath(lang, productId));
-    setSearchOpen(false);
-    setSearchQuery('');
-  };
-
   const handleCloseMenu = () => {
     setIsMenuClosing(true);
     setTimeout(() => {

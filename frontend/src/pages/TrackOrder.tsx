@@ -5,6 +5,7 @@ import SEO from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
 import { getTrackOrderPath } from '../utils/routes';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
+import { getPaymentMethodLabel } from '../utils/paymentLabels';
 
 interface OrderItem {
   id: number;
@@ -40,6 +41,9 @@ interface Order {
   customer_city: string;
   customer_postal_code: string;
   total: number;
+  subtotal?: number | string;
+  vat_amount?: number | string;
+  shipping_cost?: number | string;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   payment_status: 'pending' | 'paid' | 'failed' | 'expired';
   payment_method: string;
@@ -56,6 +60,7 @@ const TrackOrder: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const API_BASE_URL = '/api';
+  const formatMoney = (value: number | string | null | undefined) => Number(value ?? 0).toFixed(2);
 
   useEffect(() => {
     if (token) {
@@ -336,7 +341,7 @@ const TrackOrder: React.FC = () => {
               </div>
               <div>
                 <span className="text-gray-600">Método de Pagamento:</span>
-                <p className="font-medium capitalize">{order.payment_method}</p>
+                <p className="font-medium">{getPaymentMethodLabel(order.payment_method, lang)}</p>
               </div>
             </div>
           </div>
@@ -366,10 +371,22 @@ const TrackOrder: React.FC = () => {
                   </span>
                 </div>
               ))}
-              <div className="border-t pt-4">
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total</span>
-                  <span className="text-primary-600">{parseFloat(String(order.total)).toFixed(2)}€</span>
+              <div className="border-t pt-4 space-y-2 text-sm text-gray-600">
+                <div className="flex justify-between">
+                  <span>{t('cart.subtotal')}</span>
+                  <span className="font-medium text-gray-900">{formatMoney(order.subtotal)}€</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{t('cart.shipping')}</span>
+                  <span className="font-medium text-gray-900">{formatMoney(order.shipping_cost)}€</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{t('cart.vat')}</span>
+                  <span className="font-medium text-gray-900">{formatMoney(order.vat_amount)}€</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold border-t pt-3 mt-2 text-gray-900">
+                  <span>{t('cart.total')}</span>
+                  <span className="text-primary-600">{formatMoney(order.total)}€</span>
                 </div>
               </div>
             </div>

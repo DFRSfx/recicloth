@@ -4,6 +4,7 @@ import { ordersApi } from '../../utils/apiHelpers';
 import { ArrowLeft, Package, User, MapPin, CreditCard, Calendar } from 'lucide-react';
 import AdminSelect from '../components/AdminSelect';
 import { getAbsoluteImageUrl } from '../../utils/imageUtils';
+import { getPaymentMethodLabel } from '../../utils/paymentLabels';
 
 interface OrderItem {
   id: number;
@@ -207,7 +208,7 @@ export default function OrderDetails() {
               <CreditCard className="mr-2" size={20} />
               Pagamento
             </h2>
-            <p className="text-gray-800">{order.payment_method}</p>
+            <p className="text-gray-800">{getPaymentMethodLabel(order.payment_method, 'pt')}</p>
           </div>
 
           {/* Date */}

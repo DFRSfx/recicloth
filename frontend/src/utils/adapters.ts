@@ -88,8 +88,8 @@ export function adaptProductToFrontend(backendProduct: BackendProduct): Frontend
         colorsArray = Array.isArray(parsed)
           ? parsed.map(mapColor).filter((item): item is { name: string; hex: string } => !!item)
           : [];
-      } catch (e) {
-        console.warn('Failed to parse colors JSON:', e);
+      } catch (error) {
+        console.warn('Failed to parse colors JSON:', error);
         colorsArray = [];
       }
     } else if (Array.isArray(backendProduct.colors)) {
@@ -107,7 +107,7 @@ export function adaptProductToFrontend(backendProduct: BackendProduct): Frontend
         ? JSON.parse(backendProduct.size_stock)
         : backendProduct.size_stock;
       if (Array.isArray(raw)) sizeStockArray = raw;
-    } catch (e) {
+    } catch {
       // ignore
     }
   }

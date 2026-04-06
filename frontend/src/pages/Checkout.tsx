@@ -154,77 +154,88 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
   const billingAddressRef = useRef<HTMLInputElement>(null);
   const billingCityRef = useRef<HTMLInputElement>(null);
   const billingPostalCodeRef = useRef<HTMLInputElement>(null);
+  const postalLookupCache = useRef(new Map<string, string>());
+  const geoApiBackoffUntil = useRef<number>(0);
 
   const clearFieldError = (field: string) => {
     setFieldErrors(prev => { const next = { ...prev }; delete next[field]; return next; });
   };
 
   const lookupPostalCode = async (postalCode: string, country: string) => {
-  const trimmed = postalCode.trim();
-  if (!trimmed || customerInfo.city.trim()) return;
-  setPostalLookupLoading(true);
-
-  try {
-    // ── Provider 1: GeoAPI PT (Portugal only, CTT-sourced, most accurate) ──
-    if (country === 'PT') {
-      try {
-        const res = await fetch(`https://json.geoapi.pt/cp/${encodeURIComponent(trimmed)}`);
-        if (res.ok) {
-          const data = await res.json();
-          // Only extract what we need — ignore partes, pontos, poligono, ruas, etc.
-          const city = data.Concelho || data.municipio;
-          if (city) {
-            setCustomerInfo(prev => ({ ...prev, city }));
-            return;
-          }
-        }
-      } catch { /* fall through to next provider */ }
+    const trimmed = postalCode.trim();
+    if (!trimmed || customerInfo.city.trim()) return;
+    const cacheKey = `${country}:${trimmed}`;
+    const cachedCity = postalLookupCache.current.get(cacheKey);
+    if (cachedCity) {
+      setCustomerInfo(prev => ({ ...prev, city: cachedCity }));
+      return;
     }
-
-    // ── Provider 2: Nominatim (OpenStreetMap) ──
+    setPostalLookupLoading(true);
     try {
-      const countryParam = country.toLowerCase();
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(trimmed)}&countrycodes=${countryParam}&format=json&limit=1`,
-        { headers: { 'Accept-Language': 'pt,en' } }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        if (data.length > 0) {
-          // display_name format: "place, city, county, country" — grab second token
-          const parts = data[0].display_name?.split(',').map((s: string) => s.trim());
-          const city = parts?.[1] || parts?.[0];
-          if (city) {
-            setCustomerInfo(prev => ({ ...prev, city }));
-            return;
-          }
-        }
-      }
-    } catch { /* fall through */ }
+      let city: string | undefined;
 
-    // ── Provider 3: Photon by Komoot (OSM-based, no key, no limits) ──
-    try {
-      const res = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(trimmed)}&limit=1&lang=en`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        const feature = data.features?.[0]?.properties;
-        // Filter to correct country if possible
-        if (feature && (!feature.countrycode || feature.countrycode.toUpperCase() === country)) {
-          const city = feature.city || feature.county || feature.state;
-          if (city) {
-            setCustomerInfo(prev => ({ ...prev, city }));
-            return;
+      if (country === 'PT' && Date.now() >= geoApiBackoffUntil.current) {
+        try {
+          const res = await fetch(`https://json.geoapi.pt/cp/${encodeURIComponent(trimmed)}`);
+          if (res.status === 429) {
+            geoApiBackoffUntil.current = Date.now() + 60 * 60 * 1000;
+          } else if (res.ok) {
+            const data = await res.json();
+            city = data.Concelho || data.municipio;
           }
-        }
+        } catch { /* fall through */ }
       }
-    } catch { /* silent — all providers exhausted */ }
 
-  } finally {
-    setPostalLookupLoading(false);
-  }
-};
+      if (!city) {
+        try {
+          const countryParam = country.toLowerCase();
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(trimmed)}&countrycodes=${countryParam}&format=json&limit=1`,
+            { headers: { 'Accept-Language': 'pt,en' } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (data.length > 0) {
+              const parts = data[0].display_name?.split(',').map((s: string) => s.trim());
+              city = parts?.[1] || parts?.[0];
+            }
+          }
+        } catch { /* fall through */ }
+      }
+
+      if (!city) {
+        try {
+          const res = await fetch(
+            `https://photon.komoot.io/api/?q=${encodeURIComponent(trimmed)}&limit=1&lang=en`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            const feature = data.features?.[0]?.properties;
+            if (feature && (!feature.countrycode || feature.countrycode.toUpperCase() === country)) {
+              city = feature.city || feature.county || feature.state;
+            }
+          }
+        } catch { /* fall through */ }
+      }
+
+      if (!city) {
+        try {
+          const res = await fetch(`https://api.zippopotam.us/${country.toLowerCase()}/${trimmed}`);
+          if (res.ok) {
+            const data = await res.json();
+            city = data.places?.[0]?.['place name'];
+          }
+        } catch { /* fall through */ }
+      }
+
+      if (city) {
+        postalLookupCache.current.set(cacheKey, city);
+        setCustomerInfo(prev => ({ ...prev, city }));
+      }
+    } finally {
+      setPostalLookupLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated) {

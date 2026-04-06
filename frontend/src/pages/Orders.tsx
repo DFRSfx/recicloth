@@ -8,6 +8,7 @@ import { InvoiceOrder } from '../utils/generateInvoice';
 import SEO from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
 import { getProductPath, getRoutePath, getTrackOrderPath } from '../utils/routes';
+import { getPaymentMethodLabel } from '../utils/paymentLabels';
 
 interface OrderItem {
   id: number;
@@ -30,6 +31,9 @@ interface Order {
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   payment_status: 'pending' | 'paid' | 'failed' | 'expired';
   payment_method: string;
+  subtotal?: number | string;
+  vat_amount?: number | string;
+  shipping_cost?: number | string;
   created_at: string;
   customer_name: string;
   customer_email: string;
@@ -65,6 +69,7 @@ const Orders: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const API_BASE_URL = '/api';
+  const formatMoney = (value: number | string | null | undefined) => Number(value ?? 0).toFixed(2);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -222,6 +227,7 @@ const Orders: React.FC = () => {
               const statusConfig = getStatusConfig(order.status);
               const StatusIcon = statusConfig.icon;
               const isExpanded = expandedOrder === order.id;
+              const paymentLabel = getPaymentMethodLabel(order.payment_method, lang);
 
               return (
                 <div
@@ -344,13 +350,25 @@ const Orders: React.FC = () => {
                             </div>
                             <div className="bg-white p-4 rounded-lg">
                               <p className="text-sm text-gray-500 mb-1">{t('orders.paymentMethod')}</p>
-                              <p className="text-sm text-gray-900 capitalize">{order.payment_method}</p>
+                              <p className="text-sm text-gray-900">{paymentLabel}</p>
                             </div>
-                            <div className="bg-white p-4 rounded-lg">
-                              <p className="text-sm text-gray-500 mb-1">{t('cart.total')}</p>
-                              <p className="text-lg font-bold text-primary-600">
-                                {Number(order.total).toFixed(2)}€
-                              </p>
+                            <div className="bg-white p-4 rounded-lg space-y-2 text-sm text-gray-600">
+                              <div className="flex justify-between">
+                                <span>{t('cart.subtotal')}</span>
+                                <span className="font-medium text-gray-900">{formatMoney(order.subtotal)}€</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>{t('cart.shipping')}</span>
+                                <span className="font-medium text-gray-900">{formatMoney(order.shipping_cost)}€</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>{t('cart.vat')}</span>
+                                <span className="font-medium text-gray-900">{formatMoney(order.vat_amount)}€</span>
+                              </div>
+                              <div className="flex justify-between text-base font-semibold text-gray-900 border-t pt-2 mt-2">
+                                <span>{t('cart.total')}</span>
+                                <span className="text-primary-600">{formatMoney(order.total)}€</span>
+                              </div>
                             </div>
                           </div>
 

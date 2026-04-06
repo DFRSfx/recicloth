@@ -183,7 +183,7 @@ const Shop: React.FC = () => {
 
   // THE ENGINE
   const filteredProducts = useMemo(() => {
-    let filtered = allProducts.filter(product => {
+    const filtered = allProducts.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
       
       // LÓGICA CORRIGIDA: Compara o slug da categoria do produto com o slug da categoria selecionada

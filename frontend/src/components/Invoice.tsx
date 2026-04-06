@@ -1,5 +1,6 @@
 import React from 'react';
 import { InvoiceOrder } from '../utils/generateInvoice';
+import { getPaymentMethodLabel } from '../utils/paymentLabels';
 
 interface Props {
   order: InvoiceOrder;
@@ -25,16 +26,6 @@ const Invoice: React.FC<Props> = ({ order }) => {
   });
   const year = new Date(order.created_at).getFullYear();
   const invoiceNumber = `${year}-${String(order.id).padStart(4, '0')}`;
-
-  const paymentLabel = (method: string) => {
-    switch (method?.toLowerCase()) {
-      case 'mbway': return 'MBWay';
-      case 'multibanco': return 'Multibanco';
-      case 'stripe':
-      case 'card': return 'Cartão de Crédito';
-      default: return method ?? '—';
-    }
-  };
 
   return (
     <div style={{ fontFamily: "'Georgia', 'Times New Roman', serif", color: '#2c1810', background: '#fff' }}>
@@ -86,7 +77,7 @@ const Invoice: React.FC<Props> = ({ order }) => {
             {[
               { label: 'N.º Encomenda', value: `#${order.id}` },
               { label: 'Data', value: orderDate },
-              { label: 'Pagamento', value: paymentLabel(order.payment_method) },
+              { label: 'Pagamento', value: getPaymentMethodLabel(order.payment_method, 'pt') },
             ].map(({ label, value }) => (
               <div key={label}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.4px', textTransform: 'uppercase', color: '#a07060', marginBottom: 3 }}>{label}</div>

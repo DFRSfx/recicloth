@@ -48,7 +48,7 @@ const getDisplayColor = (item: CartItemType): string | undefined => {
 
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { updateQuantity, removeItem } = useCart();
-  const { t, lang } = useLanguage();
+  const { lang } = useLanguage();
   const productPath = getProductPath(lang, item.product.id);
 
   const colorImage = getColorImage(item);

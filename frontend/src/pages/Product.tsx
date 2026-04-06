@@ -191,7 +191,7 @@ const Product: React.FC = () => {
       try {
         await navigator.clipboard.writeText(shareUrl);
         setToast({ message: t('product.linkCopied'), type: 'success' });
-      } catch (error) {
+      } catch {
         setToast({ message: t('product.linkCopyError'), type: 'error' });
       }
     }
