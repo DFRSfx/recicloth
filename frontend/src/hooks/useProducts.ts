@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Product } from '../types';
 import { productsApi } from '../utils/apiHelpers';
 import { adaptProductsToFrontend, BackendProduct } from '../utils/adapters';
@@ -17,7 +17,7 @@ export function useProducts(): UseProductsResult {
   const [error, setError] = useState<string | null>(null);
   const { lang } = useLanguage();
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -36,11 +36,11 @@ export function useProducts(): UseProductsResult {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang]);
 
   useEffect(() => {
     fetchProducts();
-  }, [lang]); // re-fetch when language changes
+  }, [fetchProducts]); // re-fetch when language changes
 
   return {
     products,
@@ -63,7 +63,7 @@ export function useProduct(id: string): UseProductResult {
   const [error, setError] = useState<string | null>(null);
   const { lang } = useLanguage();
 
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -88,13 +88,13 @@ export function useProduct(id: string): UseProductResult {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, lang]);
 
   useEffect(() => {
     if (id) {
       fetchProduct();
     }
-  }, [id, lang]); // re-fetch when language or id changes
+  }, [fetchProduct, id]); // re-fetch when language or id changes
 
   return {
     product,

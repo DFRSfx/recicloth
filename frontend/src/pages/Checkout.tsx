@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, User, Mail, AlertCircle, Lock } from 'lucide-react';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
@@ -238,23 +238,26 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
-      loadSavedAddresses();
-      setCustomerInfo(prev => ({ ...prev, name: user?.name || '', email: user?.email || '' }));
-    } else {
-      const timer = setTimeout(() => setShowGuestWarning(true), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated, user]);
-
-  useEffect(() => {
     if (!isAuthenticated) {
       const saved = localStorage.getItem('guest_checkout_data');
       if (saved) setCustomerInfo(JSON.parse(saved));
     }
   }, [isAuthenticated]);
 
-  const loadSavedAddresses = async () => {
+  const selectAddress = useCallback((addr: ShippingAddress) => {
+    // Ensure E.164 format for PhoneInput; prepend +351 for legacy entries without prefix
+    const phone = addr.phone.startsWith('+') ? addr.phone : `+351${addr.phone.replace(/\D/g, '')}`;
+    setCustomerInfo(prev => ({
+      ...prev,
+      address: addr.address,
+      city: addr.city,
+      postalCode: addr.postal_code,
+      phone,
+    }));
+    setShowNewAddressForm(false);
+  }, []);
+
+  const loadSavedAddresses = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE_URL}/shipping-addresses`, {
@@ -272,20 +275,17 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
     } catch (error) {
       console.error('Error loading addresses:', error);
     }
-  };
+  }, [API_BASE_URL, selectAddress]);
 
-  const selectAddress = (addr: ShippingAddress) => {
-    // Ensure E.164 format for PhoneInput; prepend +351 for legacy entries without prefix
-    const phone = addr.phone.startsWith('+') ? addr.phone : `+351${addr.phone.replace(/\D/g, '')}`;
-    setCustomerInfo(prev => ({
-      ...prev,
-      address: addr.address,
-      city: addr.city,
-      postalCode: addr.postal_code,
-      phone,
-    }));
-    setShowNewAddressForm(false);
-  };
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadSavedAddresses();
+      setCustomerInfo(prev => ({ ...prev, name: user?.name || '', email: user?.email || '' }));
+    } else {
+      const timer = setTimeout(() => setShowGuestWarning(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, loadSavedAddresses, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

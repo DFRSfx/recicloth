@@ -29,5 +29,16 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
     },
+  },
+  {
+    files: [
+      'src/context/**/*.{ts,tsx}',
+      'src/hooks/**/*.{ts,tsx}',
+      'src/utils/**/*.{ts,tsx}',
+      'src/components/SEO.tsx'
+    ],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
   }
 );

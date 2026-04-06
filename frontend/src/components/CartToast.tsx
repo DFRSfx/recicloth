@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { X, CheckCircle, Trash2 } from 'lucide-react';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
@@ -17,15 +17,15 @@ const CartToast: React.FC<CartToastProps> = ({ productName, productImage, type, 
   const { lang } = useLanguage();
   const cartPath = getRoutePath('cart', lang);
 
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(onClose, 300);
+  }, [onClose]);
+
   useEffect(() => {
     const timer = setTimeout(() => handleClose(), 3500);
     return () => clearTimeout(timer);
-  }, []);
-
-  const handleClose = () => {
-    setIsClosing(true);
-    setTimeout(onClose, 300);
-  };
+  }, [handleClose]);
 
   const isRemoved = type === 'removed';
 

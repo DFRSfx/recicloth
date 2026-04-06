@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Plus, Edit, Trash2, Save, X, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import AdminSelect from '../components/AdminSelect';
 import { useToast } from '../../context/ToastContext';
@@ -72,7 +72,7 @@ export default function HeroSlidesList() {
     getRoutePath('terms', targetLang)
   ];
 
-  const pageRouteOptions = [
+  const pageRouteOptions = useMemo(() => ([
     { value: getRoutePath('home', lang), label: t('admin.heroSlides.routes.home') },
     { value: getRoutePath('shop', lang), label: t('admin.heroSlides.routes.shopAll') },
     { value: withQuery(getRoutePath('shop', lang), { filter: 'new' }), label: t('admin.heroSlides.routes.shopNew') },
@@ -90,7 +90,7 @@ export default function HeroSlidesList() {
     { value: getRoutePath('privacyPolicy', lang), label: t('admin.heroSlides.routes.privacyPolicy') },
     { value: getRoutePath('returnPolicy', lang), label: t('admin.heroSlides.routes.returnPolicy') },
     { value: getRoutePath('terms', lang), label: t('admin.heroSlides.routes.terms') }
-  ];
+  ]), [lang, t]);
 
   const pageRouteValueSet = new Set([
     ...buildPageRouteValues('pt'),
@@ -107,34 +107,21 @@ export default function HeroSlidesList() {
       : [{ value, label: `${t('admin.heroSlides.routes.current')} (${value})` }, ...options];
   };
 
-  const getDefaultPageRoute = () =>
-    pageRouteOptions[0]?.value ?? getRoutePath('home', lang);
+  const defaultPageRoute = useMemo(
+    () => pageRouteOptions[0]?.value ?? getRoutePath('home', lang),
+    [pageRouteOptions, lang]
+  );
 
-  const getDefaultCategoryRoute = () =>
-    categories[0] ? getShopPath(lang, categories[0].slug) : '';
+  const defaultCategoryRoute = useMemo(
+    () => (categories[0] ? getShopPath(lang, categories[0].slug) : ''),
+    [categories, lang]
+  );
 
   const clearAddError = (field: string) => {
     setAddFieldErrors(prev => { const next = { ...prev }; delete next[field]; return next; });
   };
 
-  useEffect(() => {
-    loadSlides();
-    loadCategories();
-  }, []);
-
-  useEffect(() => {
-    if (formData.button_link_type === 'page' && !formData.button_link) {
-      setFormData(prev => ({ ...prev, button_link: getDefaultPageRoute() }));
-    }
-  }, [formData.button_link_type, formData.button_link, lang]);
-
-  useEffect(() => {
-    if (formData.button_link_type === 'category' && !formData.button_link && categories.length > 0) {
-      setFormData(prev => ({ ...prev, button_link: getDefaultCategoryRoute() }));
-    }
-  }, [formData.button_link_type, formData.button_link, categories, lang]);
-
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_URL}/categories`, {
@@ -149,9 +136,9 @@ export default function HeroSlidesList() {
     } catch (error) {
       console.error('Error loading categories:', error);
     }
-  };
+  }, []);
 
-  const loadSlides = async () => {
+  const loadSlides = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth_token');
 
@@ -188,7 +175,24 @@ export default function HeroSlidesList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    loadSlides();
+    loadCategories();
+  }, [loadSlides, loadCategories]);
+
+  useEffect(() => {
+    if (formData.button_link_type === 'page' && !formData.button_link) {
+      setFormData(prev => ({ ...prev, button_link: defaultPageRoute }));
+    }
+  }, [formData.button_link_type, formData.button_link, defaultPageRoute]);
+
+  useEffect(() => {
+    if (formData.button_link_type === 'category' && !formData.button_link && categories.length > 0) {
+      setFormData(prev => ({ ...prev, button_link: defaultCategoryRoute }));
+    }
+  }, [formData.button_link_type, formData.button_link, categories.length, defaultCategoryRoute]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -205,9 +209,9 @@ export default function HeroSlidesList() {
   const handleLinkTypeChange = (type: 'page' | 'category' | 'custom') => {
     const nextValue =
       type === 'page'
-        ? getDefaultPageRoute()
+        ? defaultPageRoute
         : type === 'category'
-          ? getDefaultCategoryRoute()
+          ? defaultCategoryRoute
           : '';
 
     setFormData({
@@ -234,9 +238,9 @@ export default function HeroSlidesList() {
   const handleEditLinkTypeChange = (slideId: number, type: 'page' | 'category' | 'custom') => {
     const nextValue =
       type === 'page'
-        ? getDefaultPageRoute()
+        ? defaultPageRoute
         : type === 'category'
-          ? getDefaultCategoryRoute()
+          ? defaultCategoryRoute
           : '';
     updateSlide(slideId, 'button_link', nextValue);
   };
@@ -247,7 +251,7 @@ export default function HeroSlidesList() {
     setFormData((prev) => ({
       ...prev,
       button_link_type: 'page',
-      button_link: prev.button_link || getDefaultPageRoute()
+      button_link: prev.button_link || defaultPageRoute
     }));
   };
 
@@ -307,7 +311,7 @@ export default function HeroSlidesList() {
           title: '',
           description: '',
           button_text: '',
-          button_link: getDefaultPageRoute(),
+          button_link: defaultPageRoute,
           button_link_type: 'page',
           text_color: 'white',
           display_order: 0,

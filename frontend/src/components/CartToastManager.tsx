@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
 import { useLanguage } from '../context/LanguageContext';
 import { getRoutePath } from '../utils/routes';
+import { CartToastDetail } from '../utils/cartToast';
 
 const DURATION = 3500;
 
@@ -15,18 +16,6 @@ interface ToastEntry {
   type: 'added' | 'removed' | 'updated';
   resetKey: number;
 }
-
-export interface CartToastDetail {
-  productId: string | number;
-  colorName?: string;
-  productName: string;
-  image?: string;
-  type?: 'added' | 'removed' | 'updated';
-}
-
-export const fireCartToast = (detail: CartToastDetail) => {
-  window.dispatchEvent(new CustomEvent('recicloth:cart-toast', { detail }));
-};
 
 const CartToastManager: React.FC = () => {
   const [toasts, setToasts] = useState<ToastEntry[]>([]);
@@ -64,10 +53,11 @@ const CartToastManager: React.FC = () => {
       });
     };
 
+    const timersMap = timers.current;
     window.addEventListener('recicloth:cart-toast', handler);
     return () => {
       window.removeEventListener('recicloth:cart-toast', handler);
-      timers.current.forEach(clearTimeout);
+      timersMap.forEach(clearTimeout);
     };
   }, [removeToast]);
 

@@ -56,7 +56,7 @@ const Navbar: React.FC = () => {
     if (isAuthenticated) {
       refreshUser();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, refreshUser]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -93,7 +93,7 @@ const Navbar: React.FC = () => {
     };
 
     processCode();
-  }, []);
+  }, [setAuthState, success]);
 
   const [isOpen, setIsOpen] = useState(false);
   const [isMenuClosing, setIsMenuClosing] = useState(false);

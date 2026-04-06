@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ordersApi } from '../../utils/apiHelpers';
 import { Eye, Search, Calendar, CreditCard } from 'lucide-react';
@@ -23,15 +23,7 @@ export default function OrdersList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
-  useEffect(() => {
-    filterOrders();
-  }, [searchTerm, selectedStatus, orders]);
-
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
       const data = await ordersApi.getAll();
       setOrders(data);
@@ -40,9 +32,9 @@ export default function OrdersList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const filterOrders = () => {
+  const filterOrders = useCallback(() => {
     let filtered = orders;
 
     if (searchTerm) {
@@ -58,7 +50,15 @@ export default function OrdersList() {
     }
 
     setFilteredOrders(filtered);
-  };
+  }, [orders, searchTerm, selectedStatus]);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  useEffect(() => {
+    filterOrders();
+  }, [filterOrders]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

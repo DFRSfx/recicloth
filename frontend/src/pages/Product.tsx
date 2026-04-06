@@ -9,7 +9,7 @@ import ProductCard from '../components/ProductCard';
 import { getProductSchema, getBreadcrumbSchema } from '../utils/schemas';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 import Toast, { ToastType } from '../components/Toast';
-import { fireCartToast } from '../components/CartToastManager';
+import { fireCartToast } from '../utils/cartToast';
 import { useLanguage } from '../context/LanguageContext';
 import { getProductPath, getRoutePath, withQuery } from '../utils/routes';
 
@@ -54,7 +54,7 @@ const Product: React.FC = () => {
       setSelectedColor('');
     }
     setSelectedSize('');
-  }, [product?.id, product?.colors]);
+  }, [product]);
 
   // --- LÓGICA DESKTOP: Reordena as imagens (Principal Gigante + Pequenas) ---
   const { mainImage, otherImages } = useMemo(() => {
@@ -112,7 +112,7 @@ const Product: React.FC = () => {
         }
       }
     }
-  }, [selectedColor, product, mobileImages.length]);
+  }, [selectedColor, product, mobileImages.length, mobileImageIndex]);
 
   // Regista o swipe do dedo no telemóvel e muda a bolinha da cor sem forçar scroll
   const handleMobileScroll = (e: React.UIEvent<HTMLDivElement>) => {

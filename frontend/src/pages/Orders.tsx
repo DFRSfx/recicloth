@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Package, Truck, CheckCircle, XCircle, Clock, ChevronDown, ChevronUp, Eye, FileText } from 'lucide-react';
@@ -71,13 +71,7 @@ const Orders: React.FC = () => {
   const API_BASE_URL = '/api';
   const formatMoney = (value: number | string | null | undefined) => Number(value ?? 0).toFixed(2);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadOrders();
-    }
-  }, [isAuthenticated]);
-
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -105,7 +99,13 @@ const Orders: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL, token, t]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadOrders();
+    }
+  }, [isAuthenticated, loadOrders]);
 
   // Remove mock data
   /*const [orders] = useState<Order[]>([

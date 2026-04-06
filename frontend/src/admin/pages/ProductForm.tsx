@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { productsApi } from '../../utils/apiHelpers';
 import { useCategories } from '../../hooks/useCategories';
@@ -72,12 +72,6 @@ export default function ProductForm() {
   const dragTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (isEdit) {
-      loadProduct();
-    }
-  }, [id]);
-
-  useEffect(() => {
     // Keep color mappings for all images (existing + new)
     setImageColors((prev) => {
       const totalImages = existingImages.length + selectedFiles.length;
@@ -110,7 +104,7 @@ export default function ProductForm() {
 
 
 
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     try {
       const data = await productsApi.getOne(Number(id), undefined, true);
       if (data) {
@@ -183,7 +177,7 @@ export default function ProductForm() {
       console.error('Erro ao carregar produto:', error);
       setError('Falha ao carregar produto');
     }
-  };
+  }, [id]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -477,6 +471,12 @@ export default function ProductForm() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isEdit) {
+      loadProduct();
+    }
+  }, [isEdit, loadProduct]);
 
   return (
     <div className="space-y-6">

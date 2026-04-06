@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { X, Mail, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import FloatingLabelInput from './FloatingLabelInput';
@@ -99,7 +99,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   }, [isOpen]);
 
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsClosing(true);
     setTimeout(() => {
       onClose();
@@ -113,7 +113,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
       setRegisteredEmail('');
       setUnverifiedEmail(null);
     }, 300);
-  };
+  }, [initialMode, onClose]);
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
@@ -342,7 +342,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     if (isAuthenticated && isOpen && !showVerificationNotice) {
       handleClose();
     }
-  }, [isAuthenticated, isOpen, showVerificationNotice]);
+  }, [isAuthenticated, isOpen, showVerificationNotice, handleClose]);
 
   if (!isOpen || isAuthenticated) return null;
 

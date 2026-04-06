@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ordersApi } from '../../utils/apiHelpers';
 import { ArrowLeft, Package, User, MapPin, CreditCard, Calendar } from 'lucide-react';
@@ -39,11 +39,7 @@ export default function OrderDetails() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
-  useEffect(() => {
-    loadOrder();
-  }, [id]);
-
-  const loadOrder = async () => {
+  const loadOrder = useCallback(async () => {
     try {
       const data = await ordersApi.getOne(Number(id));
       setOrder(data);
@@ -52,7 +48,11 @@ export default function OrderDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    loadOrder();
+  }, [loadOrder]);
 
   const updateStatus = async (newStatus: string) => {
     const statusLabels: Record<string, string> = {

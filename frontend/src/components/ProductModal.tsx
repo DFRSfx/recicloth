@@ -4,7 +4,7 @@ import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
-import { fireCartToast } from './CartToastManager';
+import { fireCartToast } from '../utils/cartToast';
 
 interface ProductModalProps {
   product: Product;

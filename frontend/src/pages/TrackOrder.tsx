@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Package, CheckCircle, Truck, Clock, XCircle, ArrowLeft } from 'lucide-react';
 import SEO from '../components/SEO';
@@ -62,13 +62,7 @@ const TrackOrder: React.FC = () => {
   const API_BASE_URL = '/api';
   const formatMoney = (value: number | string | null | undefined) => Number(value ?? 0).toFixed(2);
 
-  useEffect(() => {
-    if (token) {
-      loadOrder();
-    }
-  }, [token]);
-
-  const loadOrder = async () => {
+  const loadOrder = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`${API_BASE_URL}/orders/track/${token}`);
@@ -84,7 +78,13 @@ const TrackOrder: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL, t, token]);
+
+  useEffect(() => {
+    if (token) {
+      loadOrder();
+    }
+  }, [loadOrder, token]);
 
   const getStatusInfo = (status: string) => {
     switch (status) {

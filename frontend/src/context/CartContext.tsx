@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
 import { CartItem, Product } from '../types';
 import { useAuth } from './AuthContext';
 import { useLanguage } from './LanguageContext';
@@ -114,7 +114,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [sessionId] = useState(getSessionId());
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const getHeaders = () => {
+  const getHeaders = useCallback(() => {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'x-session-id': sessionId,
@@ -123,9 +123,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
-  };
+  }, [sessionId, token]);
 
-  const loadCartFromDB = async (currentLang?: string) => {
+  const loadCartFromDB = useCallback(async (currentLang?: string) => {
     try {
       const langParam = currentLang || lang || 'en';
       const response = await fetch(`/api/cart?lang=${langParam}`, {
@@ -174,9 +174,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     }
-  };
+  }, [getHeaders, lang]);
 
-  const syncCart = async () => {
+  const syncCart = useCallback(async () => {
     if (isSyncing) return;
     setIsSyncing(true);
 
@@ -194,24 +194,24 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsSyncing(false);
     }
-  };
+  }, [getHeaders, isAuthenticated, isSyncing, loadCartFromDB, sessionId, token]);
 
   useEffect(() => {
     loadCartFromDB();
-  }, [isAuthenticated, token]);
+  }, [loadCartFromDB]);
 
   useEffect(() => {
     if (isAuthenticated && token) {
       syncCart();
     }
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, token, syncCart]);
 
   // Re-fetch cart with new language translations when lang changes
   useEffect(() => {
     if (state.items.length > 0) {
       loadCartFromDB(lang);
     }
-  }, [lang]);
+  }, [lang, loadCartFromDB, state.items.length]);
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(state));

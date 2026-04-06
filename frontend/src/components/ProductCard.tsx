@@ -6,7 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
-import { fireCartToast } from './CartToastManager';
+import { fireCartToast } from '../utils/cartToast';
 import { getProductPath } from '../utils/routes';
 import ProductModal from './ProductModal';
 

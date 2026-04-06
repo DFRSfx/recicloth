@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { categoriesApi } from '../utils/apiHelpers';
 import { adaptCategoriesToFrontend, BackendCategory, FrontendCategory } from '../utils/adapters';
 import { useLanguage } from '../context/LanguageContext';
@@ -16,7 +16,7 @@ export function useCategories(): UseCategoriesResult {
   const [error, setError] = useState<string | null>(null);
   const { lang } = useLanguage();
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -35,11 +35,11 @@ export function useCategories(): UseCategoriesResult {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang]);
 
   useEffect(() => {
     fetchCategories();
-  }, [lang]); // re-fetch when language changes
+  }, [fetchCategories]); // re-fetch when language changes
 
   return {
     categories,

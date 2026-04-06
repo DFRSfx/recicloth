@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { productsApi } from '../../utils/apiHelpers';
@@ -31,15 +31,7 @@ export default function ProductsList() {
   const { error: showError } = useToast();
   const { lang } = useLanguage();
 
-  useEffect(() => {
-    loadProducts();
-  }, [lang]);
-
-  useEffect(() => {
-    filterProducts();
-  }, [searchTerm, selectedCategory, products]);
-
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
       const data = await productsApi.getAll(lang);
@@ -49,9 +41,9 @@ export default function ProductsList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang]);
 
-  const filterProducts = () => {
+  const filterProducts = useCallback(() => {
     let filtered = products;
 
     if (searchTerm) {
@@ -66,7 +58,15 @@ export default function ProductsList() {
     }
 
     setFilteredProducts(filtered);
-  };
+  }, [products, searchTerm, selectedCategory]);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  useEffect(() => {
+    filterProducts();
+  }, [filterProducts]);
 
   const confirmDelete = async () => {
     if (!deleteConfirm) return;
