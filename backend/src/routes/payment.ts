@@ -424,7 +424,7 @@ router.post(
             );
             const [itemRows]: any = await pool.query(
               `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name,
-                      JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]')) AS first_image
+                      p.images->>0 AS first_image
                FROM order_items oi JOIN products p ON oi.product_id = p.id
                WHERE oi.order_id = ?`, [orderId]
             );
@@ -696,7 +696,7 @@ router.post('/webhook', async (req: any, res: any) => {
           );
           const [itemRows]: any = await pool.query(
             `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name,
-                    JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]')) AS first_image
+                    p.images->>0 AS first_image
              FROM order_items oi JOIN products p ON oi.product_id = p.id
              WHERE oi.order_id = ?`, [orderId]
           );
@@ -809,7 +809,7 @@ router.get('/resend-confirmation/:orderId', async (req: any, res: any) => {
     const o = orderRows[0];
     const [itemRows]: any = await pool.query(
       `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name,
-              JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]')) AS first_image
+              p.images->>0 AS first_image
        FROM order_items oi JOIN products p ON oi.product_id = p.id
        WHERE oi.order_id = ?`, [orderId]
     );

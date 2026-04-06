@@ -405,7 +405,7 @@ router.patch(
       if (mappedStatus === 'shipped') {
         const [itemRows]: any = await pool.query(
           `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name,
-                  JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]')) AS first_image
+                  p.images->>0 AS first_image
            FROM order_items oi JOIN products p ON oi.product_id = p.id
            WHERE oi.order_id = ?`, [req.params.id]
         );
