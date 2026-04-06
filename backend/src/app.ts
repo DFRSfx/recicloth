@@ -62,6 +62,7 @@ app.use(
       }
     },
     credentials: true,
+    maxAge: 86400, // cache preflight for 24h — eliminates repeated OPTIONS requests
   })
 );
 
