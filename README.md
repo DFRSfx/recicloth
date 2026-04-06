@@ -18,13 +18,35 @@ A **Recicloth** é uma prova de conceito (PoC) de uma loja online de vestuário 
 
 ### Descrição da loja
 
-A Recicloth comercializa vestuário inserido na economia circular:
+A Recicloth é uma loja de e-commerce desenvolvida com frontend em React e backend em Node.js com TypeScript, ligada a uma base de dados PostgreSQL gerida através do Supabase. Destina-se ao público em geral interessado em consumo consciente e moda sustentável, oferecendo artigos de vestuário reciclados, transformados (upcycled) e em segunda-mão.
+A plataforma disponibiliza as seguintes funcionalidades principais:
+  •	Navegação por categorias - os utilizadores podem explorar o catálogo de produtos filtrado por categorias;
+  •	Gestão de carrinho e checkout - adição, remoção e atualização de produtos no carrinho, seguida de um processo de checkout estruturado;
+  •	Criação e gestão de encomendas - registo e acompanhamento do estado das encomendas tanto pelo cliente como pelo administrador;
+  •	Autenticação de utilizadores - registo, login com email/palavra-passe e login via Google OAuth;
+  •	Integração com pagamentos - suporte a MBWay e cartão de crédito/débito (via Stripe simulado);
+  •	Envio de emails transacionais - confirmações de encomenda e comunicações automáticas via Resend.
+  Features
+  A plataforma encontra-se organizada em módulos funcionais distintos, cada um responsável por um domínio específico da aplicação:
+  •	Hero Slides — gestão de banners promocionais de destaque apresentados na página inicial, configuráveis pelo administrador em termos de imagem, título e texto de chamada à ação;
+  •	Categorias — organização hierárquica do catálogo de produtos em categorias, permitindo uma navegação filtrada e a gestão das mesmas através do painel administrativo;
+  •	Produtos — módulo central da plataforma, que engloba a criação, edição, remoção e listagem de artigos, incluindo a gestão de stock por tamanho, cores disponíveis e otimização automática de imagens para o formato WebP;
+  •	Encomendas — registo e acompanhamento do ciclo de vida completo de cada encomenda, com gestão de estados e histórico de compras acessível tanto ao cliente como ao administrador;
+  •	Avaliações — sistema de reviews de produtos por parte dos clientes, permitindo a submissão de classificações e comentários associados a artigos adquiridos, contribuindo para a confiança e credibilidade da plataforma;
+  •	Utilizadores — gestão de contas de cliente, incluindo dados pessoais, endereços de entrega, histórico de encomendas e favoritos, bem como a atribuição de perfis de administrador;
+  •	Newsletter — módulo de subscrição de comunicações de marketing, com recolha de consentimento explícito em conformidade com o RGPD e gestão da lista de subscritores pelo administrador;
+  •	Traduções — suporte a dois idiomas na interface da plataforma, português e inglês, permitindo ao utilizador alternar entre ambos através do seletor de idioma disponível no cabeçalho da página.
+  •	Favoritos — os utilizadores podem guardar produtos na sua lista de desejos de duas formas: através do botão dedicado na página de detalhe do produto, ou através de adição rápida diretamente na listagem, bastando passar o rato por cima do produto para que a opção seja apresentada; ao clicar, a plataforma solicita a seleção do tamanho, se aplicável, assumindo automaticamente a cor que o utilizador está a visualizar;
+  •	Carrinho — módulo de gestão dos artigos selecionados para compra, com suporte a adição, remoção e atualização de quantidades, apresentação do valor total calculado em tempo real e progressão para o processo de checkout;
+  •	Barra de Pesquisa — funcionalidade de pesquisa textual disponível no cabeçalho da plataforma, permitindo ao utilizador localizar produtos por nome ou características;
+  •	Filtros de Pesquisa — na página de loja, o utilizador pode refinar a listagem de produtos através de filtros combinados por categoria, cor e intervalo de preço, facilitando a descoberta de artigos relevantes;
+  •	Autenticação — suporte a registo e login com email e palavra-passe, bem como autenticação via Google OAuth 2.0, com emissão de tokens JWT para gestão segura da sessão;
+  •	Pagamentos — integração com Stripe para pagamento por cartão de crédito/débito em modo sandbox e suporte a MBWay, com cálculo automático de IVA à taxa de 23% e portes de envio calculados com base no peso e destino da encomenda;
+  •	Emails Transacionais — envio automático de emails de confirmação de encomenda e outras comunicações do sistema via Resend, desencadeados por eventos como a finalização de uma compra;
+  •	Acessibilidade — integração do widget Sienna Accessibility Widget, disponível em todas as páginas, com funcionalidades de ajuste de tamanho de texto, contraste elevado e outras opções de personalização visual em conformidade com as diretrizes WCAG;
+  •	Analítica — integração com Google Analytics 4 para monitorização do comportamento dos utilizadores, acompanhamento de métricas de desempenho e análise do funil de conversão.
+  •	Adição Rápida — funcionalidade disponível diretamente na listagem de produtos que permite adicionar um artigo ao carrinho sem aceder à página de detalhe; bastando passar o rato por cima do produto para que a opção seja apresentada; ao clicar, é solicitada a seleção do tamanho, se aplicável, assumindo automaticamente a cor que o utilizador está a visualizar;
 
-- **Reutilização** — peças de segunda mão em bom estado
-- **Upcycling** — peças transformadas criativamente a partir de materiais existentes
-- **Reciclagem têxtil** — produtos fabricados com fibras recicladas
-
-Cada produto tem stock unitário ou muito limitado (caráter único), descrição detalhada de estado/material/tipo, e imagens reais.
 
 ---
 
@@ -542,7 +564,6 @@ Emails enviados pelo sistema:
 |----------------|--------|------|
 | Pagamento por transferência bancária | Não implementado | Apenas Stripe (cartão e mbway) Seria só habilitar no Stripe e moldar o backend para funcionar com este pagamento|
 | Plugin de envio automático (ex: CTT API) | Não implementado | Tarifas CTT configuradas manualmente Requer Contrato como Empresa |
-| Faturação / PDF de fatura automático | Parcial | Componente `Invoice.tsx` existe mas não é gerado automaticamente |
 | Gestão de devoluções no painel admin | Não implementado | Política publicada; processo manual por email |
 | Programa de fidelização / pontos | Não implementado | — |
 
