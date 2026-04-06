@@ -62,9 +62,11 @@ const Product: React.FC = () => {
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const [mobileImageIndex, setMobileImageIndex] = useState(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [isAdded, setIsAdded] = useState(false);
   
   const isSwipingRef = useRef(false);
+  const isThumbnailSelectionRef = useRef(false);
   const reviewsRef = useRef<HTMLDivElement>(null); // Referência para a secção de avaliações
 
   // Estado dos Modais de Reviews
@@ -105,6 +107,7 @@ const Product: React.FC = () => {
       setSelectedColor('');
     }
     setSelectedSize('');
+    setSelectedImageIndex(null);
   }, [product]);
 
   const { mainImage, otherImages } = useMemo(() => {
@@ -113,7 +116,9 @@ const Product: React.FC = () => {
     }
 
     let mainIdx = 0;
-    if (selectedColor) {
+    if (selectedImageIndex !== null && selectedImageIndex >= 0 && selectedImageIndex < product.images.length) {
+      mainIdx = selectedImageIndex;
+    } else if (selectedColor) {
       const colorObj = product.colors?.find(c => c.name === selectedColor);
       const slugSource = colorObj?.original_name || selectedColor;
       const slug = toColorSlug(slugSource);
@@ -135,7 +140,15 @@ const Product: React.FC = () => {
       mainImage: main,
       otherImages: others
     };
-  }, [selectedColor, product]);
+  }, [selectedColor, product, selectedImageIndex]);
+
+  useEffect(() => {
+    if (isThumbnailSelectionRef.current) {
+      isThumbnailSelectionRef.current = false;
+      return;
+    }
+    setSelectedImageIndex(null);
+  }, [selectedColor, product?.id]);
 
   const mobileImages = product?.images || [];
 
@@ -523,8 +536,12 @@ const Product: React.FC = () => {
                 key={`other-${index}`}
                 onClick={() => {
                   const origIdx = product.images.indexOf(image);
-                  if (origIdx >= 0 && product.colors && product.colors[origIdx]) {
-                    setSelectedColor(product.colors[origIdx].name);
+                  if (origIdx >= 0) {
+                    isThumbnailSelectionRef.current = true;
+                    setSelectedImageIndex(origIdx);
+                    if (product.colors && product.colors[origIdx]) {
+                      setSelectedColor(product.colors[origIdx].name);
+                    }
                   }
                 }}
                 className="col-span-1 w-full bg-[#f2f2f2] relative aspect-[4/5] hover:opacity-90 transition-opacity duration-300 cursor-pointer"
