@@ -94,7 +94,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
   const { isAuthenticated, user } = useAuth();
   const { success } = useToast();
   const navigate = useNavigate();
-  const { lang } = useLanguage();
+  const { t, lang } = useLanguage();
   const checkoutSuccessPath = getRoutePath('checkoutSuccess', lang);
   const checkoutPath = getRoutePath('checkout', lang);
   const cartPath = getRoutePath('cart', lang);
@@ -142,6 +142,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showGuestWarning, setShowGuestWarning] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [postalLookupLoading, setPostalLookupLoading] = useState(false);
 
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
@@ -156,6 +157,25 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
 
   const clearFieldError = (field: string) => {
     setFieldErrors(prev => { const next = { ...prev }; delete next[field]; return next; });
+  };
+
+  const lookupPostalCode = async (postalCode: string, country: string) => {
+    const trimmed = postalCode.trim();
+    if (!trimmed || customerInfo.city.trim()) return;
+    setPostalLookupLoading(true);
+    try {
+      const countryLower = country.toLowerCase();
+      // zippopotam.us accepts PT format with or without hyphen
+      const code = trimmed.replace('-', '');
+      const res = await fetch(`https://api.zippopotam.us/${countryLower}/${code}`);
+      if (res.ok) {
+        const data = await res.json();
+        const city = data.places?.[0]?.['place name'];
+        if (city) setCustomerInfo(prev => ({ ...prev, city }));
+      }
+    } catch { /* silent */ } finally {
+      setPostalLookupLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -213,33 +233,33 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
     if (!stripe || !elements) return;
 
     const errors: Record<string, string> = {};
-    if (!customerInfo.name.trim()) errors.name = 'Nome completo é obrigatório';
+    if (!customerInfo.name.trim()) errors.name = t('checkout.form.errors.nameRequired');
     if (!customerInfo.email.trim()) {
-      errors.email = 'Email é obrigatório';
+      errors.email = t('checkout.form.errors.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerInfo.email)) {
-      errors.email = 'Formato de email inválido';
+      errors.email = t('checkout.form.errors.emailInvalid');
     }
     if (!customerInfo.phone) {
-      errors.phone = 'Telefone é obrigatório';
+      errors.phone = t('checkout.form.errors.phoneRequired');
     } else if (!isValidPhoneNumber(customerInfo.phone)) {
-      errors.phone = 'Número de telefone inválido';
+      errors.phone = t('checkout.form.errors.phoneInvalid');
     }
-    if (!customerInfo.address.trim()) errors.address = 'Endereço é obrigatório';
-    if (!customerInfo.city.trim()) errors.city = 'Cidade é obrigatória';
+    if (!customerInfo.address.trim()) errors.address = t('checkout.form.errors.addressRequired');
+    if (!customerInfo.city.trim()) errors.city = t('checkout.form.errors.cityRequired');
     if (!customerInfo.postalCode.trim()) {
-      errors.postalCode = 'Código postal é obrigatório';
-    } else if (!/^\d{4}-\d{3}$/.test(customerInfo.postalCode.trim())) {
-      errors.postalCode = 'Formato inválido (ex: 1234-567)';
+      errors.postalCode = t('checkout.form.errors.postalRequired');
+    } else if (deliveryCountry === 'PT' && !/^\d{4}-\d{3}$/.test(customerInfo.postalCode.trim())) {
+      errors.postalCode = t('checkout.form.errors.postalFormat');
     }
 
     if (!billingSameAsShipping) {
-      if (!billingInfo.name.trim()) errors.billingName = 'Nome de faturação é obrigatório';
-      if (!billingInfo.address.trim()) errors.billingAddress = 'Endereço de faturação é obrigatório';
-      if (!billingInfo.city.trim()) errors.billingCity = 'Cidade de faturação é obrigatória';
+      if (!billingInfo.name.trim()) errors.billingName = t('checkout.form.errors.billingNameRequired');
+      if (!billingInfo.address.trim()) errors.billingAddress = t('checkout.form.errors.billingAddressRequired');
+      if (!billingInfo.city.trim()) errors.billingCity = t('checkout.form.errors.billingCityRequired');
       if (!billingInfo.postalCode.trim()) {
-        errors.billingPostalCode = 'Código postal de faturação é obrigatório';
-      } else if (!/^\d{4}-\d{3}$/.test(billingInfo.postalCode.trim())) {
-        errors.billingPostalCode = 'Formato inválido (ex: 1234-567)';
+        errors.billingPostalCode = t('checkout.form.errors.billingPostalRequired');
+      } else if (deliveryCountry === 'PT' && !/^\d{4}-\d{3}$/.test(billingInfo.postalCode.trim())) {
+        errors.billingPostalCode = t('checkout.form.errors.postalFormat');
       }
     }
 
@@ -287,7 +307,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
     });
 
     if (error) {
-      setPayError(error.message ?? 'Erro no pagamento');
+      setPayError(error.message ?? t('checkout.errors.payment'));
       setIsProcessing(false);
       return;
     }
@@ -339,10 +359,10 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
           console.error('Error creating order:', err);
         }
         clearCart();
-        success('Pedido criado com sucesso!');
+        success(t('checkout.orderCreated'));
         setPaymentReference({ method: 'multibanco', entity: details.entity, reference: details.reference, value: amount, orderId });
       } else {
-        setPayError('Ação adicional necessária. Por favor tente novamente.');
+        setPayError(t('checkout.errors.additionalAction'));
       }
     }
 
@@ -352,7 +372,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
   if (paymentReference) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <SEO title="Pedido Criado com Sucesso" description="O seu pedido foi criado com sucesso" canonical={checkoutPath} ogType="website" />
+        <SEO title={t('checkout.multibanco.seoTitle')} description={t('checkout.multibanco.seoDesc')} canonical={checkoutPath} ogType="website" />
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -360,19 +380,19 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                 <span className="text-white text-lg">✓</span>
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Pedido Criado com Sucesso!</h2>
-            <p className="text-gray-600 mb-8">Use os dados abaixo para efetuar o pagamento por Multibanco:</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('checkout.multibanco.title')}</h2>
+            <p className="text-gray-600 mb-8">{t('checkout.multibanco.desc')}</p>
             <div className="bg-gray-50 rounded-lg p-6 mb-6 text-left space-y-3">
               <div className="flex justify-between">
-                <span className="font-medium">Entidade:</span>
+                <span className="font-medium">{t('checkout.multibanco.entity')}</span>
                 <span className="font-mono text-lg">{paymentReference.entity}</span>
               </div>
               <div className="flex justify-between">
-                <span className="font-medium">Referência:</span>
+                <span className="font-medium">{t('checkout.multibanco.reference')}</span>
                 <span className="font-mono text-lg">{paymentReference.reference}</span>
               </div>
               <div className="flex justify-between">
-                <span className="font-medium">Valor:</span>
+                <span className="font-medium">{t('checkout.multibanco.value')}</span>
                 <span className="font-mono text-lg">{paymentReference.value.toFixed(2)}€</span>
               </div>
             </div>
@@ -381,16 +401,16 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                 <div className="flex items-start">
                   <Mail className="h-5 w-5 text-blue-400 mr-3 mt-0.5" />
                   <div>
-                    <h4 className="text-sm font-bold text-blue-800 mb-1">📧 Link de Tracking Enviado</h4>
-                    <p className="text-xs text-blue-700">Enviámos um email para <strong>{customerInfo.email}</strong> com um link para acompanhar a sua encomenda.</p>
+                    <h4 className="text-sm font-bold text-blue-800 mb-1">{t('checkout.multibanco.trackingTitle')}</h4>
+                    <p className="text-xs text-blue-700">{t('checkout.multibanco.trackingDescPre')} <strong>{customerInfo.email}</strong> {t('checkout.multibanco.trackingDescPost')}</p>
                   </div>
                 </div>
               </div>
             )}
             <div className="flex gap-4">
-              <Link to={homePath} className="flex-1 px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors">Voltar ao Início</Link>
+              <Link to={homePath} className="flex-1 px-6 py-3 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors">{t('common.backToHome')}</Link>
               {isAuthenticated && (
-                <Link to={ordersPath} className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors">Ver Encomendas</Link>
+                <Link to={ordersPath} className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors">{t('checkout.multibanco.viewOrders')}</Link>
               )}
             </div>
           </div>
@@ -402,37 +422,36 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
   return (
     <div className="min-h-screen bg-gray-50">
         <SEO
-          title="Checkout - Finalizar Compra"
-          description="Finalize sua compra de forma segura. Aceitamos Multibanco, MB WAY e cartão de crédito."
+          title={t('checkout.seoTitle')}
+          description={t('checkout.seoDesc')}
           canonical={checkoutPath}
           ogType="website"
         />
-      
-      {/* ALTERAÇÃO CHAVE 1: Uso de max-w-7xl (1280px) ou max-w-[1400px] para ocupar muito mais ecrã sem quebrar a leitura */}
+
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-16 py-8 lg:py-12">
         <div className="flex items-center gap-4 mb-8">
           <Link to={cartPath} className="flex items-center gap-2 text-primary-600 hover:text-primary-700">
             <ArrowLeft className="h-4 w-4" />
-            Voltar ao Carrinho
+            {t('checkout.backToCart')}
           </Link>
         </div>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Finalizar Compra</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('checkout.title')}</h1>
 
         {showGuestWarning && !isAuthenticated && (
           <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 shadow-sm">
             <div className="flex items-start gap-4">
               <User className="h-8 w-8 text-blue-600 shrink-0" />
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Crie uma conta para uma melhor experiência!</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('checkout.guestWarning.title')}</h3>
                 <ul className="space-y-1 mb-4 text-sm text-gray-700">
-                  <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Guardar endereços de entrega</li>
-                  <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Ver histórico completo de encomendas</li>
-                  <li className="flex items-center gap-2"><span className="text-green-600">✓</span> Acompanhar encomendas sem links</li>
+                  <li className="flex items-center gap-2"><span className="text-green-600">✓</span> {t('checkout.guestWarning.benefit1')}</li>
+                  <li className="flex items-center gap-2"><span className="text-green-600">✓</span> {t('checkout.guestWarning.benefit2')}</li>
+                  <li className="flex items-center gap-2"><span className="text-green-600">✓</span> {t('checkout.guestWarning.benefit3')}</li>
                 </ul>
                 <div className="flex gap-3">
-                  <button onClick={() => setShowAuthModal(true)} className="px-6 py-2 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors">Criar Conta</button>
-                  <button onClick={() => setShowGuestWarning(false)} className="px-6 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors">Continuar como Convidado</button>
+                  <button onClick={() => setShowAuthModal(true)} className="px-6 py-2 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 transition-colors">{t('checkout.guestWarning.createAccount')}</button>
+                  <button onClick={() => setShowGuestWarning(false)} className="px-6 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors">{t('checkout.guestWarning.continueGuest')}</button>
                 </div>
               </div>
             </div>
@@ -448,32 +467,42 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
 
               {isAuthenticated && savedAddresses.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Moradas Guardadas</h3>
+                  <h3 className="text-lg font-semibold mb-4">{t('checkout.savedAddresses')}</h3>
                   <div className="space-y-3 mb-4">
                     {savedAddresses.map((addr) => (
-                      <label
+                      <div
                         key={addr.id}
+                        onClick={() => {
+                          if (selectedAddressId === addr.id) {
+                            setSelectedAddressId(null);
+                            setShowNewAddressForm(true);
+                          } else {
+                            setSelectedAddressId(addr.id);
+                            selectAddress(addr);
+                            setShowNewAddressForm(false);
+                          }
+                        }}
                         className={`flex items-start p-5 border rounded-lg cursor-pointer transition-colors ${selectedAddressId === addr.id ? 'border-primary-600 bg-primary-50' : 'border-gray-300 hover:bg-gray-50'}`}
                       >
                         <input type="radio" name="address" checked={selectedAddressId === addr.id}
-                          onChange={() => { setSelectedAddressId(addr.id); selectAddress(addr); }}
+                          onChange={() => {}} readOnly
                           className="mt-1 mr-4" />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-medium text-gray-900">{addr.name}</span>
-                            {addr.is_default && <span className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded">Predefinida</span>}
+                            {addr.is_default && <span className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded">{t('profile.defaultBadge')}</span>}
                           </div>
                           <p className="text-sm text-gray-600 leading-relaxed">{addr.address}</p>
                           <p className="text-sm text-gray-600 leading-relaxed">{addr.postal_code} {addr.city}</p>
                           <p className="text-sm text-gray-600 leading-relaxed">{addr.phone}</p>
                         </div>
-                      </label>
+                      </div>
                     ))}
                   </div>
                   <button type="button" onClick={() => { setShowNewAddressForm(!showNewAddressForm); setSelectedAddressId(null); }}
                     className="flex items-center gap-2 text-primary-600 hover:text-primary-700 text-sm font-medium">
                     <Plus className="h-4 w-4" />
-                    {showNewAddressForm ? 'Usar morada guardada' : 'Usar nova morada'}
+                    {showNewAddressForm ? t('checkout.useSavedAddress') : t('checkout.useNewAddress')}
                   </button>
                 </div>
               )}
@@ -481,17 +510,17 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
               {(showNewAddressForm || savedAddresses.length === 0) && (
                 <>
                   <div>
-                    <h3 className="text-lg font-semibold mb-5">Informações Pessoais</h3>
+                    <h3 className="text-lg font-semibold mb-5">{t('checkout.personalInfo')}</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Nome Completo *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('checkout.form.fullName')} *</label>
                         <input type="text" ref={nameRef} value={customerInfo.name}
                           onChange={(e) => { setCustomerInfo({ ...customerInfo, name: e.target.value }); clearFieldError('name'); }}
                           className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.name ? 'border-red-500' : 'border-gray-300'}`} />
                         {fieldErrors.name && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.name}</p>}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Email *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('form.email')} *</label>
                         <input type="email" ref={emailRef} value={customerInfo.email}
                           onChange={(e) => { setCustomerInfo({ ...customerInfo, email: e.target.value }); clearFieldError('email'); }}
                           onBlur={(e) => {
@@ -504,7 +533,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                         {fieldErrors.email && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.email}</p>}
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Telefone *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('form.phone')} *</label>
                         <PhoneInput
                           flags={flags}
                           labels={pt}
@@ -522,10 +551,10 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-semibold mb-5">Endereço de Entrega</h3>
+                    <h3 className="text-lg font-semibold mb-5">{t('checkout.deliveryAddress')}</h3>
                     <div className="space-y-5">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Endereço *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('form.address')} *</label>
                         <input type="text" ref={addressRef} value={customerInfo.address}
                           onChange={(e) => { setCustomerInfo({ ...customerInfo, address: e.target.value }); clearFieldError('address'); }}
                           className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.address ? 'border-red-500' : 'border-gray-300'}`} />
@@ -533,23 +562,27 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Cidade *</label>
-                          <input type="text" ref={cityRef} value={customerInfo.city}
-                            onChange={(e) => { setCustomerInfo({ ...customerInfo, city: e.target.value }); clearFieldError('city'); }}
-                            className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.city ? 'border-red-500' : 'border-gray-300'}`} />
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('form.city')} *</label>
+                          <div className="relative">
+                            <input type="text" ref={cityRef} value={customerInfo.city}
+                              onChange={(e) => { setCustomerInfo({ ...customerInfo, city: e.target.value }); clearFieldError('city'); }}
+                              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.city ? 'border-red-500' : 'border-gray-300'}`} />
+                            {postalLookupLoading && <span className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />}
+                          </div>
                           {fieldErrors.city && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.city}</p>}
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">Código Postal *</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('form.postalCode')} *</label>
                           <input type="text" ref={postalCodeRef} value={customerInfo.postalCode}
                             onChange={(e) => { setCustomerInfo({ ...customerInfo, postalCode: e.target.value }); clearFieldError('postalCode'); }}
-                            placeholder="1234-567"
+                            onBlur={(e) => lookupPostalCode(e.target.value, deliveryCountry)}
+                            placeholder={deliveryCountry === 'PT' ? '1234-567' : ''}
                             className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.postalCode ? 'border-red-500' : 'border-gray-300'}`} />
                           {fieldErrors.postalCode && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.postalCode}</p>}
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">País de Entrega *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('checkout.form.country')} *</label>
                         <select
                           value={deliveryCountry}
                           onChange={(e) => setDeliveryCountry(e.target.value)}
@@ -567,7 +600,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                         <label className="flex items-center">
                           <input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)}
                             className="w-4 h-4 text-primary-600 bg-gray-50 border-gray-300 rounded focus:ring-primary-500 cursor-pointer" />
-                          <span className="ml-2 text-sm text-gray-700">Guardar esta morada para futuras compras</span>
+                          <span className="ml-2 text-sm text-gray-700">{t('checkout.form.saveAddress')}</span>
                         </label>
                       </div>
                     )}
@@ -577,7 +610,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
 
               {/* ── Billing address ──────────────────────────────── */}
               <div>
-                <h3 className="text-lg font-semibold mb-4">Morada de Faturação</h3>
+                <h3 className="text-lg font-semibold mb-4">{t('checkout.billingAddress')}</h3>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -585,13 +618,13 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                     onChange={(e) => setBillingSameAsShipping(e.target.checked)}
                     className="w-4 h-4 text-primary-600 bg-gray-50 border-gray-300 rounded focus:ring-primary-500"
                   />
-                  <span className="text-sm text-gray-700">Igual à morada de entrega</span>
+                  <span className="text-sm text-gray-700">{t('checkout.form.billingSameAsShipping')}</span>
                 </label>
 
                 {!billingSameAsShipping && (
                   <div className="mt-5 space-y-5">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Nome *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('checkout.form.billingName')} *</label>
                       <input
                         type="text"
                         ref={billingNameRef}
@@ -602,7 +635,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                       {fieldErrors.billingName && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.billingName}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Endereço *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('form.address')} *</label>
                       <input
                         type="text"
                         ref={billingAddressRef}
@@ -614,7 +647,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Cidade *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('form.city')} *</label>
                         <input
                           type="text"
                           ref={billingCityRef}
@@ -625,13 +658,13 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                         {fieldErrors.billingCity && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.billingCity}</p>}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Código Postal *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('form.postalCode')} *</label>
                         <input
                           type="text"
                           ref={billingPostalCodeRef}
                           value={billingInfo.postalCode}
                           onChange={(e) => { setBillingInfo(prev => ({ ...prev, postalCode: e.target.value })); clearFieldError('billingPostalCode'); }}
-                          placeholder="1234-567"
+                          placeholder={deliveryCountry === 'PT' ? '1234-567' : ''}
                           className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.billingPostalCode ? 'border-red-500' : 'border-gray-300'}`}
                         />
                         {fieldErrors.billingPostalCode && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.billingPostalCode}</p>}
@@ -646,7 +679,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
             {/* ── Right: order summary + payment ─────────────────────────── */}
             <div className="space-y-6 lg:col-span-5 sticky top-8">
               <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8">
-                <h3 className="text-lg font-semibold mb-5">Resumo do Pedido</h3>
+                <h3 className="text-lg font-semibold mb-5">{t('checkout.orderSummary')}</h3>
                 <div className="space-y-4 mb-6">
                   {items.map((item) => (
                     <div key={`${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`} className="flex items-center gap-3">
@@ -659,7 +692,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                       />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 truncate">{item.product.name}</p>
-                        {item.selectedColor && <p className="text-sm text-gray-500">Cor: {item.selectedColor}</p>}
+                        {item.selectedColor && <p className="text-sm text-gray-500">{t('cartItem.colorLabel')} {item.selectedColor}</p>}
                         <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                       </div>
                       <span className="font-medium text-gray-900 shrink-0">{(item.product.price * item.quantity).toFixed(2)}€</span>
@@ -668,22 +701,22 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                 </div>
                 <div className="border-t border-gray-100 pt-5 space-y-3 text-sm text-gray-600">
                   <div className="flex justify-between">
-                    <span>Subtotal (s/ IVA)</span>
+                    <span>{t('cart.subtotal')}</span>
                     <span className="font-medium text-gray-900">{subtotalExVat.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Envio ({EU_SHIPPING_COUNTRIES[deliveryCountry] ?? deliveryCountry})</span>
+                    <span>{t('cart.shipping')} ({EU_SHIPPING_COUNTRIES[deliveryCountry] ?? deliveryCountry})</span>
                     {shippingCost === 0
-                      ? <span className="text-green-600 font-medium">Grátis</span>
+                      ? <span className="text-green-600 font-medium">{t('common.free')}</span>
                       : <span className="font-medium text-gray-900">{shippingCost.toFixed(2)}€</span>
                     }
                   </div>
                   <div className="flex justify-between">
-                    <span>IVA (23%)</span>
+                    <span>{t('cart.vat')}</span>
                     <span className="font-medium text-gray-900">{ivaAmount.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between text-lg font-bold border-t border-gray-100 pt-3 mt-2 text-gray-900">
-                    <span>Total (c/ IVA)</span>
+                    <span>{t('cart.total')}</span>
                     <span className="text-primary-600">{displayTotal.toFixed(2)}€</span>
                   </div>
                 </div>
@@ -692,7 +725,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
               <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8">
                 <h3 className="text-lg font-semibold mb-5 flex items-center gap-2">
                   <Lock className="h-5 w-5 text-gray-400" />
-                  Pagamento Seguro
+                  {t('checkout.paymentTitle')}
                 </h3>
 
                 {!isPaymentReady && (
@@ -722,7 +755,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                   className="w-full mt-6 bg-primary-600 text-white py-3.5 px-6 rounded-lg hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center gap-2 text-[15px]"
                 >
                   {isProcessing && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  {isProcessing ? 'A processar...' : `Pagar ${displayTotal.toFixed(2)} €`}
+                  {isProcessing ? t('checkout.processing') : `${t('checkout.pay')} ${displayTotal.toFixed(2)} €`}
                 </button>
               </div>
             </div>
@@ -743,7 +776,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
 const Checkout: React.FC = () => {
   const { items } = useCart();
   const { user } = useAuth();
-  const { lang } = useLanguage();
+  const { t, lang } = useLanguage();
   const shopPath = getRoutePath('shop', lang);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [amount, setAmount] = useState(0);
@@ -793,15 +826,15 @@ const Checkout: React.FC = () => {
         setAmount(data.amount);
         setPaymentIntentId(data.paymentIntentId);
       })
-      .catch(() => setInitError('Erro ao inicializar pagamento. Por favor refresque a página.'));
+      .catch(() => setInitError(t('checkout.errors.initPayment')));
   }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Carrinho vazio</h2>
-          <Link to={shopPath} className="text-primary-600 hover:text-primary-700">Voltar à loja</Link>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('cart.empty.title')}</h2>
+          <Link to={shopPath} className="text-primary-600 hover:text-primary-700">{t('common.continueShopping')}</Link>
         </div>
       </div>
     );
@@ -812,7 +845,7 @@ const Checkout: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{initError}</p>
-          <button onClick={() => window.location.reload()} className="text-primary-600 hover:text-primary-700">Tentar novamente</button>
+          <button onClick={() => window.location.reload()} className="text-primary-600 hover:text-primary-700">{t('common.retry')}</button>
         </div>
       </div>
     );
