@@ -1,6 +1,18 @@
 import React from 'react';
 import { InvoiceOrder } from '../utils/generateInvoice';
 import { getPaymentMethodLabel } from '../utils/paymentLabels';
+import { getAbsoluteImageUrl } from '../utils/imageUtils';
+
+const toColorSlug = (value: string): string =>
+  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+
+const getItemImage = (item: InvoiceOrder['order_items'][number]): string => {
+  const images = item.product.images;
+  if (!images || images.length === 0) return item.product.image || '';
+  if (!item.color) return images[0];
+  const slug = toColorSlug(item.color);
+  return images.find(img => img.toLowerCase().includes(slug)) || images[0];
+};
 
 interface Props {
   order: InvoiceOrder;
@@ -80,16 +92,36 @@ const Invoice: React.FC<Props> = ({ order }) => {
             </tr>
           </thead>
           <tbody>
-            {order.order_items.map((item) => (
-              <tr key={item.id}>
-                <td style={{ padding: '20px 8px 20px 0', borderBottom: '1px solid #f1f5f9' }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{item.product.name}</div>
-                </td>
-                <td style={{ padding: '20px 8px', fontSize: 14, color: '#334155', textAlign: 'center', borderBottom: '1px solid #f1f5f9' }}>{item.quantity}</td>
-                <td style={{ padding: '20px 8px', fontSize: 14, color: '#334155', textAlign: 'right', borderBottom: '1px solid #f1f5f9' }}>{Number(item.price).toFixed(2)}€</td>
-                <td style={{ padding: '20px 0 20px 8px', fontSize: 14, color: '#0f172a', textAlign: 'right', fontWeight: 700, borderBottom: '1px solid #f1f5f9' }}>{(item.quantity * Number(item.price)).toFixed(2)}€</td>
-              </tr>
-            ))}
+            {order.order_items.map((item) => {
+              const imgUrl = getAbsoluteImageUrl(getItemImage(item));
+              const meta = [
+                item.color ? `Cor: ${item.color}` : '',
+                item.size ? `Tam: ${item.size}` : '',
+              ].filter(Boolean).join(' | ');
+              return (
+                <tr key={item.id}>
+                  <td style={{ padding: '16px 8px 16px 0', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                      {imgUrl && (
+                        <img
+                          src={imgUrl}
+                          alt={item.product.name}
+                          style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 6, border: '1px solid #e2e8f0', flexShrink: 0 }}
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                      )}
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{item.product.name}</div>
+                        {meta && <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{meta}</div>}
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: '16px 8px', fontSize: 14, color: '#334155', textAlign: 'center', borderBottom: '1px solid #f1f5f9' }}>{item.quantity}</td>
+                  <td style={{ padding: '16px 8px', fontSize: 14, color: '#334155', textAlign: 'right', borderBottom: '1px solid #f1f5f9' }}>{Number(item.price).toFixed(2)}€</td>
+                  <td style={{ padding: '16px 0 16px 8px', fontSize: 14, color: '#0f172a', textAlign: 'right', fontWeight: 700, borderBottom: '1px solid #f1f5f9' }}>{(item.quantity * Number(item.price)).toFixed(2)}€</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

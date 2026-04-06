@@ -2,9 +2,9 @@ export interface InvoiceOrderItem {
   id: number;
   quantity: number;
   price: number;
-  product: { id: number; name: string; image: string };
-  selected_color?: string;
-  selected_size?: string;
+  product: { id: number; name: string; image: string; images?: string[] };
+  color?: string;
+  size?: string;
 }
 
 export interface InvoiceOrder {
@@ -22,6 +22,23 @@ export interface InvoiceOrder {
   customer_postal_code: string;
   order_items: InvoiceOrderItem[];
 }
+
+const toColorSlug = (value: string): string =>
+  value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+
+const getItemImage = (item: InvoiceOrderItem): string => {
+  const images = item.product.images;
+  if (!images || images.length === 0) return item.product.image || '';
+  if (!item.color) return images[0];
+  const slug = toColorSlug(item.color);
+  return images.find(img => img.toLowerCase().includes(slug)) || images[0];
+};
+
+const toAbsoluteUrl = (path: string): string => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `${window.location.origin}/api/images${path}`;
+};
 
 const paymentLabel = (method: string): string => {
   switch (method?.toLowerCase()) {
@@ -44,21 +61,29 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
   const invoiceNumber = `${year}-${String(order.id).padStart(4, '0')}`;
   const logoUrl = `${window.location.origin}/images/logo.png`;
 
-  const itemsHtml = order.order_items.map(item => `
+  const itemsHtml = order.order_items.map(item => {
+    const imgUrl = toAbsoluteUrl(getItemImage(item));
+    const meta = [
+      item.color ? `Cor: ${item.color}` : '',
+      item.size ? `Tam: ${item.size}` : '',
+    ].filter(Boolean).join(' | ');
+    return `
     <tr>
       <td class="td-name">
-        <div class="item-name">${item.product.name}</div>
-        <div class="item-meta">
-          ${item.selected_color ? `Cor: ${item.selected_color}` : ''} 
-          ${item.selected_color && item.selected_size ? ' | ' : ''}
-          ${item.selected_size ? `Tam: ${item.selected_size}` : ''}
+        <div class="item-row">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${item.product.name}" class="item-img" onerror="this.style.display='none'" />` : ''}
+          <div>
+            <div class="item-name">${item.product.name}</div>
+            ${meta ? `<div class="item-meta">${meta}</div>` : ''}
+          </div>
         </div>
       </td>
       <td class="td-center">${item.quantity}</td>
       <td class="td-right">${Number(item.price).toFixed(2)}€</td>
       <td class="td-right td-bold">${(item.quantity * Number(item.price)).toFixed(2)}€</td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 
   const statusBadge = order.payment_status === 'paid'
     ? '<span class="badge-paid">PAGO</span>'
@@ -173,12 +198,14 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
     thead th:first-child { text-align: left; padding-left: 0; }
     thead th:last-child  { padding-right: 0; text-align: right; }
     
-    .td-name   { padding: 20px 8px 20px 0; border-bottom: 1px solid #f1f5f9; }
+    .td-name   { padding: 16px 8px 16px 0; border-bottom: 1px solid #f1f5f9; }
+    .item-row  { display: flex; align-items: center; gap: 14px; }
+    .item-img  { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; flex-shrink: 0; }
     .item-name { font-size: 14px; font-weight: 600; color: #0f172a; }
     .item-meta { font-size: 12px; color: #64748b; margin-top: 4px; }
     
-    .td-center { padding: 20px 8px; text-align: center; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; }
-    .td-right  { padding: 20px 8px; text-align: right; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; }
+    .td-center { padding: 16px 8px; text-align: center; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; }
+    .td-right  { padding: 16px 8px; text-align: right; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; }
     .td-right:last-child { padding-right: 0; }
     .td-bold   { font-weight: 700; color: #0f172a; }
 
