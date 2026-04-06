@@ -547,8 +547,17 @@ const Product: React.FC = () => {
             </Link>
             <h1 className="text-2xl font-bold tracking-tight mb-2">{product.name}</h1>
             <div className="flex items-center gap-2 mb-2 text-sm cursor-pointer" onClick={scrollToReviews}>
-              <div className="flex items-center text-black">
-                {[...Array(5)].map((_, i) => <Star key={i} size={14} className="fill-current" />)}
+              <div className="flex items-center text-black gap-2">
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={14}
+                      className={i < Math.round(reviewStats.average) ? 'fill-current' : 'text-gray-300'}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-gray-600">({reviewStats.count})</span>
               </div>
               <span className="text-primary-600 hover:underline">{t('product.reviews')}</span>
             </div>
@@ -558,8 +567,17 @@ const Product: React.FC = () => {
           <div className="hidden lg:block mb-8">
             <h1 className="text-3xl lg:text-4xl font-bold tracking-tight mb-3">{product.name}</h1>
             <div className="flex items-center gap-2 mb-4 text-sm cursor-pointer group" onClick={scrollToReviews}>
-              <div className="flex items-center text-black">
-                {[...Array(5)].map((_, i) => <Star key={i} size={14} className="fill-current" />)}
+              <div className="flex items-center text-black gap-2">
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={14}
+                      className={i < Math.round(reviewStats.average) ? 'fill-current' : 'text-gray-300'}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-gray-600">({reviewStats.count})</span>
               </div>
               <span className="text-primary-600 group-hover:underline">{t('product.reviews')}</span>
             </div>
