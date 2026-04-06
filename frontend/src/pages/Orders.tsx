@@ -3,8 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Package, Truck, CheckCircle, XCircle, Clock, ChevronDown, ChevronUp, Eye, FileText } from 'lucide-react';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
-import InvoiceModal from '../components/InvoiceModal';
-import { InvoiceOrder } from '../utils/generateInvoice';
+import { InvoiceOrder, getInvoiceHtml } from '../utils/generateInvoice';
 import SEO from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
 import { getProductPath, getRoutePath, getTrackOrderPath } from '../utils/routes';
@@ -63,8 +62,17 @@ const Orders: React.FC = () => {
   const shopPath = getRoutePath('shop', lang);
   const homePath = getRoutePath('home', lang);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
-  const [invoiceOrder, setInvoiceOrder] = useState<InvoiceOrder | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+
+  const openInvoice = (order: InvoiceOrder) => {
+    const html = getInvoiceHtml(order);
+    const win = window.open('', '_blank');
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+      win.onload = () => win.print();
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -383,7 +391,7 @@ const Orders: React.FC = () => {
                             </Link>
                             {order.payment_status === 'paid' && (
                               <button
-                                onClick={() => setInvoiceOrder(order)}
+                                onClick={() => openInvoice(order)}
                                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-primary-600 text-primary-700 rounded-lg hover:bg-primary-50 transition-colors font-medium"
                               >
                                 <FileText className="h-4 w-4" />
@@ -402,12 +410,6 @@ const Orders: React.FC = () => {
         )}
       </div>
 
-      {invoiceOrder && (
-        <InvoiceModal
-          order={invoiceOrder}
-          onClose={() => setInvoiceOrder(null)}
-        />
-      )}
     </div>
   );
 };
