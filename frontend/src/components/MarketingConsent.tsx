@@ -65,7 +65,13 @@ const MarketingConsent: React.FC = () => {
       timers.push(newsletterTimer);
     }
 
-    return () => timers.forEach(clearTimeout);
+    const openHandler = () => setShowNewsletter(true);
+    window.addEventListener('recicloth:open-newsletter', openHandler);
+
+    return () => {
+      timers.forEach(clearTimeout);
+      window.removeEventListener('recicloth:open-newsletter', openHandler);
+    };
   }, []);
 
   const persistConsent = (accepted: boolean, preferences = cookieConsent) => {
@@ -314,6 +320,13 @@ const MarketingConsent: React.FC = () => {
                       {otpSending ? 'A enviar…' : <><span>QUERO RECEBER</span> <Heart className="h-3 w-3 fill-white" /></>}
                     </button>
                   </form>
+                  <button
+                    type="button"
+                    onClick={() => { handleCloseNewsletter(); navigate('/newsletter/cancelar'); }}
+                    className="mt-4 text-[10px] text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                  >
+                    Cancelar subscrição
+                  </button>
                 </>
               )}
             </div>

@@ -75,9 +75,12 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/newsletter/cancelar" className="hover:text-white transition-colors block text-primary-300 text-sm">
-                  {lang === 'en' ? 'Unsubscribe newsletter' : 'Cancelar newsletter'}
-                </Link>
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('recicloth:open-newsletter'))}
+                  className="hover:text-white transition-colors block text-primary-100 text-[15px] text-left"
+                >
+                  Newsletter
+                </button>
               </li>
               <li className="pt-2">
                 <a href="https://www.livroreclamacoes.pt" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity inline-block">
