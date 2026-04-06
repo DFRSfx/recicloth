@@ -382,6 +382,7 @@ const Product: React.FC = () => {
     () => eligibleItems.find(item => String(item.order_item_id) === reviewForm.orderItemId) || null,
     [eligibleItems, reviewForm.orderItemId]
   );
+  const canWriteReview = isAuthenticated && !eligibleLoading && eligibleItems.length > 0;
 
   if (loading) {
     return (
@@ -925,21 +926,14 @@ const Product: React.FC = () => {
               <X size={24} strokeWidth={1.5} />
             </button>
             
-            <p className="text-sm font-bold text-gray-900 mb-8">* Required</p>
-
-            {reviewSubmitError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-                {reviewSubmitError}
-              </div>
-            )}
-            {reviewSuccess && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
-                {reviewSuccess}
-              </div>
-            )}
             {!isAuthenticated && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-md text-sm">
                 Faça login para escrever uma review.
+              </div>
+            )}
+            {isAuthenticated && eligibleLoading && (
+              <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded-md text-sm">
+                A carregar encomendas elegíveis...
               </div>
             )}
             {isAuthenticated && !eligibleLoading && eligibleItems.length === 0 && (
@@ -948,15 +942,23 @@ const Product: React.FC = () => {
               </div>
             )}
             
-            <form className="space-y-8" onSubmit={handleReviewSubmit}>
-              {isAuthenticated && (
-                <div>
-                  <label className="block text-[15px] font-bold text-gray-900 mb-2">* Encomenda</label>
-                  {eligibleLoading ? (
-                    <p className="text-sm text-gray-500">A carregar encomendas elegíveis...</p>
-                  ) : eligibleItems.length === 0 ? (
-                    <p className="text-sm text-gray-500">Precisas de uma encomenda paga deste produto para deixar uma review.</p>
-                  ) : (
+            {canWriteReview && (
+              <>
+                <p className="text-sm font-bold text-gray-900 mb-8">* Required</p>
+
+                {reviewSubmitError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                    {reviewSubmitError}
+                  </div>
+                )}
+                {reviewSuccess && (
+                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
+                    {reviewSuccess}
+                  </div>
+                )}
+                <form className="space-y-8" onSubmit={handleReviewSubmit}>
+                  <div>
+                    <label className="block text-[15px] font-bold text-gray-900 mb-2">* Encomenda</label>
                     <select
                       value={reviewForm.orderItemId}
                       onChange={(e) => setReviewForm(prev => ({ ...prev, orderItemId: e.target.value }))}
@@ -968,203 +970,203 @@ const Product: React.FC = () => {
                         </option>
                       ))}
                     </select>
-                  )}
-                </div>
-              )}
-               
-              <div>
-                <label className="block text-[15px] font-bold text-gray-900 mb-2">* Rate your experience</label>
-                <div className="flex gap-1 text-gray-300 cursor-pointer">
-                  {[1, 2, 3, 4, 5].map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setReviewForm(prev => ({ ...prev, rating: value }))}
-                      className={value <= reviewForm.rating ? 'text-black' : 'text-gray-300'}
-                      aria-label={`Rate ${value}`}
-                    >
-                      <Star size={30} className="fill-current" strokeWidth={1} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="relative pt-4">
-                <input
-                  type="text"
-                  id="rev_headline"
-                  required
-                  value={reviewForm.headline}
-                  onChange={(e) => setReviewForm(prev => ({ ...prev, headline: e.target.value }))}
-                  className="block w-full border-0 border-b-2 border-black px-0 py-2 focus:ring-0 focus:border-black peer text-[15px]"
-                  placeholder=" "
-                />
-                <label htmlFor="rev_headline" className="absolute top-6 left-0 text-[15px] font-medium text-gray-900 transition-all duration-200 peer-focus:top-0 peer-focus:text-xs peer-valid:top-0 peer-valid:text-xs">* Add a headline</label>
-              </div>
-
-              <div>
-                <label className="block text-[15px] font-medium text-gray-900 mb-2">* Write a review</label>
-                <textarea
-                  required
-                  rows={6}
-                  value={reviewForm.content}
-                  onChange={(e) => setReviewForm(prev => ({ ...prev, content: e.target.value }))}
-                  className="w-full border border-gray-400 rounded-lg p-3 focus:ring-1 focus:ring-black focus:border-black text-[15px]"
-                ></textarea>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    id="rev_name"
-                    required
-                    value={reviewForm.name}
-                    onChange={(e) => setReviewForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="block w-full border-0 border-b-2 border-black px-0 py-2 focus:ring-0 focus:border-black peer text-sm"
-                    placeholder=" "
-                  />
-                  <label htmlFor="rev_name" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs">* Your name</label>
-                </div>
-                <div className="relative flex flex-col">
-                  <div className="relative">
+                  </div>
+                   
+                  <div>
+                    <label className="block text-[15px] font-bold text-gray-900 mb-2">* Rate your experience</label>
+                    <div className="flex gap-1 text-gray-300 cursor-pointer">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setReviewForm(prev => ({ ...prev, rating: value }))}
+                          className={value <= reviewForm.rating ? 'text-black' : 'text-gray-300'}
+                          aria-label={`Rate ${value}`}
+                        >
+                          <Star size={30} className="fill-current" strokeWidth={1} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+ 
+                  <div className="relative pt-4">
                     <input
-                      type="email"
-                      id="rev_email"
+                      type="text"
+                      id="rev_headline"
                       required
-                      value={reviewForm.email}
-                      onChange={(e) => setReviewForm(prev => ({ ...prev, email: e.target.value }))}
-                      className="block w-full border-0 border-b-2 border-black px-0 py-2 focus:ring-0 focus:border-black peer text-sm"
+                      value={reviewForm.headline}
+                      onChange={(e) => setReviewForm(prev => ({ ...prev, headline: e.target.value }))}
+                      className="block w-full border-0 border-b-2 border-black px-0 py-2 focus:ring-0 focus:border-black peer text-[15px]"
                       placeholder=" "
                     />
-                    <label htmlFor="rev_email" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs flex items-center gap-1">* Your email address</label>
+                    <label htmlFor="rev_headline" className="absolute top-6 left-0 text-[15px] font-medium text-gray-900 transition-all duration-200 peer-focus:top-0 peer-focus:text-xs peer-valid:top-0 peer-valid:text-xs">* Add a headline</label>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">We'll send you an email to verify this review came from you.</p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-[15px] font-bold text-gray-900 mb-3">Add media</h3>
-                <div className="flex items-center gap-2 cursor-pointer text-gray-900 font-bold text-[15px]">
-                  <Upload size={18} /> Upload
-                </div>
-                <p className="text-xs text-gray-500 mt-2">Upload up to 10 images and 3 videos (max. file size 2 GB)</p>
-              </div>
-
-              {/* Custom Questions */}
-              <div className="space-y-6 pt-4">
-                <div>
-                  <p className="text-[15px] font-bold text-gray-900 mb-2">Would you recommend this product to a friend? <span className="font-normal text-gray-500">Choose 1</span></p>
-                  <div className="flex gap-2">
-                    {['Yes', 'No'].map(opt => (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => setReviewForm(prev => ({ ...prev, likelihood: opt }))}
-                        className={`px-5 py-2 font-medium text-sm rounded transition-colors ${
-                          reviewForm.likelihood === opt ? 'bg-black text-white' : 'bg-[#d7d7d7] text-black hover:bg-gray-300'
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
+ 
+                  <div>
+                    <label className="block text-[15px] font-medium text-gray-900 mb-2">* Write a review</label>
+                    <textarea
+                      required
+                      rows={6}
+                      value={reviewForm.content}
+                      onChange={(e) => setReviewForm(prev => ({ ...prev, content: e.target.value }))}
+                      className="w-full border border-gray-400 rounded-lg p-3 focus:ring-1 focus:ring-black focus:border-black text-[15px]"
+                    ></textarea>
                   </div>
-                </div>
-
-                <div>
-                  <p className="text-[15px] font-bold text-gray-900 mb-2">How would you rate the overall fit? <span className="font-normal text-gray-500">Choose 1</span></p>
-                  <div className="flex flex-wrap gap-2">
-                    {['Runs Small', 'Kinda Small', 'True to Size', 'Kinda Large', 'Runs Large'].map(opt => (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => setReviewForm(prev => ({ ...prev, fit: opt }))}
-                        className={`px-4 py-2 font-medium text-sm rounded transition-colors ${
-                          reviewForm.fit === opt ? 'bg-black text-white' : 'bg-[#d7d7d7] text-black hover:bg-gray-300'
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[15px] font-bold text-gray-900 mb-2">Which size product are you reviewing? <span className="font-normal text-gray-500">Choose 1</span></p>
-                  {selectedEligibleItem ? (
-                    <div className="flex flex-wrap gap-3 text-sm text-gray-700">
-                      <span className="px-3 py-1 rounded-full bg-gray-100">
-                        Tamanho: {selectedEligibleItem.size || '—'}
-                      </span>
-                      <span className="px-3 py-1 rounded-full bg-gray-100">
-                        Cor: {selectedEligibleItem.color || '—'}
-                      </span>
+ 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="rev_name"
+                        required
+                        value={reviewForm.name}
+                        onChange={(e) => setReviewForm(prev => ({ ...prev, name: e.target.value }))}
+                        className="block w-full border-0 border-b-2 border-black px-0 py-2 focus:ring-0 focus:border-black peer text-sm"
+                        placeholder=" "
+                      />
+                      <label htmlFor="rev_name" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs">* Your name</label>
                     </div>
-                  ) : (
-                    <p className="text-sm text-gray-500">Selecione uma encomenda acima.</p>
-                  )}
-                </div>
-
-                <div>
-                  <p className="text-[15px] font-bold text-gray-900 mb-2">What is your height? <span className="font-normal text-gray-500">Choose 1</span></p>
-                  <div className="flex flex-wrap gap-2">
-                    {['145 cm or less', '145 - 150 cm', '151 - 155 cm', '156 - 160 cm', '161 - 165 cm', '166 - 170 cm', '171 - 175 cm'].map(opt => (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => setReviewForm(prev => ({ ...prev, height: opt }))}
-                        className={`px-4 py-2 font-medium text-sm rounded transition-colors ${
-                          reviewForm.height === opt ? 'bg-black text-white' : 'bg-[#d7d7d7] text-black hover:bg-gray-300'
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                    <div className="relative flex flex-col">
+                      <div className="relative">
+                        <input
+                          type="email"
+                          id="rev_email"
+                          required
+                          value={reviewForm.email}
+                          onChange={(e) => setReviewForm(prev => ({ ...prev, email: e.target.value }))}
+                          className="block w-full border-0 border-b-2 border-black px-0 py-2 focus:ring-0 focus:border-black peer text-sm"
+                          placeholder=" "
+                        />
+                        <label htmlFor="rev_email" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs flex items-center gap-1">* Your email address</label>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">We'll send you an email to verify this review came from you.</p>
+                    </div>
                   </div>
-                </div>
-
-                <div>
-                  <p className="text-[15px] font-bold text-gray-900 mb-2">For what activity do you recommend this product? <span className="font-normal text-gray-500">Choose all that apply</span></p>
-                  <div className="flex flex-wrap gap-2">
-                    {['Casual Wear', 'Climbing', 'Yoga', 'Cycling', 'Fishing', 'Hiking', 'Running', 'Ski/Snowboarding'].map(opt => {
-                      const isSelected = reviewForm.activities.includes(opt);
-                      return (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setReviewForm(prev => ({
-                            ...prev,
-                            activities: isSelected
-                              ? prev.activities.filter(item => item !== opt)
-                              : [...prev.activities, opt],
-                          }))}
-                          className={`px-4 py-2 font-medium text-sm rounded transition-colors ${
-                            isSelected ? 'bg-black text-white' : 'bg-[#d7d7d7] text-black hover:bg-gray-300'
-                          }`}
-                        >
-                          {opt}
-                        </button>
-                      );
-                    })}
+ 
+                  <div>
+                    <h3 className="text-[15px] font-bold text-gray-900 mb-3">Add media</h3>
+                    <div className="flex items-center gap-2 cursor-pointer text-gray-900 font-bold text-[15px]">
+                      <Upload size={18} /> Upload
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">Upload up to 10 images and 3 videos (max. file size 2 GB)</p>
                   </div>
-                </div>
-              </div>
-
-              <div className="pt-8 border-t border-gray-200">
-                <p className="text-[15px] text-gray-800 mb-4">
-                  By hitting "Submit", you agree to our <span className="font-bold underline cursor-pointer">Terms of use</span>. For privacy information, please read our <span className="font-bold underline cursor-pointer">Privacy Notice</span>.
-                </p>
-                <p className="text-sm text-gray-500 mb-4">* required fields</p>
-                <button
-                  type="submit"
-                  disabled={reviewSubmitLoading || !isAuthenticated || eligibleLoading || eligibleItems.length === 0 || !reviewForm.orderItemId}
-                  className="px-12 py-3 bg-black text-white font-bold rounded-full hover:bg-gray-800 transition-colors w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {reviewSubmitLoading ? 'A enviar...' : 'Send'}
-                </button>
-              </div>
-
-            </form>
+ 
+                  {/* Custom Questions */}
+                  <div className="space-y-6 pt-4">
+                    <div>
+                      <p className="text-[15px] font-bold text-gray-900 mb-2">Would you recommend this product to a friend? <span className="font-normal text-gray-500">Choose 1</span></p>
+                      <div className="flex gap-2">
+                        {['Yes', 'No'].map(opt => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => setReviewForm(prev => ({ ...prev, likelihood: opt }))}
+                            className={`px-5 py-2 font-medium text-sm rounded transition-colors ${
+                              reviewForm.likelihood === opt ? 'bg-black text-white' : 'bg-[#d7d7d7] text-black hover:bg-gray-300'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+ 
+                    <div>
+                      <p className="text-[15px] font-bold text-gray-900 mb-2">How would you rate the overall fit? <span className="font-normal text-gray-500">Choose 1</span></p>
+                      <div className="flex flex-wrap gap-2">
+                        {['Runs Small', 'Kinda Small', 'True to Size', 'Kinda Large', 'Runs Large'].map(opt => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => setReviewForm(prev => ({ ...prev, fit: opt }))}
+                            className={`px-4 py-2 font-medium text-sm rounded transition-colors ${
+                              reviewForm.fit === opt ? 'bg-black text-white' : 'bg-[#d7d7d7] text-black hover:bg-gray-300'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+ 
+                    <div>
+                      <p className="text-[15px] font-bold text-gray-900 mb-2">Which size product are you reviewing? <span className="font-normal text-gray-500">Choose 1</span></p>
+                      {selectedEligibleItem ? (
+                        <div className="flex flex-wrap gap-3 text-sm text-gray-700">
+                          <span className="px-3 py-1 rounded-full bg-gray-100">
+                            Tamanho: {selectedEligibleItem.size || '—'}
+                          </span>
+                          <span className="px-3 py-1 rounded-full bg-gray-100">
+                            Cor: {selectedEligibleItem.color || '—'}
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">Selecione uma encomenda acima.</p>
+                      )}
+                    </div>
+ 
+                    <div>
+                      <p className="text-[15px] font-bold text-gray-900 mb-2">What is your height? <span className="font-normal text-gray-500">Choose 1</span></p>
+                      <div className="flex flex-wrap gap-2">
+                        {['145 cm or less', '145 - 150 cm', '151 - 155 cm', '156 - 160 cm', '161 - 165 cm', '166 - 170 cm', '171 - 175 cm'].map(opt => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => setReviewForm(prev => ({ ...prev, height: opt }))}
+                            className={`px-4 py-2 font-medium text-sm rounded transition-colors ${
+                              reviewForm.height === opt ? 'bg-black text-white' : 'bg-[#d7d7d7] text-black hover:bg-gray-300'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+ 
+                    <div>
+                      <p className="text-[15px] font-bold text-gray-900 mb-2">For what activity do you recommend this product? <span className="font-normal text-gray-500">Choose all that apply</span></p>
+                      <div className="flex flex-wrap gap-2">
+                        {['Casual Wear', 'Climbing', 'Yoga', 'Cycling', 'Fishing', 'Hiking', 'Running', 'Ski/Snowboarding'].map(opt => {
+                          const isSelected = reviewForm.activities.includes(opt);
+                          return (
+                            <button
+                              key={opt}
+                              type="button"
+                              onClick={() => setReviewForm(prev => ({
+                                ...prev,
+                                activities: isSelected
+                                  ? prev.activities.filter(item => item !== opt)
+                                  : [...prev.activities, opt],
+                              }))}
+                              className={`px-4 py-2 font-medium text-sm rounded transition-colors ${
+                                isSelected ? 'bg-black text-white' : 'bg-[#d7d7d7] text-black hover:bg-gray-300'
+                              }`}
+                            >
+                              {opt}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+ 
+                  <div className="pt-8 border-t border-gray-200">
+                    <p className="text-[15px] text-gray-800 mb-4">
+                      By hitting "Submit", you agree to our <span className="font-bold underline cursor-pointer">Terms of use</span>. For privacy information, please read our <span className="font-bold underline cursor-pointer">Privacy Notice</span>.
+                    </p>
+                    <p className="text-sm text-gray-500 mb-4">* required fields</p>
+                    <button
+                      type="submit"
+                      disabled={reviewSubmitLoading || !reviewForm.orderItemId}
+                      className="px-12 py-3 bg-black text-white font-bold rounded-full hover:bg-gray-800 transition-colors w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {reviewSubmitLoading ? 'A enviar...' : 'Send'}
+                    </button>
+                  </div>
+ 
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}
