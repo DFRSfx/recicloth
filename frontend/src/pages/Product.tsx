@@ -942,6 +942,11 @@ const Product: React.FC = () => {
                 Faça login para escrever uma review.
               </div>
             )}
+            {isAuthenticated && !eligibleLoading && eligibleItems.length === 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-md text-sm">
+                Não podes escrever uma review sem comprares este produto.
+              </div>
+            )}
             
             <form className="space-y-8" onSubmit={handleReviewSubmit}>
               {isAuthenticated && (
@@ -950,7 +955,7 @@ const Product: React.FC = () => {
                   {eligibleLoading ? (
                     <p className="text-sm text-gray-500">A carregar encomendas elegíveis...</p>
                   ) : eligibleItems.length === 0 ? (
-                    <p className="text-sm text-gray-500">Não tens encomendas pagas deste produto.</p>
+                    <p className="text-sm text-gray-500">Precisas de uma encomenda paga deste produto para deixar uma review.</p>
                   ) : (
                     <select
                       value={reviewForm.orderItemId}
