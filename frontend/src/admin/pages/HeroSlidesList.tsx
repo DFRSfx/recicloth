@@ -536,7 +536,7 @@ export default function HeroSlidesList() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('admin.heroSlides.fields.title')} 🇵🇹 *
+                        {t('admin.heroSlides.fields.title')} PT *
                       </label>
                       <input
                         ref={addTitleRef}
@@ -549,7 +549,7 @@ export default function HeroSlidesList() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('admin.heroSlides.fields.title')} 🇬🇧
+                        {t('admin.heroSlides.fields.title')} EN
                       </label>
                       <input
                         type="text"
@@ -564,7 +564,7 @@ export default function HeroSlidesList() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('admin.heroSlides.fields.description')} 🇵🇹
+                        {t('admin.heroSlides.fields.description')} PT
                       </label>
                       <textarea
                         value={formData.description_pt}
@@ -575,7 +575,7 @@ export default function HeroSlidesList() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('admin.heroSlides.fields.description')} 🇬🇧
+                        {t('admin.heroSlides.fields.description')} EN
                       </label>
                       <textarea
                         value={formData.description_en}
@@ -590,7 +590,7 @@ export default function HeroSlidesList() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('admin.heroSlides.fields.buttonText')} 🇵🇹 *
+                        {t('admin.heroSlides.fields.buttonText')} PT *
                       </label>
                       <input
                         ref={addButtonTextRef}
@@ -603,7 +603,7 @@ export default function HeroSlidesList() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('admin.heroSlides.fields.buttonText')} 🇬🇧
+                        {t('admin.heroSlides.fields.buttonText')} EN
                       </label>
                       <input
                         type="text"
@@ -912,7 +912,7 @@ export default function HeroSlidesList() {
                       {/* Title PT / EN */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.title')} 🇵🇹</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.title')} PT</label>
                           <input
                             type="text"
                             value={slide.title_pt || ''}
@@ -921,7 +921,7 @@ export default function HeroSlidesList() {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.title')} 🇬🇧</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.title')} EN</label>
                           <input
                             type="text"
                             value={slide.title_en || ''}
@@ -934,7 +934,7 @@ export default function HeroSlidesList() {
                       {/* Description PT / EN */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.description')} 🇵🇹</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.description')} PT</label>
                           <textarea
                             value={slide.description_pt || ''}
                             onChange={(e) => updateSlide(editingId, 'description_pt', e.target.value)}
@@ -943,7 +943,7 @@ export default function HeroSlidesList() {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.description')} 🇬🇧</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.description')} EN</label>
                           <textarea
                             value={slide.description_en || ''}
                             onChange={(e) => updateSlide(editingId, 'description_en', e.target.value)}
@@ -956,7 +956,7 @@ export default function HeroSlidesList() {
                       {/* Button Text PT / EN */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.buttonText')} 🇵🇹</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.buttonText')} PT</label>
                           <input
                             type="text"
                             value={slide.button_text_pt || ''}
@@ -965,7 +965,7 @@ export default function HeroSlidesList() {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.buttonText')} 🇬🇧</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.buttonText')} EN</label>
                           <input
                             type="text"
                             value={slide.button_text_en || ''}

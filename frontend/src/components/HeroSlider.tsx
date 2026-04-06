@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../utils/api';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
@@ -17,8 +17,8 @@ interface SlideData {
 }
 
 const HeroSlider: React.FC = () => {
-  const { t } = useLanguage();
-  const [slides, setSlides] = useState<SlideData[]>([]);
+  const { t, lang } = useLanguage();
+  const [rawSlides, setRawSlides] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [imagesLoaded, setImagesLoaded] = useState<Set<number>>(new Set());
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -33,75 +33,71 @@ const HeroSlider: React.FC = () => {
     node.setAttribute('fetchpriority', priority);
   };
 
-  // Fetch slides from API
+  // Fetch raw slides once
   useEffect(() => {
     const fetchSlides = async () => {
       try {
         const response = await fetch(`${API_URL}/hero-slides`);
         if (response.ok) {
           const data = await response.json();
-          // Transform API data to component format
-          const lang = document.documentElement.lang || 'pt';
-          const transformedSlides = data.map((slide: any) => ({
-            id: slide.id,
-            title: (lang === 'en' ? slide.title_en : slide.title_pt) || slide.title,
-            description: (lang === 'en' ? slide.description_en : slide.description_pt) || slide.description || '',
-            buttonText: (lang === 'en' ? slide.button_text_en : slide.button_text_pt) || slide.button_text,
-            buttonLink: slide.button_link,
-            backgroundImage: getAbsoluteImageUrl(slide.background_image),
-            backgroundImageMd: getAbsoluteImageUrl(slide.background_image_md),
-            backgroundImageSm: getAbsoluteImageUrl(slide.background_image_sm),
-            textColor: slide.text_color || 'white'
-          }));
-
+          setRawSlides(data);
           // Preload first slide image to prevent layout shift
-          if (transformedSlides.length > 0) {
+          if (data.length > 0) {
+            const firstSrc = getAbsoluteImageUrl(data[0].background_image);
             const img = new Image();
-            img.onload = () => {
-              setSlides(transformedSlides);
-              setLoading(false);
-            };
-            img.onerror = () => {
-              // Even if image fails, show slides
-              setSlides(transformedSlides);
-              setLoading(false);
-            };
-            img.src = transformedSlides[0].backgroundImage;
+            img.onload = () => setLoading(false);
+            img.onerror = () => setLoading(false);
+            img.src = firstSrc;
           } else {
-            setSlides(transformedSlides);
             setLoading(false);
           }
+        } else {
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error fetching hero slides:', error);
         setLoading(false);
       }
     };
-
     fetchSlides();
   }, []);
 
+  // Re-derive display slides whenever raw data or language changes
+  const localizedSlides = useMemo<SlideData[]>(() =>
+    rawSlides.map(slide => ({
+      id: slide.id,
+      title: (lang === 'en' ? slide.title_en : slide.title_pt) || slide.title,
+      description: (lang === 'en' ? slide.description_en : slide.description_pt) || slide.description || '',
+      buttonText: (lang === 'en' ? slide.button_text_en : slide.button_text_pt) || slide.button_text,
+      buttonLink: slide.button_link,
+      backgroundImage: getAbsoluteImageUrl(slide.background_image),
+      backgroundImageMd: getAbsoluteImageUrl(slide.background_image_md),
+      backgroundImageSm: getAbsoluteImageUrl(slide.background_image_sm),
+      textColor: slide.text_color || 'white',
+    })),
+  [rawSlides, lang]);
+
   // Auto-play functionality
   useEffect(() => {
-    if (!isAutoPlaying || slides.length === 0) return;
+    if (!isAutoPlaying || localizedSlides.length === 0) return;
 
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
+      setCurrentSlide((prev) => (prev + 1) % localizedSlides.length);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, slides.length]);
+  }, [isAutoPlaying, localizedSlides.length]);
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
   };
 
   const goToPrevious = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    setCurrentSlide((prev) => (prev - 1 + localizedSlides.length) % localizedSlides.length);
   };
 
   const goToNext = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setCurrentSlide((prev) => (prev + 1) % localizedSlides.length);
   };
 
   const handleMouseEnter = () => {
@@ -126,7 +122,7 @@ const HeroSlider: React.FC = () => {
     const diff = currentTouch - touchStart;
 
     // Add resistance at boundaries
-    if ((currentSlide === 0 && diff > 0) || (currentSlide === slides.length - 1 && diff < 0)) {
+    if ((currentSlide === 0 && diff > 0) || (currentSlide === localizedSlides.length - 1 && diff < 0)) {
       setDragOffset(diff * 0.2);
     } else {
       setDragOffset(diff);
@@ -141,7 +137,7 @@ const HeroSlider: React.FC = () => {
     const distance = touchStart - touchEnd;
     const threshold = 50;
 
-    if (distance > threshold && currentSlide < slides.length - 1) {
+    if (distance > threshold && currentSlide < localizedSlides.length - 1) {
       goToNext();
     } else if (distance < -threshold && currentSlide > 0) {
       goToPrevious();
@@ -167,7 +163,7 @@ const HeroSlider: React.FC = () => {
     const diff = e.clientX - touchStart;
 
     // Add resistance at boundaries
-    if ((currentSlide === 0 && diff > 0) || (currentSlide === slides.length - 1 && diff < 0)) {
+    if ((currentSlide === 0 && diff > 0) || (currentSlide === localizedSlides.length - 1 && diff < 0)) {
       setDragOffset(diff * 0.2);
     } else {
       setDragOffset(diff);
@@ -182,7 +178,7 @@ const HeroSlider: React.FC = () => {
     const distance = touchStart - touchEnd;
     const threshold = 50;
 
-    if (distance > threshold && currentSlide < slides.length - 1) {
+    if (distance > threshold && currentSlide < localizedSlides.length - 1) {
       goToNext();
     } else if (distance < -threshold && currentSlide > 0) {
       goToPrevious();
@@ -196,7 +192,7 @@ const HeroSlider: React.FC = () => {
   };
 
   // If no slides and still loading, show loading state with skeleton
-  if (loading || slides.length === 0) {
+  if (loading || localizedSlides.length === 0) {
     return (
       <section className="relative h-[70vh] md:h-[80vh] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
         <div className="absolute inset-0 flex items-center justify-center">
@@ -240,7 +236,7 @@ const HeroSlider: React.FC = () => {
             transition: isDragging ? 'none' : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
-          {slides.map((slide, index) => {
+          {localizedSlides.map((slide, index) => {
             const isImageLoaded = imagesLoaded.has(index);
             return (
             <div
@@ -313,7 +309,7 @@ const HeroSlider: React.FC = () => {
 
       {/* Dots Indicator */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex space-x-3 bg-black bg-opacity-20 backdrop-blur-sm px-4 py-3 rounded-full">
-        {slides.map((_, index) => (
+        {localizedSlides.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
@@ -332,7 +328,7 @@ const HeroSlider: React.FC = () => {
         <div
           className="h-full bg-primary-600 transition-all duration-300 ease-linear"
           style={{
-            width: `${((currentSlide + 1) / slides.length) * 100}%`,
+            width: `${((currentSlide + 1) / localizedSlides.length) * 100}%`,
           }}
         />
       </div>

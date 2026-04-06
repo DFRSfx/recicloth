@@ -69,7 +69,7 @@ const Product: React.FC = () => {
   const isSwipingRef = useRef(false);
   const isThumbnailSelectionRef = useRef(false);
   const isProgrammaticScrollRef = useRef(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Novo Ref para controlar o timeout do scroll
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null); 
   const reviewsRef = useRef<HTMLDivElement>(null); 
 
   const [isAskModalOpen, setIsAskModalOpen] = useState(false);
@@ -165,29 +165,40 @@ const Product: React.FC = () => {
 
   const mobileImages = product?.images || [];
 
-  // CORREÇÃO CRÍTICA DO SLIDER MOBILE
+  // CORREÇÃO CRÍTICA DO SLIDER MOBILE (Agora procura pelo Slug para garantir correspondência)
   useEffect(() => {
     if (isSwipingRef.current) {
       isSwipingRef.current = false;
       return;
     }
 
-    if (product && product.colors) {
-      const idx = product.colors.findIndex(c => c.name === selectedColor);
-      if (idx >= 0 && idx < mobileImages.length && idx !== mobileImageIndex) {
+    if (product && product.images && product.colors) {
+      let targetIdx = -1;
+      const colorObj = product.colors.find(c => c.name === selectedColor);
+      
+      // 1. Tentar encontrar a imagem pelo nome original da cor (slug no URL da imagem)
+      if (colorObj) {
+        const slugSource = colorObj.original_name || colorObj.name;
+        const slug = toColorSlug(slugSource);
+        targetIdx = product.images.findIndex(img => img.toLowerCase().includes(slug));
+      }
+
+      // 2. Fallback caso a imagem não tenha a cor no nome: usa o índice 1:1
+      if (targetIdx === -1) {
+        targetIdx = product.colors.findIndex(c => c.name === selectedColor);
+      }
+
+      // 3. Executa o Scroll
+      if (targetIdx >= 0 && targetIdx < mobileImages.length && targetIdx !== mobileImageIndex) {
         const slider = document.getElementById('mobile-image-slider');
         if (slider) {
-          // Bloqueia a leitura do scroll durante a animação
           isProgrammaticScrollRef.current = true;
           
-          // Anima suavemente para a imagem escolhida
-          slider.scrollTo({ left: idx * slider.clientWidth, behavior: 'smooth' });
-          setMobileImageIndex(idx);
+          slider.scrollTo({ left: targetIdx * slider.clientWidth, behavior: 'smooth' });
+          setMobileImageIndex(targetIdx);
           
-          // Limpa qualquer timeout anterior
           if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
           
-          // Define um limite de tempo seguro (500ms) para reativar o onScroll nativo
           scrollTimeoutRef.current = setTimeout(() => { 
             isProgrammaticScrollRef.current = false; 
           }, 500);
@@ -197,7 +208,6 @@ const Product: React.FC = () => {
   }, [selectedColor, product, mobileImages.length, mobileImageIndex]);
 
   const handleMobileScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    // Aborta se estiver a correr uma animação de scroll despoletada pelos botões de cor
     if (isProgrammaticScrollRef.current) return;
     
     const scrollLeft = e.currentTarget.scrollLeft;
@@ -214,7 +224,7 @@ const Product: React.FC = () => {
       const newColor = matchedColor || fallbackColor;
       
       if (newColor && newColor !== selectedColor) {
-        isSwipingRef.current = true; // Avisa o useEffect que a mudança foi via dedo
+        isSwipingRef.current = true;
         setSelectedColor(newColor);
       }
     }
@@ -274,12 +284,12 @@ const Product: React.FC = () => {
       const response = await fetch(`${API_BASE_URL}/products/${product.id}/reviews`, { headers });
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Erro ao carregar reviews');
+        throw new Error(data.error || t('product.review.loadError'));
       }
       const data = await response.json();
       setReviews(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      setReviewsError(err.message || 'Erro ao carregar reviews');
+      setReviewsError(err.message || t('product.review.loadError'));
       setReviews([]);
     } finally {
       setReviewsLoading(false);
@@ -303,13 +313,13 @@ const Product: React.FC = () => {
       });
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Erro ao carregar compras elegíveis');
+        throw new Error(data.error || t('product.review.error.loadEligible'));
       }
       const data = await response.json();
       setEligibleItems(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setEligibleItems([]);
-      setReviewSubmitError(err.message || 'Erro ao carregar compras elegíveis');
+      setReviewSubmitError(err.message || t('product.review.error.loadEligible'));
     } finally {
       setEligibleLoading(false);
     }
@@ -333,23 +343,23 @@ const Product: React.FC = () => {
     setReviewSuccess(null);
 
     if (!isAuthenticated || !token) {
-      setReviewSubmitError('Faça login para deixar uma review.');
+      setReviewSubmitError(t('product.review.error.loginRequired'));
       return;
     }
     if (!reviewForm.orderItemId) {
-      setReviewSubmitError('Selecione uma compra válida.');
+      setReviewSubmitError(t('product.review.error.selectOrder'));
       return;
     }
     if (!reviewForm.rating || reviewForm.rating < 1) {
-      setReviewSubmitError('Selecione a classificação.');
+      setReviewSubmitError(t('product.review.error.selectRating'));
       return;
     }
     if (!reviewForm.headline.trim()) {
-      setReviewSubmitError('Adicione um título.');
+      setReviewSubmitError(t('product.review.error.addHeadline'));
       return;
     }
     if (!reviewForm.content.trim()) {
-      setReviewSubmitError('Escreva a sua review.');
+      setReviewSubmitError(t('product.review.error.writeContent'));
       return;
     }
 
@@ -375,10 +385,10 @@ const Product: React.FC = () => {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao enviar review');
+        throw new Error(data.error || t('product.review.error.submit'));
       }
       setIsReviewModalOpen(false);
-      setReviewSuccess('Obrigado! A review foi enviada para aprovação.');
+      setReviewSuccess(t('product.review.success'));
       setReviewForm(prev => ({
         ...prev,
         rating: 0,
@@ -391,7 +401,7 @@ const Product: React.FC = () => {
         orderItemId: '',
       }));
     } catch (err: any) {
-      setReviewSubmitError(err.message || 'Erro ao enviar review');
+      setReviewSubmitError(err.message || t('product.review.error.submit'));
     } finally {
       setReviewSubmitLoading(false);
     }
@@ -444,7 +454,6 @@ const Product: React.FC = () => {
   });
   const [openDropdown, setOpenDropdown] = useState<FilterKey | null>(null);
 
-  // Unique option sets derived from approved reviews
   const filterOptions = useMemo<Record<FilterKey, string[]>>(() => {
     const unique = (vals: (string | null | undefined)[]) =>
       [...new Set(vals.filter(Boolean) as string[])].sort();
@@ -861,23 +870,23 @@ const Product: React.FC = () => {
               <span className="text-3xl font-bold">{reviewStats.average.toFixed(1)}/5</span>
             </div>
             <p className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
-              Based on {reviewStats.count} {reviewStats.count === 1 ? 'Review' : 'Reviews'} <Info size={14} className="text-gray-400" />
+              {t('product.review.basedOn')} {reviewStats.count} {reviewStats.count === 1 ? t('product.review.reviewSingular') : t('product.review.reviewPlural')} <Info size={14} className="text-gray-400" />
             </p>
           </div>
 
           <div>
-            <h3 className="text-xl font-bold mb-2">Fit</h3>
+            <h3 className="text-xl font-bold mb-2">{t('product.review.fit')}</h3>
             <p className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
-              {reviewStats.topFit || 'Sem dados'} <Info size={14} className="text-gray-400" />
+              {reviewStats.topFit || t('product.review.noData')} <Info size={14} className="text-gray-400" />
             </p>
           </div>
 
           <div>
-            <h3 className="text-xl font-bold mb-2">Activities</h3>
+            <h3 className="text-xl font-bold mb-2">{t('product.review.activities')}</h3>
             <p className="text-sm font-medium text-gray-900 mb-1">
-              {reviewStats.topActivities.length > 0 ? reviewStats.topActivities.join(', ') : 'Sem dados'}
+              {reviewStats.topActivities.length > 0 ? reviewStats.topActivities.join(', ') : t('product.review.noData')}
             </p>
-            <p className="text-sm text-gray-500">Popular among reviewers</p>
+            <p className="text-sm text-gray-500">{t('product.review.popularAmong')}</p>
           </div>
         </div>
 
@@ -889,13 +898,13 @@ const Product: React.FC = () => {
                 onClick={() => setIsAskModalOpen(true)}
                 className="px-6 py-2.5 bg-black text-white font-bold rounded-full hover:bg-gray-800 transition-colors text-sm"
               >
-                Ask a Question
+                {t('product.review.askQuestion')}
               </button>
               <button
                 onClick={() => setIsReviewModalOpen(true)}
                 className="px-6 py-2.5 bg-white text-black border-2 border-black font-bold rounded-full hover:bg-gray-50 transition-colors text-sm"
               >
-                Write a Review
+                {t('product.review.writeReview')}
               </button>
             </div>
 
@@ -903,7 +912,7 @@ const Product: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
-                placeholder="Search reviews"
+                placeholder={t('product.review.searchPlaceholder')}
                 value={reviewSearch}
                 onChange={e => { setReviewSearch(e.target.value); setReviewPage(1); }}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-black"
@@ -912,15 +921,15 @@ const Product: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Sort by:</span>
+            <span className="text-sm text-gray-600">{t('product.review.sortBy')}</span>
             <select
               value={reviewSort}
               onChange={e => { setReviewSort(e.target.value as typeof reviewSort); setReviewPage(1); }}
               className="border-none bg-transparent font-medium text-sm focus:ring-0 cursor-pointer pr-6"
             >
-              <option value="newest">Newest</option>
-              <option value="highest">Highest Rating</option>
-              <option value="lowest">Lowest Rating</option>
+              <option value="newest">{t('product.review.sortNewest')}</option>
+              <option value="highest">{t('product.review.sortHighest')}</option>
+              <option value="lowest">{t('product.review.sortLowest')}</option>
             </select>
           </div>
         </div>
@@ -929,12 +938,12 @@ const Product: React.FC = () => {
         <div className="flex flex-wrap gap-4 border-b border-gray-200 pb-4 mb-4" onClick={() => setOpenDropdown(null)}>
           {(
             [
-              { key: 'rating' as FilterKey, label: 'Rating' },
-              { key: 'likelihood' as FilterKey, label: 'Likelihood to...' },
-              { key: 'size' as FilterKey, label: 'Size' },
-              { key: 'height' as FilterKey, label: 'Height' },
-              { key: 'activity' as FilterKey, label: 'Activity' },
-              { key: 'fit' as FilterKey, label: 'Fit' },
+              { key: 'rating' as FilterKey, label: t('product.review.filterRating') },
+              { key: 'likelihood' as FilterKey, label: t('product.review.filterLikelihood') },
+              { key: 'size' as FilterKey, label: t('product.review.filterSize') },
+              { key: 'height' as FilterKey, label: t('product.review.filterHeight') },
+              { key: 'activity' as FilterKey, label: t('product.review.filterActivity') },
+              { key: 'fit' as FilterKey, label: t('product.review.filterFit') },
             ] as { key: FilterKey; label: string }[]
           ).map(({ key, label }) => {
             const opts = filterOptions[key];
@@ -961,7 +970,7 @@ const Product: React.FC = () => {
                       className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${!selected ? 'font-bold' : ''}`}
                       onClick={() => setFilter(key, '')}
                     >
-                      All
+                      {t('product.review.filterAll')}
                     </button>
                     {opts.map(opt => (
                       <button
@@ -983,7 +992,7 @@ const Product: React.FC = () => {
               onClick={clearAllFilters}
               className="text-xs text-gray-500 hover:text-black underline underline-offset-2 self-end pb-1"
             >
-              Clear all
+              {t('product.review.clearAll')}
             </button>
           )}
         </div>
@@ -1003,16 +1012,16 @@ const Product: React.FC = () => {
         {/* Reviews List */}
         <div className="space-y-10">
           {reviewsLoading && (
-            <p className="text-sm text-gray-500">A carregar reviews...</p>
+            <p className="text-sm text-gray-500">{t('product.review.loading')}</p>
           )}
           {!reviewsLoading && reviewsError && (
             <p className="text-sm text-red-600">{reviewsError}</p>
           )}
           {!reviewsLoading && !reviewsError && approvedReviews.length === 0 && (
-            <p className="text-sm text-gray-500">Ainda não existem reviews para este produto.</p>
+            <p className="text-sm text-gray-500">{t('product.review.empty')}</p>
           )}
           {!reviewsLoading && !reviewsError && approvedReviews.length > 0 && filteredReviews.length === 0 && (
-            <p className="text-sm text-gray-500">Nenhuma review corresponde aos filtros selecionados.</p>
+            <p className="text-sm text-gray-500">{t('product.review.noMatch')}</p>
           )}
           {paginatedReviews.map((review) => (
             <div key={review.id} className="flex flex-col md:flex-row gap-6">
@@ -1027,12 +1036,12 @@ const Product: React.FC = () => {
                       <p className="font-bold text-gray-900 leading-none">{review.reviewer_name}</p>
                       {review.status === 'pending' && (
                         <span className="text-[10px] font-bold uppercase tracking-wide bg-yellow-100 text-yellow-800 border border-yellow-200 px-2 py-0.5 rounded-full">
-                          PENDENTE
+                          {t('product.review.pending')}
                         </span>
                       )}
                     </div>
                     <p className="text-xs font-medium text-green-600 flex items-center gap-1">
-                      <CheckCircle2 size={12} className="fill-current text-white bg-green-600 rounded-full" /> Verified Reviewer
+                      <CheckCircle2 size={12} className="fill-current text-white bg-green-600 rounded-full" /> {t('product.review.verified')}
                     </p>
                   </div>
                 </div>
@@ -1040,25 +1049,25 @@ const Product: React.FC = () => {
                 <div className="space-y-2 text-sm">
                   {review.height && (
                     <div className="flex gap-4">
-                      <span className="font-bold text-gray-900 min-w-[100px]">Height</span>
+                      <span className="font-bold text-gray-900 min-w-[100px]">{t('product.review.height')}</span>
                       <span className="text-gray-700">{review.height}</span>
                     </div>
                   )}
                   {review.likelihood && (
                     <div className="flex gap-4">
-                      <span className="font-bold text-gray-900 min-w-[100px]">Likelihood To Recommend</span>
+                      <span className="font-bold text-gray-900 min-w-[100px]">{t('product.review.likelihood')}</span>
                       <span className="text-gray-700">{review.likelihood}</span>
                     </div>
                   )}
                   {review.size && (
                     <div className="flex gap-4">
-                      <span className="font-bold text-gray-900 min-w-[100px]">Size</span>
+                      <span className="font-bold text-gray-900 min-w-[100px]">{t('product.review.size')}</span>
                       <span className="text-gray-700">{review.size}</span>
                     </div>
                   )}
                   {review.activities && (
                     <div className="flex gap-4">
-                      <span className="font-bold text-gray-900 min-w-[100px]">Activity</span>
+                      <span className="font-bold text-gray-900 min-w-[100px]">{t('product.review.activity')}</span>
                       <span className="text-gray-700 leading-relaxed">{parseActivities(review.activities)}</span>
                     </div>
                   )}
@@ -1080,7 +1089,7 @@ const Product: React.FC = () => {
 
                 <div className="flex items-center justify-between border-t border-gray-100 pt-4">
                   <div className="w-64">
-                    <p className="text-sm font-bold text-gray-900 mb-2">Fit</p>
+                    <p className="text-sm font-bold text-gray-900 mb-2">{t('product.review.fit')}</p>
                     <div className="h-1.5 w-full bg-gray-200 rounded-full relative">
                       <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-3 h-3 bg-black rounded-full" />
                       <div className="absolute left-0 w-1/2 h-full bg-black rounded-l-full" />
@@ -1089,7 +1098,7 @@ const Product: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-3 text-sm text-gray-500">
-                    <span>Helpful?</span>
+                    <span>{t('product.review.helpful')}</span>
                     <button className="flex items-center gap-1 hover:text-black"><ThumbsUp size={16} /> 0</button>
                     <button className="flex items-center gap-1 hover:text-black"><ThumbsDown size={16} /> 0</button>
                   </div>
@@ -1132,7 +1141,7 @@ const Product: React.FC = () => {
 
         {filteredReviews.length > 0 && (
           <p className="text-xs text-center text-gray-400 mt-3">
-            {(reviewPage - 1) * REVIEWS_PER_PAGE + 1}–{Math.min(reviewPage * REVIEWS_PER_PAGE, filteredReviews.length)} of {filteredReviews.length} reviews
+            {(reviewPage - 1) * REVIEWS_PER_PAGE + 1}–{Math.min(reviewPage * REVIEWS_PER_PAGE, filteredReviews.length)} {t('product.review.of')} {filteredReviews.length} {t('product.review.countSuffix')}
           </p>
         )}
       </div>
@@ -1145,32 +1154,32 @@ const Product: React.FC = () => {
             <button onClick={() => setIsAskModalOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-black">
               <X size={24} strokeWidth={1.5} />
             </button>
-            <h2 className="text-2xl font-bold mb-6 text-center">Ask a question about {product.name}</h2>
-            <p className="text-sm text-gray-600 mb-6">*Required</p>
+            <h2 className="text-2xl font-bold mb-6 text-center">{t('product.ask.title')} {product.name}</h2>
+            <p className="text-sm text-gray-600 mb-6">{t('product.ask.required')}</p>
             
             <form className="space-y-8" onSubmit={(e) => { e.preventDefault(); setIsAskModalOpen(false); }}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="relative">
                   <input type="text" id="ask_name" required className="block w-full border-0 border-b-2 border-black px-0 py-2 focus:ring-0 focus:border-black peer text-sm" placeholder=" " />
-                  <label htmlFor="ask_name" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs">*Your name</label>
+                  <label htmlFor="ask_name" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs">{t('product.ask.yourName')}</label>
                 </div>
                 <div className="relative flex items-center">
                   <input type="email" id="ask_email" required className="block w-full border-0 border-b-2 border-black px-0 py-2 focus:ring-0 focus:border-black peer text-sm" placeholder=" " />
-                  <label htmlFor="ask_email" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs flex items-center gap-1">*Your email address <Info size={14} className="text-blue-500" /></label>
+                  <label htmlFor="ask_email" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs flex items-center gap-1">{t('product.ask.yourEmail')} <Info size={14} className="text-blue-500" /></label>
                 </div>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">*Ask a question</label>
+                <label className="block text-sm font-medium text-gray-900 mb-2">{t('product.ask.question')}</label>
                 <textarea required rows={5} className="w-full border border-gray-400 rounded p-3 focus:ring-1 focus:ring-black focus:border-black text-sm"></textarea>
               </div>
               
               <p className="text-[15px] text-gray-800">
-                By hitting "Submit", you agree to our <span className="font-bold underline cursor-pointer">Terms of use</span>. For privacy information, please read our <span className="font-bold underline cursor-pointer">Privacy Notice</span>.
+                {t('product.ask.terms')} <span className="font-bold underline cursor-pointer">{t('product.ask.termsLink')}</span>{t('product.ask.termsMid')} <span className="font-bold underline cursor-pointer">{t('product.ask.privacyLink')}</span>.
               </p>
-              
+
               <button type="submit" className="px-12 py-3 bg-black text-white font-bold rounded-full hover:bg-gray-800 transition-colors w-full sm:w-auto">
-                Send
+                {t('product.ask.send')}
               </button>
             </form>
           </div>
@@ -1188,23 +1197,23 @@ const Product: React.FC = () => {
             
             {!isAuthenticated && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-md text-sm mb-6">
-                Faça login para escrever uma review.
+                {t('product.review.loginRequired')}
               </div>
             )}
             {isAuthenticated && eligibleLoading && (
               <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded-md text-sm mb-6">
-                A carregar encomendas elegíveis...
+                {t('product.review.loadingEligible')}
               </div>
             )}
             {isAuthenticated && !eligibleLoading && eligibleItems.length === 0 && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-md text-sm mb-6">
-                Não podes escrever uma review sem comprares este produto.
+                {t('product.review.noPurchase')}
               </div>
             )}
             
             {canWriteReview && (
               <>
-                <p className="text-sm font-bold text-gray-900 mb-8">* Required</p>
+                <p className="text-sm font-bold text-gray-900 mb-8">{t('product.review.required')}</p>
 
                 {reviewSubmitError && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm mb-6">
@@ -1218,7 +1227,7 @@ const Product: React.FC = () => {
                 )}
                 <form className="space-y-8" onSubmit={handleReviewSubmit}>
                   <div>
-                    <label className="block text-[15px] font-bold text-gray-900 mb-2">* Encomenda</label>
+                    <label className="block text-[15px] font-bold text-gray-900 mb-2">{t('product.review.order')}</label>
                     <select
                       value={reviewForm.orderItemId}
                       onChange={(e) => setReviewForm(prev => ({ ...prev, orderItemId: e.target.value }))}
@@ -1233,7 +1242,7 @@ const Product: React.FC = () => {
                   </div>
                     
                   <div>
-                    <label className="block text-[15px] font-bold text-gray-900 mb-2">* Rate your experience</label>
+                    <label className="block text-[15px] font-bold text-gray-900 mb-2">{t('product.review.rateExperience')}</label>
                     <div className="flex gap-1 text-gray-300 cursor-pointer">
                       {[1, 2, 3, 4, 5].map((value) => (
                         <button
@@ -1259,11 +1268,11 @@ const Product: React.FC = () => {
                       className="block w-full border-0 border-b-2 border-black px-0 py-2 focus:ring-0 focus:border-black peer text-[15px]"
                       placeholder=" "
                     />
-                    <label htmlFor="rev_headline" className="absolute top-6 left-0 text-[15px] font-medium text-gray-900 transition-all duration-200 peer-focus:top-0 peer-focus:text-xs peer-valid:top-0 peer-valid:text-xs">* Add a headline</label>
+                    <label htmlFor="rev_headline" className="absolute top-6 left-0 text-[15px] font-medium text-gray-900 transition-all duration-200 peer-focus:top-0 peer-focus:text-xs peer-valid:top-0 peer-valid:text-xs">{t('product.review.addHeadline')}</label>
                   </div>
  
                   <div>
-                    <label className="block text-[15px] font-medium text-gray-900 mb-2">* Write a review</label>
+                    <label className="block text-[15px] font-medium text-gray-900 mb-2">{t('product.review.writeContent')}</label>
                     <textarea
                       required
                       rows={6}
@@ -1284,7 +1293,7 @@ const Product: React.FC = () => {
                         className="block w-full border-0 border-b-2 border-black px-0 py-2 focus:ring-0 focus:border-black peer text-sm"
                         placeholder=" "
                       />
-                      <label htmlFor="rev_name" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs">* Your name</label>
+                      <label htmlFor="rev_name" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs">{t('product.review.yourName')}</label>
                     </div>
                     <div className="relative flex flex-col">
                       <div className="relative">
@@ -1297,24 +1306,24 @@ const Product: React.FC = () => {
                           className="block w-full border-0 border-b-2 border-black px-0 py-2 focus:ring-0 focus:border-black peer text-sm"
                           placeholder=" "
                         />
-                        <label htmlFor="rev_email" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs flex items-center gap-1">* Your email address</label>
+                        <label htmlFor="rev_email" className="absolute top-2 left-0 text-sm font-medium text-gray-900 transition-all duration-200 peer-focus:-top-4 peer-focus:text-xs peer-valid:-top-4 peer-valid:text-xs flex items-center gap-1">{t('product.review.yourEmail')}</label>
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">We'll send you an email to verify this review came from you.</p>
+                      <p className="text-xs text-gray-500 mt-2">{t('product.review.emailVerify')}</p>
                     </div>
                   </div>
  
                   <div>
-                    <h3 className="text-[15px] font-bold text-gray-900 mb-3">Add media</h3>
+                    <h3 className="text-[15px] font-bold text-gray-900 mb-3">{t('product.review.addMedia')}</h3>
                     <div className="flex items-center gap-2 cursor-pointer text-gray-900 font-bold text-[15px]">
-                      <Upload size={18} /> Upload
+                      <Upload size={18} /> {t('product.review.upload')}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">Upload up to 10 images and 3 videos (max. file size 2 GB)</p>
+                    <p className="text-xs text-gray-500 mt-2">{t('product.review.uploadDesc')}</p>
                   </div>
  
                   {/* Custom Questions */}
                   <div className="space-y-6 pt-4">
                     <div>
-                      <p className="text-[15px] font-bold text-gray-900 mb-2">Would you recommend this product to a friend? <span className="font-normal text-gray-500">Choose 1</span></p>
+                      <p className="text-[15px] font-bold text-gray-900 mb-2">{t('product.review.recommendQuestion')} <span className="font-normal text-gray-500">{t('product.review.chooseOne')}</span></p>
                       <div className="flex gap-2">
                         {['Yes', 'No'].map(opt => (
                           <button
@@ -1332,7 +1341,7 @@ const Product: React.FC = () => {
                     </div>
  
                     <div>
-                      <p className="text-[15px] font-bold text-gray-900 mb-2">How would you rate the overall fit? <span className="font-normal text-gray-500">Choose 1</span></p>
+                      <p className="text-[15px] font-bold text-gray-900 mb-2">{t('product.review.fitQuestion')} <span className="font-normal text-gray-500">{t('product.review.chooseOne')}</span></p>
                       <div className="flex flex-wrap gap-2">
                         {['Runs Small', 'Kinda Small', 'True to Size', 'Kinda Large', 'Runs Large'].map(opt => (
                           <button
@@ -1350,23 +1359,23 @@ const Product: React.FC = () => {
                     </div>
  
                     <div>
-                      <p className="text-[15px] font-bold text-gray-900 mb-2">Which size product are you reviewing? <span className="font-normal text-gray-500">Choose 1</span></p>
+                      <p className="text-[15px] font-bold text-gray-900 mb-2">{t('product.review.sizeQuestion')} <span className="font-normal text-gray-500">{t('product.review.chooseOne')}</span></p>
                       {selectedEligibleItem ? (
                         <div className="flex flex-wrap gap-3 text-sm text-gray-700">
                           <span className="px-3 py-1 rounded-full bg-gray-100">
-                            Tamanho: {selectedEligibleItem.size || '—'}
+                            {t('product.review.sizeLabel')} {selectedEligibleItem.size || '—'}
                           </span>
                           <span className="px-3 py-1 rounded-full bg-gray-100">
-                            Cor: {selectedEligibleItem.color || '—'}
+                            {t('product.review.colorLabel')} {selectedEligibleItem.color || '—'}
                           </span>
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-500">Selecione uma encomenda acima.</p>
+                        <p className="text-sm text-gray-500">{t('product.review.selectOrderAbove')}</p>
                       )}
                     </div>
  
                     <div>
-                      <p className="text-[15px] font-bold text-gray-900 mb-2">What is your height? <span className="font-normal text-gray-500">Choose 1</span></p>
+                      <p className="text-[15px] font-bold text-gray-900 mb-2">{t('product.review.heightQuestion')} <span className="font-normal text-gray-500">{t('product.review.chooseOne')}</span></p>
                       <div className="flex flex-wrap gap-2">
                         {['145 cm or less', '145 - 150 cm', '151 - 155 cm', '156 - 160 cm', '161 - 165 cm', '166 - 170 cm', '171 - 175 cm'].map(opt => (
                           <button
@@ -1384,7 +1393,7 @@ const Product: React.FC = () => {
                     </div>
  
                     <div>
-                      <p className="text-[15px] font-bold text-gray-900 mb-2">For what activity do you recommend this product? <span className="font-normal text-gray-500">Choose all that apply</span></p>
+                      <p className="text-[15px] font-bold text-gray-900 mb-2">{t('product.review.activityQuestion')} <span className="font-normal text-gray-500">{t('product.review.chooseAll')}</span></p>
                       <div className="flex flex-wrap gap-2">
                         {['Casual Wear', 'Climbing', 'Yoga', 'Cycling', 'Fishing', 'Hiking', 'Running', 'Ski/Snowboarding'].map(opt => {
                           const isSelected = reviewForm.activities.includes(opt);
@@ -1412,15 +1421,15 @@ const Product: React.FC = () => {
  
                   <div className="pt-8 border-t border-gray-200">
                     <p className="text-[15px] text-gray-800 mb-4">
-                      By hitting "Submit", you agree to our <span className="font-bold underline cursor-pointer">Terms of use</span>. For privacy information, please read our <span className="font-bold underline cursor-pointer">Privacy Notice</span>.
+                      {t('product.review.termsText')} <span className="font-bold underline cursor-pointer">{t('product.review.termsLink')}</span>{t('product.review.privacyMid')} <span className="font-bold underline cursor-pointer">{t('product.review.privacyLink')}</span>.
                     </p>
-                    <p className="text-sm text-gray-500 mb-4">* required fields</p>
+                    <p className="text-sm text-gray-500 mb-4">{t('product.review.requiredFields')}</p>
                     <button
                       type="submit"
                       disabled={reviewSubmitLoading || !reviewForm.orderItemId}
                       className="px-12 py-3 bg-black text-white font-bold rounded-full hover:bg-gray-800 transition-colors w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {reviewSubmitLoading ? 'A enviar...' : 'Send'}
+                      {reviewSubmitLoading ? t('product.review.sending') : t('product.review.send')}
                     </button>
                   </div>
  
