@@ -6,7 +6,6 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { getCached, setCached, clearCachedByPrefix } from '../utils/apiCache.js';
-import { warmCaches } from '../utils/dataWarmer.js';
 import { uploadToS3, deleteFromS3 } from '../utils/s3Upload.js';
 import { saveProductTranslations, saveColorTranslations } from '../utils/saveTranslations.js';
 
@@ -451,9 +450,6 @@ async function applyColorTranslations(
 
 router.get('/', async (req, res) => {
   try {
-    // Lazy cache warming on first request (prevents startup connection exhaustion on serverless)
-    warmCaches().catch(err => console.error('Lazy cache warm failed:', err));
-
     const lang = (req.query.lang as string) || 'pt'; // 🌍 i18n
     const cacheKey = `products:list:${lang}`;         // 🌍 cache por língua
     const cached = getCached<any[]>(cacheKey);

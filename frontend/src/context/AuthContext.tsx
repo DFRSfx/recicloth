@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 
 interface User {
   id: number;
@@ -25,6 +25,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const USER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -32,7 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const lastUserRefreshRef = useRef<number>(
     Number(localStorage.getItem('auth_user_refreshed_at') || 0)
   );
-  const USER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 
   // Load token from localStorage on mount
   useEffect(() => {
@@ -161,7 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('auth_user', JSON.stringify(updatedUser));
   };
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     if (!token) return;
     const now = Date.now();
     if (now - lastUserRefreshRef.current < USER_REFRESH_INTERVAL_MS) {
@@ -179,22 +179,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.ok) {
         const data = await response.json();
-        const updatedUser = {
-          id: data.id,
-          email: data.email,
-          name: data.name,
-          role: data.role,
-          emailVerified: data.email_verified || false,
-          hasPassword: data.hasPassword ?? user?.hasPassword,
-          avatarUrl: data.avatarUrl ?? user?.avatarUrl,
-        };
-        setUser(updatedUser);
-        localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+        setUser((prev) => {
+          if (!prev) return prev;
+          const updatedUser = {
+            ...prev,
+            id: data.id,
+            email: data.email,
+            name: data.name,
+            role: data.role,
+            emailVerified: data.email_verified || false,
+            hasPassword: data.hasPassword ?? prev.hasPassword,
+            avatarUrl: data.avatarUrl ?? prev.avatarUrl,
+          };
+          localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+          return updatedUser;
+        });
       }
     } catch (error) {
       console.error('Error refreshing user:', error);
     }
-  };
+  }, [token]);
 
   const value = {
     user,
