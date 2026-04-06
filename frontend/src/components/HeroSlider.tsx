@@ -41,11 +41,12 @@ const HeroSlider: React.FC = () => {
         if (response.ok) {
           const data = await response.json();
           // Transform API data to component format
+          const lang = document.documentElement.lang || 'pt';
           const transformedSlides = data.map((slide: any) => ({
             id: slide.id,
-            title: slide.title,
-            description: slide.description || '',
-            buttonText: slide.button_text,
+            title: (lang === 'en' ? slide.title_en : slide.title_pt) || slide.title,
+            description: (lang === 'en' ? slide.description_en : slide.description_pt) || slide.description || '',
+            buttonText: (lang === 'en' ? slide.button_text_en : slide.button_text_pt) || slide.button_text,
             buttonLink: slide.button_link,
             backgroundImage: getAbsoluteImageUrl(slide.background_image),
             backgroundImageMd: getAbsoluteImageUrl(slide.background_image_md),

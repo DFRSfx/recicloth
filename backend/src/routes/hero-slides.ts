@@ -27,7 +27,6 @@ async function processAndUploadSlideImage(id: number | string, buffer: Buffer): 
   const opts = { effort: 6, smartSubsample: true };
 
   try {
-    // Generate all 3 variants
     const lgBuffer = await sharp(buffer)
       .resize(1920, 1080, { fit: 'cover', position: 'center' })
       .webp({ quality: 85, ...opts })
@@ -43,15 +42,10 @@ async function processAndUploadSlideImage(id: number | string, buffer: Buffer): 
       .webp({ quality: 68, ...opts })
       .toBuffer();
 
-    // Upload all 3 variants to S3
-    const s3KeyLg = `hero-slides/${id}/heroslide-${id}.webp`;
-    const s3KeyMd = `hero-slides/${id}/heroslide-${id}-md.webp`;
-    const s3KeySm = `hero-slides/${id}/heroslide-${id}-sm.webp`;
-
     await Promise.all([
-      uploadToS3(lgBuffer, s3KeyLg),
-      uploadToS3(mdBuffer, s3KeyMd),
-      uploadToS3(smBuffer, s3KeySm),
+      uploadToS3(lgBuffer, `hero-slides/${id}/heroslide-${id}.webp`),
+      uploadToS3(mdBuffer, `hero-slides/${id}/heroslide-${id}-md.webp`),
+      uploadToS3(smBuffer, `hero-slides/${id}/heroslide-${id}-sm.webp`),
     ]);
 
     console.log(`✅ Hero slide ${id} uploaded to S3 with all variants`);
@@ -61,11 +55,24 @@ async function processAndUploadSlideImage(id: number | string, buffer: Buffer): 
   }
 }
 
+const SLIDE_SELECT = `
+  id, title, title_pt, title_en,
+  description, description_pt, description_en,
+  button_text, button_text_pt, button_text_en,
+  button_link, text_color, display_order, is_active, created_at, updated_at
+`;
+
 interface HeroSlide {
   id: number;
   title: string;
-  description: string;
+  title_pt?: string | null;
+  title_en?: string | null;
+  description?: string | null;
+  description_pt?: string | null;
+  description_en?: string | null;
   button_text: string;
+  button_text_pt?: string | null;
+  button_text_en?: string | null;
   button_link: string;
   text_color: 'white' | 'dark';
   display_order: number;
@@ -87,7 +94,7 @@ router.get('/', async (req, res) => {
     }
 
     const [slidesResult] = await pool.query<HeroSlide>(
-      'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides WHERE is_active = TRUE ORDER BY display_order ASC'
+      `SELECT ${SLIDE_SELECT} FROM hero_slides WHERE is_active = TRUE ORDER BY display_order ASC`
     );
     const slides = Array.isArray(slidesResult) ? slidesResult : (slidesResult.rows as HeroSlide[]);
 
@@ -110,7 +117,7 @@ router.get('/', async (req, res) => {
 router.get('/all', ...requireAdmin, async (req, res) => {
   try {
     const [slidesResult] = await pool.query<HeroSlide>(
-      'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides ORDER BY display_order ASC'
+      `SELECT ${SLIDE_SELECT} FROM hero_slides ORDER BY display_order ASC`
     );
     const slides = Array.isArray(slidesResult) ? slidesResult : (slidesResult.rows as HeroSlide[]);
 
@@ -130,7 +137,7 @@ router.get('/all', ...requireAdmin, async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const [slidesResult] = await pool.query<HeroSlide>(
-      'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides WHERE id = ?',
+      `SELECT ${SLIDE_SELECT} FROM hero_slides WHERE id = ?`,
       [req.params.id]
     );
     const slides = Array.isArray(slidesResult) ? slidesResult : (slidesResult.rows as HeroSlide[]);
@@ -152,8 +159,9 @@ router.post('/', ...requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const {
       title,
-      description,
-      button_text,
+      title_pt, title_en,
+      description, description_pt, description_en,
+      button_text, button_text_pt, button_text_en,
       button_link,
       text_color = 'white',
       display_order = 0,
@@ -165,19 +173,25 @@ router.post('/', ...requireAdmin, upload.single('image'), async (req, res) => {
     }
 
     const [result]: any = await pool.query(
-      `INSERT INTO hero_slides (title, description, button_text, button_link, text_color, display_order, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [title, description, button_text, button_link, text_color, display_order, is_active === 'true']
+      `INSERT INTO hero_slides
+         (title, title_pt, title_en,
+          description, description_pt, description_en,
+          button_text, button_text_pt, button_text_en,
+          button_link, text_color, display_order, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        title, title_pt || null, title_en || null,
+        description || null, description_pt || null, description_en || null,
+        button_text, button_text_pt || null, button_text_en || null,
+        button_link, text_color, display_order, is_active === 'true'
+      ]
     );
 
     const id = result.insertId;
-
-    // Process and upload all size variants to S3
     await processAndUploadSlideImage(id, req.file.buffer);
 
     const [newSlideResult] = await pool.query<HeroSlide>(
-      'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides WHERE id = ?',
-      [id]
+      `SELECT ${SLIDE_SELECT} FROM hero_slides WHERE id = ?`, [id]
     );
     const newSlide = Array.isArray(newSlideResult) ? newSlideResult : (newSlideResult.rows as HeroSlide[]);
 
@@ -193,46 +207,46 @@ router.post('/', ...requireAdmin, upload.single('image'), async (req, res) => {
 router.put('/:id', ...requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const {
-      title,
-      description,
-      button_text,
-      button_link,
-      text_color,
-      display_order,
-      is_active
+      title, title_pt, title_en,
+      description, description_pt, description_en,
+      button_text, button_text_pt, button_text_en,
+      button_link, text_color, display_order, is_active
     } = req.body;
 
     const [result]: any = await pool.query(
       `UPDATE hero_slides
-       SET title = ?, description = ?, button_text = ?, button_link = ?,
-           text_color = ?, display_order = ?, is_active = ?
+       SET title = ?, title_pt = ?, title_en = ?,
+           description = ?, description_pt = ?, description_en = ?,
+           button_text = ?, button_text_pt = ?, button_text_en = ?,
+           button_link = ?, text_color = ?, display_order = ?, is_active = ?
        WHERE id = ?`,
-      [title, description, button_text, button_link, text_color, display_order,
-       is_active === 'true' || is_active === true, req.params.id]
+      [
+        title, title_pt || null, title_en || null,
+        description || null, description_pt || null, description_en || null,
+        button_text, button_text_pt || null, button_text_en || null,
+        button_link, text_color, display_order,
+        is_active === 'true' || is_active === true,
+        req.params.id
+      ]
     );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Slide not found' });
     }
 
-    // Process and upload all size variants to S3 if a new image was uploaded
     if (req.file) {
       await processAndUploadSlideImage(req.params.id, req.file.buffer);
     }
 
     const [updatedSlideResult] = await pool.query<HeroSlide>(
-      'SELECT id, title, description, button_text, button_link, text_color, display_order, is_active, created_at, updated_at FROM hero_slides WHERE id = ?',
-      [req.params.id]
+      `SELECT ${SLIDE_SELECT} FROM hero_slides WHERE id = ?`, [req.params.id]
     );
     const updatedSlide = Array.isArray(updatedSlideResult)
       ? updatedSlideResult
       : (updatedSlideResult.rows as HeroSlide[]);
 
     clearCachedByPrefix('hero-slides:');
-    res.json({
-      ...updatedSlide[0],
-      ...getSlideUrls(req.params.id, updatedSlide[0].updated_at)
-    });
+    res.json({ ...updatedSlide[0], ...getSlideUrls(req.params.id, updatedSlide[0].updated_at) });
   } catch (error) {
     console.error('Error updating hero slide:', error);
     res.status(500).json({ error: 'Failed to update slide' });
@@ -243,15 +257,13 @@ router.put('/:id', ...requireAdmin, upload.single('image'), async (req, res) => 
 router.delete('/:id', ...requireAdmin, async (req, res) => {
   try {
     const [result]: any = await pool.query(
-      'DELETE FROM hero_slides WHERE id = ?',
-      [req.params.id]
+      'DELETE FROM hero_slides WHERE id = ?', [req.params.id]
     );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Slide not found' });
     }
 
-    // Note: S3 files are left orphaned but won't affect functionality
     clearCachedByPrefix('hero-slides:');
     res.json({ message: 'Slide deleted successfully' });
   } catch (error) {

@@ -12,8 +12,14 @@ const API_URL = `${SERVER_URL}/api`;
 interface HeroSlide {
   id: number;
   title: string;
+  title_pt: string;
+  title_en: string;
   description: string;
+  description_pt: string;
+  description_en: string;
   button_text: string;
+  button_text_pt: string;
+  button_text_en: string;
   button_link: string;
   background_image: string;
   background_image_md: string;
@@ -34,8 +40,14 @@ export default function HeroSlidesList() {
   const { error: showError, success: showSuccess } = useToast();
   const [formData, setFormData] = useState({
     title: '',
+    title_pt: '',
+    title_en: '',
     description: '',
+    description_pt: '',
+    description_en: '',
     button_text: '',
+    button_text_pt: '',
+    button_text_en: '',
     button_link: '',
     button_link_type: 'page' as 'page' | 'category' | 'custom',
     text_color: 'white' as 'white' | 'dark',
@@ -264,16 +276,16 @@ export default function HeroSlidesList() {
     e.preventDefault();
 
     const errors: Record<string, string> = {};
-    if (!formData.title.trim()) errors.title = t('common.required');
-    if (!formData.button_text.trim()) errors.button_text = t('common.required');
+    if (!formData.title_pt.trim() && !formData.title_en.trim()) errors.title_pt = t('common.required');
+    if (!formData.button_text_pt.trim() && !formData.button_text_en.trim()) errors.button_text_pt = t('common.required');
     if (!imageFile) errors.image = t('admin.heroSlides.requiredImage');
 
     if (Object.keys(errors).length > 0) {
       setAddFieldErrors(errors);
-      if (errors.title) {
+      if (errors.title_pt) {
         addTitleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         addTitleRef.current?.focus();
-      } else if (errors.button_text) {
+      } else if (errors.button_text_pt) {
         addButtonTextRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         addButtonTextRef.current?.focus();
       } else if (errors.image) {
@@ -286,9 +298,16 @@ export default function HeroSlidesList() {
     try {
       const token = localStorage.getItem('auth_token');
       const formDataToSend = new FormData();
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('button_text', formData.button_text);
+      // Use PT as the fallback `title` column; EN stored separately
+      formDataToSend.append('title', formData.title_pt || formData.title_en);
+      formDataToSend.append('title_pt', formData.title_pt);
+      formDataToSend.append('title_en', formData.title_en);
+      formDataToSend.append('description', formData.description_pt || formData.description_en || '');
+      formDataToSend.append('description_pt', formData.description_pt);
+      formDataToSend.append('description_en', formData.description_en);
+      formDataToSend.append('button_text', formData.button_text_pt || formData.button_text_en);
+      formDataToSend.append('button_text_pt', formData.button_text_pt);
+      formDataToSend.append('button_text_en', formData.button_text_en);
       formDataToSend.append('button_link', formData.button_link);
       formDataToSend.append('text_color', formData.text_color);
       formDataToSend.append('display_order', formData.display_order.toString());
@@ -308,9 +327,9 @@ export default function HeroSlidesList() {
         setShowAddForm(false);
         setAddFieldErrors({});
         setFormData({
-          title: '',
-          description: '',
-          button_text: '',
+          title: '', title_pt: '', title_en: '',
+          description: '', description_pt: '', description_en: '',
+          button_text: '', button_text_pt: '', button_text_en: '',
           button_link: defaultPageRoute,
           button_link_type: 'page',
           text_color: 'white',
@@ -336,9 +355,15 @@ export default function HeroSlidesList() {
 
       const token = localStorage.getItem('auth_token');
       const formDataToSend = new FormData();
-      formDataToSend.append('title', slide.title);
-      formDataToSend.append('description', slide.description || '');
-      formDataToSend.append('button_text', slide.button_text);
+      formDataToSend.append('title', slide.title_pt || slide.title_en || slide.title);
+      formDataToSend.append('title_pt', slide.title_pt || '');
+      formDataToSend.append('title_en', slide.title_en || '');
+      formDataToSend.append('description', slide.description_pt || slide.description_en || slide.description || '');
+      formDataToSend.append('description_pt', slide.description_pt || '');
+      formDataToSend.append('description_en', slide.description_en || '');
+      formDataToSend.append('button_text', slide.button_text_pt || slide.button_text_en || slide.button_text);
+      formDataToSend.append('button_text_pt', slide.button_text_pt || '');
+      formDataToSend.append('button_text_en', slide.button_text_en || '');
       formDataToSend.append('button_link', slide.button_link);
       formDataToSend.append('text_color', slide.text_color);
       formDataToSend.append('display_order', slide.display_order.toString());
@@ -507,45 +532,86 @@ export default function HeroSlidesList() {
 
               <div className="p-6">
                 <form onSubmit={handleAdd} noValidate className="space-y-4">
+                  {/* Title PT / EN */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('admin.heroSlides.fields.title')} *
+                        {t('admin.heroSlides.fields.title')} 🇵🇹 *
                       </label>
                       <input
                         ref={addTitleRef}
                         type="text"
-                        value={formData.title}
-                        onChange={(e) => { setFormData({ ...formData, title: e.target.value }); clearAddError('title'); }}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.title ? 'border-red-500' : 'border-gray-300'}`}
+                        value={formData.title_pt}
+                        onChange={(e) => { setFormData({ ...formData, title_pt: e.target.value }); clearAddError('title_pt'); }}
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.title_pt ? 'border-red-500' : 'border-gray-300'}`}
                       />
-                      {addFieldErrors.title && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.title}</p>}
+                      {addFieldErrors.title_pt && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.title_pt}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t('admin.heroSlides.fields.buttonText')} *
+                        {t('admin.heroSlides.fields.title')} 🇬🇧
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.title_en}
+                        onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Description PT / EN */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('admin.heroSlides.fields.description')} 🇵🇹
+                      </label>
+                      <textarea
+                        value={formData.description_pt}
+                        onChange={(e) => setFormData({ ...formData, description_pt: e.target.value })}
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('admin.heroSlides.fields.description')} 🇬🇧
+                      </label>
+                      <textarea
+                        value={formData.description_en}
+                        onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Button Text PT / EN */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('admin.heroSlides.fields.buttonText')} 🇵🇹 *
                       </label>
                       <input
                         ref={addButtonTextRef}
                         type="text"
-                        value={formData.button_text}
-                        onChange={(e) => { setFormData({ ...formData, button_text: e.target.value }); clearAddError('button_text'); }}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.button_text ? 'border-red-500' : 'border-gray-300'}`}
+                        value={formData.button_text_pt}
+                        onChange={(e) => { setFormData({ ...formData, button_text_pt: e.target.value }); clearAddError('button_text_pt'); }}
+                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none ${addFieldErrors.button_text_pt ? 'border-red-500' : 'border-gray-300'}`}
                       />
-                      {addFieldErrors.button_text && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.button_text}</p>}
+                      {addFieldErrors.button_text_pt && <p className="mt-1.5 text-sm text-red-500">{addFieldErrors.button_text_pt}</p>}
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('admin.heroSlides.fields.description')}
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('admin.heroSlides.fields.buttonText')} 🇬🇧
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.button_text_en}
+                        onChange={(e) => setFormData({ ...formData, button_text_en: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-3">
@@ -722,15 +788,15 @@ export default function HeroSlidesList() {
                   <h3 className={`text-2xl font-bold mb-2 ${
                     slide.text_color === 'white' ? 'text-white' : 'text-[#1A1A1A]'
                   }`}>
-                    {slide.title}
+                    {slide.title_pt || slide.title}
                   </h3>
                   <p className={`text-sm mb-3 line-clamp-2 ${
                     slide.text_color === 'white' ? 'text-gray-100' : 'text-gray-600'
                   }`}>
-                    {slide.description}
+                    {slide.description_pt || slide.description}
                   </p>
                   <span className="inline-block px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg">
-                    {slide.button_text}
+                    {slide.button_text_pt || slide.button_text}
                   </span>
                 </div>
               </div>
@@ -843,34 +909,70 @@ export default function HeroSlidesList() {
 
                   return (
                     <>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.title')}</label>
-                        <input
-                          type="text"
-                          value={slide.title}
-                          onChange={(e) => updateSlide(editingId, 'title', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
-                        />
+                      {/* Title PT / EN */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.title')} 🇵🇹</label>
+                          <input
+                            type="text"
+                            value={slide.title_pt || ''}
+                            onChange={(e) => updateSlide(editingId, 'title_pt', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.title')} 🇬🇧</label>
+                          <input
+                            type="text"
+                            value={slide.title_en || ''}
+                            onChange={(e) => updateSlide(editingId, 'title_en', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
+                          />
+                        </div>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.description')}</label>
-                        <textarea
-                          value={slide.description}
-                          onChange={(e) => updateSlide(editingId, 'description', e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
-                        />
+                      {/* Description PT / EN */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.description')} 🇵🇹</label>
+                          <textarea
+                            value={slide.description_pt || ''}
+                            onChange={(e) => updateSlide(editingId, 'description_pt', e.target.value)}
+                            rows={3}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.description')} 🇬🇧</label>
+                          <textarea
+                            value={slide.description_en || ''}
+                            onChange={(e) => updateSlide(editingId, 'description_en', e.target.value)}
+                            rows={3}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
+                          />
+                        </div>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.buttonText')}</label>
-                        <input
-                          type="text"
-                          value={slide.button_text}
-                          onChange={(e) => updateSlide(editingId, 'button_text', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
-                        />
+                      {/* Button Text PT / EN */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.buttonText')} 🇵🇹</label>
+                          <input
+                            type="text"
+                            value={slide.button_text_pt || ''}
+                            onChange={(e) => updateSlide(editingId, 'button_text_pt', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.heroSlides.fields.buttonText')} 🇬🇧</label>
+                          <input
+                            type="text"
+                            value={slide.button_text_en || ''}
+                            onChange={(e) => updateSlide(editingId, 'button_text_en', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-base"
+                          />
+                        </div>
                       </div>
 
                       {/* Link Configuration */}
