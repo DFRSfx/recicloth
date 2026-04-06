@@ -69,9 +69,9 @@ const Product: React.FC = () => {
   const isSwipingRef = useRef(false);
   const isThumbnailSelectionRef = useRef(false);
   const isProgrammaticScrollRef = useRef(false);
-  const reviewsRef = useRef<HTMLDivElement>(null); // Referência para a secção de avaliações
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Novo Ref para controlar o timeout do scroll
+  const reviewsRef = useRef<HTMLDivElement>(null); 
 
-  // Estado dos Modais de Reviews
   const [isAskModalOpen, setIsAskModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
@@ -165,29 +165,41 @@ const Product: React.FC = () => {
 
   const mobileImages = product?.images || [];
 
+  // CORREÇÃO CRÍTICA DO SLIDER MOBILE
   useEffect(() => {
     if (isSwipingRef.current) {
       isSwipingRef.current = false;
       return;
     }
+
     if (product && product.colors) {
       const idx = product.colors.findIndex(c => c.name === selectedColor);
       if (idx >= 0 && idx < mobileImages.length && idx !== mobileImageIndex) {
         const slider = document.getElementById('mobile-image-slider');
         if (slider) {
-          // Direct assignment is instant and doesn't fire intermediate scroll events
-          // (unlike scrollTo({behavior:'smooth'}) which causes race conditions via onScroll)
+          // Bloqueia a leitura do scroll durante a animação
           isProgrammaticScrollRef.current = true;
-          slider.scrollLeft = idx * slider.clientWidth;
+          
+          // Anima suavemente para a imagem escolhida
+          slider.scrollTo({ left: idx * slider.clientWidth, behavior: 'smooth' });
           setMobileImageIndex(idx);
-          requestAnimationFrame(() => { isProgrammaticScrollRef.current = false; });
+          
+          // Limpa qualquer timeout anterior
+          if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+          
+          // Define um limite de tempo seguro (500ms) para reativar o onScroll nativo
+          scrollTimeoutRef.current = setTimeout(() => { 
+            isProgrammaticScrollRef.current = false; 
+          }, 500);
         }
       }
     }
   }, [selectedColor, product, mobileImages.length, mobileImageIndex]);
 
   const handleMobileScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    // Aborta se estiver a correr uma animação de scroll despoletada pelos botões de cor
     if (isProgrammaticScrollRef.current) return;
+    
     const scrollLeft = e.currentTarget.scrollLeft;
     const width = e.currentTarget.clientWidth;
     if (width === 0) return;
@@ -200,8 +212,9 @@ const Product: React.FC = () => {
       const matchedColor = image ? getColorForImage(image) : null;
       const fallbackColor = product?.colors?.[newIndex]?.name || null;
       const newColor = matchedColor || fallbackColor;
+      
       if (newColor && newColor !== selectedColor) {
-        isSwipingRef.current = true;
+        isSwipingRef.current = true; // Avisa o useEffect que a mudança foi via dedo
         setSelectedColor(newColor);
       }
     }
@@ -209,7 +222,7 @@ const Product: React.FC = () => {
 
   const scrollToReviews = () => {
     if (reviewsRef.current) {
-      const yOffset = -100; // Compensar a navbar fixa
+      const yOffset = -100;
       const y = reviewsRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
@@ -532,7 +545,7 @@ const Product: React.FC = () => {
           <div className="relative block lg:hidden">
             <div
               id="mobile-image-slider"
-              className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar scroll-smooth"
+              className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar" 
               onScroll={handleMobileScroll}
             >
               {mobileImages.map((image, index) => (
@@ -982,17 +995,17 @@ const Product: React.FC = () => {
             </button>
             
             {!isAuthenticated && (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-md text-sm">
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-md text-sm mb-6">
                 Faça login para escrever uma review.
               </div>
             )}
             {isAuthenticated && eligibleLoading && (
-              <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded-md text-sm">
+              <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 rounded-md text-sm mb-6">
                 A carregar encomendas elegíveis...
               </div>
             )}
             {isAuthenticated && !eligibleLoading && eligibleItems.length === 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-md text-sm">
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-md text-sm mb-6">
                 Não podes escrever uma review sem comprares este produto.
               </div>
             )}
@@ -1002,12 +1015,12 @@ const Product: React.FC = () => {
                 <p className="text-sm font-bold text-gray-900 mb-8">* Required</p>
 
                 {reviewSubmitError && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm mb-6">
                     {reviewSubmitError}
                   </div>
                 )}
                 {reviewSuccess && (
-                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
+                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm mb-6">
                     {reviewSuccess}
                   </div>
                 )}
@@ -1026,7 +1039,7 @@ const Product: React.FC = () => {
                       ))}
                     </select>
                   </div>
-                   
+                    
                   <div>
                     <label className="block text-[15px] font-bold text-gray-900 mb-2">* Rate your experience</label>
                     <div className="flex gap-1 text-gray-300 cursor-pointer">
