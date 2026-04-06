@@ -20,10 +20,10 @@ const calculateTotals = (items: any[]) => {
   return { subtotal: Number(subtotal.toFixed(2)), vatAmount, total };
 };
 
-const fetchCartItems = async (userId: number | null, sessionId: string | null) => {
+const fetchCartItems = async (userId: number | null, sessionId: string | null, lang: string = 'en') => {
   const identifier = userId ?? sessionId;
   const whereClause = userId ? 'ci.user_id = ?' : 'ci.session_id = ?';
-  const [items] = await pool.query(
+  const [items]: any = await pool.query(
     `
       SELECT
         ci.id,
@@ -31,7 +31,7 @@ const fetchCartItems = async (userId: number | null, sessionId: string | null) =
         ci.quantity,
         ci.color,
         ci.size,
-        p.name as product_name,
+        COALESCE(pt.name, p.name) as product_name,
         p.price,
         p.stock,
         p.stock_mode,
@@ -41,17 +41,51 @@ const fetchCartItems = async (userId: number | null, sessionId: string | null) =
         p.images
       FROM cart_items ci
       JOIN products p ON ci.product_id = p.id
+      LEFT JOIN product_translations pt ON pt.product_id = p.id AND pt.lang = ?
       WHERE ${whereClause}
       ORDER BY ci.created_at DESC
     `,
-    [identifier]
+    [lang, identifier]
   );
-  return items as any[];
+
+  if (items.length === 0) return items;
+
+  // Build translated colors: name = translated, original_name = English (for image slug matching)
+  const productIds = [...new Set(items.map((i: any) => i.product_id))] as number[];
+  const inPlaceholders = productIds.map(() => '?').join(',');
+
+  const [enColors]: any = await pool.query(
+    `SELECT product_id, hex, name FROM color_translations WHERE product_id IN (${inPlaceholders}) AND lang = 'en'`,
+    productIds
+  );
+  const enColorMap: Record<string, string> = {};
+  for (const ct of enColors) enColorMap[`${ct.product_id}:${ct.hex}`] = ct.name;
+
+  let translatedColorMap: Record<string, string> = {};
+  if (lang !== 'en') {
+    const [transColors]: any = await pool.query(
+      `SELECT product_id, hex, name FROM color_translations WHERE product_id IN (${inPlaceholders}) AND lang = ?`,
+      [...productIds, lang]
+    );
+    for (const ct of transColors) translatedColorMap[`${ct.product_id}:${ct.hex}`] = ct.name;
+  }
+
+  return items.map((item: any) => {
+    const rawColors = item.colors ? (typeof item.colors === 'string' ? JSON.parse(item.colors) : item.colors) : [];
+    const colors = rawColors.map((c: any) => {
+      const key = `${item.product_id}:${c.hex}`;
+      const enName = enColorMap[key] || c.name;
+      const translatedName = lang !== 'en' ? (translatedColorMap[key] || enName) : enName;
+      return { hex: c.hex, name: translatedName, original_name: enName };
+    });
+    return { ...item, colors };
+  });
 };
 
 router.get('/', async (req: AuthRequest, res) => {
   try {
     const { userId, sessionId } = getUserOrSession(req);
+    const lang = (req.query.lang as string) || 'en';
 
     if (!userId && !sessionId) {
       res.json({
@@ -61,12 +95,12 @@ router.get('/', async (req: AuthRequest, res) => {
       return;
     }
 
-    const items = await fetchCartItems(userId, sessionId);
-    const formattedItems = items.map(item => ({
+    const items = await fetchCartItems(userId, sessionId, lang);
+    const formattedItems = items.map((item: any) => ({
       ...item,
       price: Number(item.price),
       images: item.images ? (typeof item.images === 'string' ? JSON.parse(item.images) : item.images) : [],
-      colors: item.colors ? (typeof item.colors === 'string' ? JSON.parse(item.colors) : item.colors) : [],
+      // colors already processed by fetchCartItems (translated + original_name)
       size_stock: item.size_stock ? (typeof item.size_stock === 'string' ? JSON.parse(item.size_stock) : item.size_stock) : [],
     }));
 
@@ -91,7 +125,7 @@ router.get('/', async (req: AuthRequest, res) => {
 const addToCartHandler = async (req: AuthRequest, res: any) => {
   try {
     const { userId, sessionId } = getUserOrSession(req);
-    const { productId, quantity = 1, color = null, size = null } = req.body;
+    const { productId, quantity = 1, color = null, size = null, lang = 'en' } = req.body;
 
     if (!productId) {
       res.status(400).json({ error: 'Product ID é obrigatório' });
@@ -147,12 +181,12 @@ const addToCartHandler = async (req: AuthRequest, res: any) => {
       cartItemId = Number(result.insertId);
     }
 
-    const items = await fetchCartItems(userId, sessionId);
-    const formattedItems = items.map(item => ({
+    const items = await fetchCartItems(userId, sessionId, lang);
+    const formattedItems = items.map((item: any) => ({
       ...item,
       price: Number(item.price),
       images: item.images ? (typeof item.images === 'string' ? JSON.parse(item.images) : item.images) : [],
-      colors: item.colors ? (typeof item.colors === 'string' ? JSON.parse(item.colors) : item.colors) : [],
+      // colors already processed by fetchCartItems (translated + original_name)
       size_stock: item.size_stock ? (typeof item.size_stock === 'string' ? JSON.parse(item.size_stock) : item.size_stock) : [],
     }));
     const totals = calculateTotals(formattedItems);

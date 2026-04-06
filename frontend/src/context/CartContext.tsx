@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { CartItem, Product } from '../types';
 import { useAuth } from './AuthContext';
+import { useLanguage } from './LanguageContext';
 
 // Generate or retrieve session ID
 const getSessionId = (): string => {
@@ -109,6 +110,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0 });
   const { token, isAuthenticated } = useAuth();
+  const { lang } = useLanguage();
   const [sessionId] = useState(getSessionId());
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -123,9 +125,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return headers;
   };
 
-  const loadCartFromDB = async () => {
+  const loadCartFromDB = async (currentLang?: string) => {
     try {
-      const response = await fetch('/api/cart', {
+      const langParam = currentLang || lang || 'en';
+      const response = await fetch(`/api/cart?lang=${langParam}`, {
         headers: getHeaders(),
       });
 
@@ -203,6 +206,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [isAuthenticated, token]);
 
+  // Re-fetch cart with new language translations when lang changes
+  useEffect(() => {
+    if (state.items.length > 0) {
+      loadCartFromDB(lang);
+    }
+  }, [lang]);
+
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(state));
   }, [state]);
@@ -223,7 +233,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           productId: product.id,
           quantity: 1,
           color: colorToStore,
-          size: selectedSize
+          size: selectedSize,
+          lang,
         }),
       });
     } catch (error) {
