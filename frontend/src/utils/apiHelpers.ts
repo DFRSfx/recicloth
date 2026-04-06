@@ -1,43 +1,47 @@
 import { apiService, API_URL } from './api';
 
-// Helper function to make authenticated API calls
-export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
+// Deduplicates concurrent GET requests to the same URL — all callers share one promise
+const inflight = new Map<string, Promise<any>>();
+
+async function _doFetch(endpoint: string, options: RequestInit = {}) {
   const token = apiService.getToken();
-  
-  // Check if body is FormData
   const isFormData = options.body instanceof FormData;
-  
+
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string> || {}),
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
   };
-  
-  // Only add Content-Type for JSON, not for FormData
+
   if (!isFormData) {
     headers['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
 
   if (!response.ok) {
     const text = await response.text();
     let error;
-    try {
-      error = JSON.parse(text);
-    } catch {
-      error = { error: text || 'Request failed' };
-    }
+    try { error = JSON.parse(text); } catch { error = { error: text || 'Request failed' }; }
     throw new Error(error.error || `HTTP error! status: ${response.status}`);
   }
 
-  if (response.status === 204) {
-    return null;
-  }
-
+  if (response.status === 204) return null;
   return response.json();
+}
+
+// Helper function to make authenticated API calls
+export function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
+  const method = (options.method || 'GET').toUpperCase();
+
+  // Only deduplicate GET requests — mutations must always fire
+  if (method !== 'GET') return _doFetch(endpoint, options);
+
+  const key = `${API_URL}${endpoint}`;
+  if (inflight.has(key)) return inflight.get(key)!;
+
+  const promise = _doFetch(endpoint, options).finally(() => inflight.delete(key));
+  inflight.set(key, promise);
+  return promise;
 }
 
 // Products
@@ -78,7 +82,7 @@ export const productsApi = {
 
 // Categories
 export const categoriesApi = {
-  getAll: (lang?: string) => fetchWithAuth(`/categories${lang ? `?lang=${lang}&` : '?'}t=${Date.now()}`),
+  getAll: (lang?: string) => fetchWithAuth(`/categories${lang ? `?lang=${lang}` : ''}`),
   getOne: (id: number, lang?: string) => fetchWithAuth(`/categories/${id}${lang ? `?lang=${lang}` : ''}`),
   create: (data: any) => fetchWithAuth('/categories', {
     method: 'POST',
