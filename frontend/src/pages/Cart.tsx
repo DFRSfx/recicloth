@@ -6,7 +6,8 @@ import CartItem from '../components/CartItem';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getRoutePath } from '../utils/routes';
-import { FREE_SHIPPING_THRESHOLD } from '../utils/shippingCalculator';
+import { calcShipping, FREE_SHIPPING_THRESHOLD } from '../utils/shippingCalculator';
+import { useGeoCountry } from '../hooks/useGeoCountry';
 
 const Cart: React.FC = () => {
   const { items, total, clearCart, itemCount } = useCart();
@@ -18,8 +19,10 @@ const Cart: React.FC = () => {
   // Estado para controlar o modal de confirmação
   const [showClearModal, setShowClearModal] = useState(false);
 
+  const geoCountry = useGeoCountry();
   const subtotalExVat = total / 1.23;
   const ivaAmount = total - subtotalExVat;
+  const estimatedShipping = calcShipping(geoCountry, itemCount, total);
 
   const handleConfirmClear = () => {
     clearCart();
@@ -132,9 +135,12 @@ const Cart: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-[15px]">
                   <span className="text-gray-600">{t('cart.shipping')}</span>
-                  {total >= FREE_SHIPPING_THRESHOLD
+                  {estimatedShipping === 0
                     ? <span className="font-medium text-[#16a34a]">{t('common.free')}</span>
-                    : <span className="font-medium text-gray-500 text-sm">{t('cart.shippingCalculated')}</span>
+                    : <span className="font-medium text-gray-900">
+                        {estimatedShipping.toFixed(2)}€
+                        <span className="text-xs text-gray-400 font-normal ml-1">({geoCountry})</span>
+                      </span>
                   }
                 </div>
                 <div className="flex justify-between text-gray-600 text-[15px]">
@@ -146,11 +152,11 @@ const Cart: React.FC = () => {
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-lg font-bold text-gray-900">{t('cart.total')}</span>
                     <span className="text-2xl font-bold text-[#1E4D3B]">
-                      {total.toFixed(2)}€
+                      {(total + estimatedShipping).toFixed(2)}€
                     </span>
                   </div>
                   <p className="text-xs text-gray-400 text-right">
-                    {t('cart.vatIncluded')}
+                    {estimatedShipping > 0 ? t('cart.totalEstimated') : t('cart.vatIncluded')}
                   </p>
                 </div>
               </div>

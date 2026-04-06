@@ -8,6 +8,7 @@ import 'react-phone-number-input/style.css';
 import PhoneCountrySelect from '../components/PhoneCountrySelect';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
 import { calcShipping, EU_SHIPPING_COUNTRIES } from '../utils/shippingCalculator';
+import { useGeoCountry } from '../hooks/useGeoCountry';
 import { loadStripe } from '@stripe/stripe-js';
 import type { Appearance } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -101,7 +102,13 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
   const homePath = getRoutePath('home', lang);
 
   const API_BASE_URL = '/api';
+  const geoCountry = useGeoCountry();
   const [deliveryCountry, setDeliveryCountry] = useState('PT');
+
+  // Once geo lookup resolves, pre-fill the country selector (only if user hasn't changed it yet)
+  useEffect(() => {
+    setDeliveryCountry(geoCountry);
+  }, [geoCountry]);
 
   const totalItemCount = items.reduce((s, i) => s + i.quantity, 0);
   const shippingCost = calcShipping(deliveryCountry, totalItemCount, amount);
