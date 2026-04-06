@@ -444,34 +444,52 @@ router.post('/admin/campaigns/:id/send', requireAdmin, async (req: any, res: any
       return;
     }
 
-    // Respond immediately and send in background
-    res.json({ success: true, total: subscribers.length });
+    // Mark as sent optimistically before starting (prevents duplicate sends if admin retries)
+    await pool.execute(
+      "UPDATE newsletter_campaigns SET status = 'sent', sent_at = NOW() WHERE id = ?",
+      [campaign.id]
+    );
 
+    // Send all emails BEFORE responding — serverless functions are killed after res.json().
+    // Batches of 5 in parallel with 300ms between batches to respect Resend rate limits.
+    const BATCH_SIZE = 5;
     let sentCount = 0;
-    for (const sub of subscribers) {
-      try {
-        await emailService.sendNewsletterCampaign(
-          sub.email,
-          campaign.subject,
-          campaign.content_html,
-          sub.unsubscribe_token
-        );
-        sentCount++;
-        // Small delay to avoid rate limiting
-        await new Promise(r => setTimeout(r, 100));
-      } catch (err) {
-        console.error(`❌ Failed to send newsletter to ${sub.email}:`, err);
+
+    for (let i = 0; i < subscribers.length; i += BATCH_SIZE) {
+      const batch = subscribers.slice(i, i + BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map((sub: any) =>
+          emailService.sendNewsletterCampaign(
+            sub.email,
+            campaign.subject,
+            campaign.content_html,
+            sub.unsubscribe_token
+          )
+        )
+      );
+      sentCount += results.filter(r => r.status === 'fulfilled').length;
+      results.forEach((r, idx) => {
+        if (r.status === 'rejected') {
+          console.error(`❌ Failed to send newsletter to ${batch[idx].email}:`, r.reason);
+        }
+      });
+      // Pause between batches (skip pause after the last batch)
+      if (i + BATCH_SIZE < subscribers.length) {
+        await new Promise(r => setTimeout(r, 300));
       }
     }
 
+    // Update final sent count
     await pool.execute(
-      "UPDATE newsletter_campaigns SET status = 'sent', sent_at = NOW(), sent_count = ? WHERE id = ?",
+      "UPDATE newsletter_campaigns SET sent_count = ? WHERE id = ?",
       [sentCount, campaign.id]
     );
     console.log(`✅ Newsletter campaign ${campaign.id} sent to ${sentCount}/${subscribers.length} subscribers`);
+
+    // Respond only after everything is done
+    res.json({ success: true, total: subscribers.length, sent: sentCount });
   } catch (err) {
     console.error('Send campaign error:', err);
-    // res.json already called above if we reached the send loop
     if (!res.headersSent) {
       res.status(500).json({ error: 'Erro ao enviar campanha.' });
     }
