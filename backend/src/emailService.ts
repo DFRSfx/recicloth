@@ -1070,6 +1070,45 @@ private getEmailVerificationHTML(verificationUrl: string, userName: string, cont
     `;
   }
 
+  async sendGuestOtp(email: string, code: string) {
+    const year = new Date().getFullYear();
+    const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <tr><td style="background:#1E4D3B;padding:28px 40px;">
+          <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">Recicloth</h1>
+        </td></tr>
+        <tr><td style="padding:40px;">
+          <h2 style="margin:0 0 8px;font-size:24px;color:#1a1a1a;">Verificação de email</h2>
+          <p style="margin:0 0 32px;color:#666;font-size:15px;">Use o código abaixo para confirmar o seu email e concluir a encomenda.</p>
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:28px;text-align:center;margin-bottom:28px;">
+            <p style="margin:0 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Código de verificação</p>
+            <p style="margin:0;font-size:42px;font-weight:800;letter-spacing:10px;color:#1E4D3B;font-family:monospace;">${code}</p>
+            <p style="margin:12px 0 0;font-size:12px;color:#9ca3af;">Válido por 10 minutos</p>
+          </div>
+          <p style="margin:0;font-size:13px;color:#9ca3af;">Se não fez esta encomenda, ignore este email.</p>
+        </td></tr>
+        <tr><td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">© ${year} Recicloth — Todos os direitos reservados</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+    await this.resend.emails.send({
+      from: this.from,
+      to: email,
+      subject: `${code} — Código de verificação Recicloth`,
+      html,
+    });
+  }
+
   private getEmailVerificationText(verificationUrl: string, userName: string, content: any): string {
     return `
 ${content.title}

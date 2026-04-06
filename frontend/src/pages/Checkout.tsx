@@ -144,8 +144,19 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [postalLookupLoading, setPostalLookupLoading] = useState(false);
 
+  // Guest email verification state
+  const [confirmEmail, setConfirmEmail] = useState('');
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const pendingFinalizeRef = useRef<any>(null);
+
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
+  const confirmEmailRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const addressRef = useRef<HTMLInputElement>(null);
   const cityRef = useRef<HTMLInputElement>(null);
@@ -292,64 +303,11 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
     }
   }, [isAuthenticated, user?.name, user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const proceedWithPayment = async (finalizeBody: any) => {
     if (!stripe || !elements) return;
-
-    const errors: Record<string, string> = {};
-    if (!customerInfo.name.trim()) errors.name = t('checkout.form.errors.nameRequired');
-    if (!customerInfo.email.trim()) {
-      errors.email = t('checkout.form.errors.emailRequired');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerInfo.email)) {
-      errors.email = t('checkout.form.errors.emailInvalid');
-    }
-    if (!customerInfo.phone) {
-      errors.phone = t('checkout.form.errors.phoneRequired');
-    } else if (!isValidPhoneNumber(customerInfo.phone)) {
-      errors.phone = t('checkout.form.errors.phoneInvalid');
-    }
-    if (!customerInfo.address.trim()) errors.address = t('checkout.form.errors.addressRequired');
-    if (!customerInfo.city.trim()) errors.city = t('checkout.form.errors.cityRequired');
-    if (!customerInfo.postalCode.trim()) {
-      errors.postalCode = t('checkout.form.errors.postalRequired');
-    } else if (deliveryCountry === 'PT' && !/^\d{4}-\d{3}$/.test(customerInfo.postalCode.trim())) {
-      errors.postalCode = t('checkout.form.errors.postalFormat');
-    }
-
-    if (!billingSameAsShipping) {
-      if (!billingInfo.name.trim()) errors.billingName = t('checkout.form.errors.billingNameRequired');
-      if (!billingInfo.address.trim()) errors.billingAddress = t('checkout.form.errors.billingAddressRequired');
-      if (!billingInfo.city.trim()) errors.billingCity = t('checkout.form.errors.billingCityRequired');
-      if (!billingInfo.postalCode.trim()) {
-        errors.billingPostalCode = t('checkout.form.errors.billingPostalRequired');
-      } else if (deliveryCountry === 'PT' && !/^\d{4}-\d{3}$/.test(billingInfo.postalCode.trim())) {
-        errors.billingPostalCode = t('checkout.form.errors.postalFormat');
-      }
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      const refs: Record<string, React.RefObject<HTMLInputElement>> = {
-        name: nameRef, email: emailRef, phone: phoneRef,
-        address: addressRef, city: cityRef, postalCode: postalCodeRef,
-        billingName: billingNameRef, billingAddress: billingAddressRef,
-        billingCity: billingCityRef, billingPostalCode: billingPostalCodeRef,
-      };
-      const firstKey = Object.keys(errors)[0];
-      refs[firstKey]?.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      refs[firstKey]?.current?.focus();
-      return;
-    }
-    setFieldErrors({});
-
-    if (!isAuthenticated) {
-      localStorage.setItem('guest_checkout_data', JSON.stringify(customerInfo));
-    }
-
     setIsProcessing(true);
     setPayError(null);
 
-    // Update Stripe intent to include shipping before confirming
     if (shippingCost > 0) {
       try {
         const updateRes = await fetch(`${API_BASE_URL}/payment/intent/${paymentIntentId}/amount`, {
@@ -375,24 +333,6 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
       setIsProcessing(false);
       return;
     }
-
-    const effectiveBilling = billingSameAsShipping
-      ? { billing_name: customerInfo.name, billing_address: customerInfo.address, billing_city: customerInfo.city, billing_postal_code: customerInfo.postalCode }
-      : { billing_name: billingInfo.name, billing_address: billingInfo.address, billing_city: billingInfo.city, billing_postal_code: billingInfo.postalCode };
-
-    const finalizeBody = {
-      payment_intent_id: paymentIntentId,
-      customer_name: customerInfo.name,
-      customer_email: customerInfo.email,
-      customer_phone: customerInfo.phone,
-      customer_address: customerInfo.address,
-      customer_city: customerInfo.city,
-      customer_postal_code: customerInfo.postalCode,
-      delivery_country: deliveryCountry,
-      ...effectiveBilling,
-      user_id: user?.id || null,
-      save_address: isAuthenticated && saveAddress,
-    };
 
     if (paymentIntent?.status === 'succeeded') {
       sessionStorage.setItem('pending_finalize', JSON.stringify(finalizeBody));
@@ -431,6 +371,142 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
     }
 
     setIsProcessing(false);
+  };
+
+  const handleOtpConfirm = async () => {
+    if (otpCode.length !== 6 || otpVerifying) return;
+    setOtpVerifying(true);
+    setOtpError('');
+    try {
+      const res = await fetch('/api/auth/guest-otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: customerInfo.email, code: otpCode }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEmailVerified(true);
+        setShowOtpModal(false);
+        if (pendingFinalizeRef.current) {
+          const body = pendingFinalizeRef.current;
+          pendingFinalizeRef.current = null;
+          await proceedWithPayment(body);
+        }
+      } else {
+        const msgKey = res.status === 429 ? 'checkout.otp.tooManyAttempts'
+          : data.message === 'Code expired' ? 'checkout.otp.expiredCode'
+          : 'checkout.otp.invalidCode';
+        setOtpError(t(msgKey));
+      }
+    } catch {
+      setOtpError(t('checkout.otp.verifyError'));
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    const errors: Record<string, string> = {};
+    if (!customerInfo.name.trim()) errors.name = t('checkout.form.errors.nameRequired');
+    if (!customerInfo.email.trim()) {
+      errors.email = t('checkout.form.errors.emailRequired');
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerInfo.email)) {
+      errors.email = t('checkout.form.errors.emailInvalid');
+    }
+    if (!isAuthenticated) {
+      if (!confirmEmail.trim()) {
+        errors.confirmEmail = t('checkout.form.errors.confirmEmailRequired');
+      } else if (confirmEmail !== customerInfo.email) {
+        errors.confirmEmail = t('checkout.form.errors.confirmEmailMismatch');
+      }
+    }
+    if (!customerInfo.phone) {
+      errors.phone = t('checkout.form.errors.phoneRequired');
+    } else if (!isValidPhoneNumber(customerInfo.phone)) {
+      errors.phone = t('checkout.form.errors.phoneInvalid');
+    }
+    if (!customerInfo.address.trim()) errors.address = t('checkout.form.errors.addressRequired');
+    if (!customerInfo.city.trim()) errors.city = t('checkout.form.errors.cityRequired');
+    if (!customerInfo.postalCode.trim()) {
+      errors.postalCode = t('checkout.form.errors.postalRequired');
+    } else if (deliveryCountry === 'PT' && !/^\d{4}-\d{3}$/.test(customerInfo.postalCode.trim())) {
+      errors.postalCode = t('checkout.form.errors.postalFormat');
+    }
+
+    if (!billingSameAsShipping) {
+      if (!billingInfo.name.trim()) errors.billingName = t('checkout.form.errors.billingNameRequired');
+      if (!billingInfo.address.trim()) errors.billingAddress = t('checkout.form.errors.billingAddressRequired');
+      if (!billingInfo.city.trim()) errors.billingCity = t('checkout.form.errors.billingCityRequired');
+      if (!billingInfo.postalCode.trim()) {
+        errors.billingPostalCode = t('checkout.form.errors.billingPostalRequired');
+      } else if (deliveryCountry === 'PT' && !/^\d{4}-\d{3}$/.test(billingInfo.postalCode.trim())) {
+        errors.billingPostalCode = t('checkout.form.errors.postalFormat');
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      const refs: Record<string, React.RefObject<HTMLInputElement>> = {
+        name: nameRef, email: emailRef, confirmEmail: confirmEmailRef, phone: phoneRef,
+        address: addressRef, city: cityRef, postalCode: postalCodeRef,
+        billingName: billingNameRef, billingAddress: billingAddressRef,
+        billingCity: billingCityRef, billingPostalCode: billingPostalCodeRef,
+      };
+      const firstKey = Object.keys(errors)[0];
+      refs[firstKey]?.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      refs[firstKey]?.current?.focus();
+      return;
+    }
+    setFieldErrors({});
+
+    if (!isAuthenticated) {
+      localStorage.setItem('guest_checkout_data', JSON.stringify(customerInfo));
+    }
+
+    const effectiveBilling = billingSameAsShipping
+      ? { billing_name: customerInfo.name, billing_address: customerInfo.address, billing_city: customerInfo.city, billing_postal_code: customerInfo.postalCode }
+      : { billing_name: billingInfo.name, billing_address: billingInfo.address, billing_city: billingInfo.city, billing_postal_code: billingInfo.postalCode };
+
+    const finalizeBody = {
+      payment_intent_id: paymentIntentId,
+      customer_name: customerInfo.name,
+      customer_email: customerInfo.email,
+      customer_phone: customerInfo.phone,
+      customer_address: customerInfo.address,
+      customer_city: customerInfo.city,
+      customer_postal_code: customerInfo.postalCode,
+      delivery_country: deliveryCountry,
+      ...effectiveBilling,
+      user_id: user?.id || null,
+      save_address: isAuthenticated && saveAddress,
+    };
+
+    // Guest: require email OTP verification before payment
+    if (!isAuthenticated && !emailVerified) {
+      setOtpSending(true);
+      try {
+        const res = await fetch('/api/auth/guest-otp/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: customerInfo.email }),
+        });
+        if (!res.ok) throw new Error('send failed');
+        pendingFinalizeRef.current = finalizeBody;
+        setOtpCode('');
+        setOtpError('');
+        setShowOtpModal(true);
+      } catch {
+        setPayError(t('checkout.otp.sendError'));
+      } finally {
+        setOtpSending(false);
+      }
+      return;
+    }
+
+    await proceedWithPayment(finalizeBody);
   };
 
   if (paymentReference) {
@@ -596,6 +672,21 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                           className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.email ? 'border-red-500' : 'border-gray-300'}`} />
                         {fieldErrors.email && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.email}</p>}
                       </div>
+                      {!isAuthenticated && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('checkout.form.confirmEmail')} *</label>
+                          <input
+                            type="email"
+                            ref={confirmEmailRef}
+                            value={confirmEmail}
+                            onChange={(e) => { setConfirmEmail(e.target.value); clearFieldError('confirmEmail'); }}
+                            onPaste={(e) => e.preventDefault()}
+                            autoComplete="off"
+                            className={`w-full px-4 py-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 ${fieldErrors.confirmEmail ? 'border-red-500' : 'border-gray-300'}`}
+                          />
+                          {fieldErrors.confirmEmail && <p className="mt-1.5 text-sm text-red-500">{fieldErrors.confirmEmail}</p>}
+                        </div>
+                      )}
                       <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('form.phone')} *</label>
                         <PhoneInput
@@ -815,11 +906,11 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
 
                 <button
                   type="submit"
-                  disabled={!stripe || isProcessing || !isPaymentReady}
+                  disabled={!stripe || isProcessing || otpSending || !isPaymentReady}
                   className="w-full mt-6 bg-primary-600 text-white py-3.5 px-6 rounded-lg hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center gap-2 text-[15px]"
                 >
-                  {isProcessing && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  {isProcessing ? t('checkout.processing') : `${t('checkout.pay')} ${displayTotal.toFixed(2)} €`}
+                  {(isProcessing || otpSending) && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                  {isProcessing ? t('checkout.processing') : otpSending ? t('common.loading') : `${t('checkout.pay')} ${displayTotal.toFixed(2)} €`}
                 </button>
               </div>
             </div>
@@ -827,6 +918,57 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
           </div>
         </form>
       </div>
+
+      {/* OTP Verification Modal */}
+      {showOtpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl">
+            <div className="flex justify-center mb-5">
+              <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
+                <Mail className="h-7 w-7 text-green-600" />
+              </div>
+            </div>
+            <h2 className="text-xl font-bold text-center mb-2">{t('checkout.otp.title')}</h2>
+            <p className="text-sm text-gray-500 text-center mb-6">
+              {t('checkout.otp.desc')} <strong className="text-gray-700">{customerInfo.email}</strong>
+            </p>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={otpCode}
+              onChange={(e) => { setOtpCode(e.target.value.replace(/\D/g, '')); setOtpError(''); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleOtpConfirm(); }}
+              placeholder="000000"
+              className="w-full text-center text-3xl font-mono tracking-[0.5em] border-2 border-gray-200 rounded-xl py-4 focus:border-primary-500 focus:outline-none mb-2"
+              autoFocus
+            />
+            {otpError && <p className="text-sm text-red-500 text-center mb-3">{otpError}</p>}
+            <button
+              onClick={handleOtpConfirm}
+              disabled={otpCode.length !== 6 || otpVerifying}
+              className="w-full py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors mt-2 mb-3 flex items-center justify-center gap-2"
+            >
+              {otpVerifying && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+              {otpVerifying ? t('common.loading') : t('checkout.otp.verify')}
+            </button>
+            <button
+              onClick={async () => {
+                setOtpCode('');
+                setOtpError('');
+                await fetch('/api/auth/guest-otp/send', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: customerInfo.email }),
+                });
+              }}
+              className="w-full text-sm text-gray-400 hover:text-gray-600 underline"
+            >
+              {t('checkout.otp.resend')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {showAuthModal && (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>

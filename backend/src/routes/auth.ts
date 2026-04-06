@@ -5,6 +5,17 @@ import { body, validationResult } from 'express-validator';
 import pool from '../config/database.js';
 import { authenticateToken, AuthRequest } from '../middleware/auth.js';
 import EmailVerification from '../models/EmailVerification.js';
+import emailService from '../emailService.js';
+
+// In-memory OTP store for guest email verification
+const guestOtpStore = new Map<string, { code: string; expiresAt: number; attempts: number }>();
+// Cleanup expired entries every 15 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of guestOtpStore.entries()) {
+    if (val.expiresAt < now) guestOtpStore.delete(key);
+  }
+}, 15 * 60 * 1000);
 
 const router = express.Router();
 
@@ -248,6 +259,68 @@ router.post('/resend-verification', async (req, res) => {
     console.error('Resend verification error:', error);
     res.status(500).json({ error: 'Erro ao reenviar email de verificação' });
   }
+});
+
+// POST /auth/guest-otp/send
+router.post('/guest-otp/send', async (req, res) => {
+  const { email } = req.body;
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    res.status(400).json({ success: false, message: 'Invalid email' });
+    return;
+  }
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  guestOtpStore.set(email.toLowerCase(), {
+    code,
+    expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+    attempts: 0,
+  });
+
+  try {
+    await emailService.sendGuestOtp(email, code);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Failed to send guest OTP:', err);
+    res.status(500).json({ success: false, message: 'Failed to send verification email' });
+  }
+});
+
+// POST /auth/guest-otp/verify
+router.post('/guest-otp/verify', (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) {
+    res.status(400).json({ success: false, message: 'Email and code required' });
+    return;
+  }
+
+  const key = email.toLowerCase();
+  const entry = guestOtpStore.get(key);
+
+  if (!entry) {
+    res.status(400).json({ success: false, message: 'No verification pending for this email' });
+    return;
+  }
+
+  if (Date.now() > entry.expiresAt) {
+    guestOtpStore.delete(key);
+    res.status(400).json({ success: false, message: 'Code expired' });
+    return;
+  }
+
+  entry.attempts += 1;
+  if (entry.attempts > 5) {
+    guestOtpStore.delete(key);
+    res.status(429).json({ success: false, message: 'Too many attempts' });
+    return;
+  }
+
+  if (entry.code !== String(code)) {
+    res.status(400).json({ success: false, message: 'Invalid code' });
+    return;
+  }
+
+  guestOtpStore.delete(key);
+  res.json({ success: true });
 });
 
 export default router;
