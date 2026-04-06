@@ -109,6 +109,8 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
       color: #111827;
       padding: 40px;
       -webkit-font-smoothing: antialiased;
+      -webkit-user-select: text;
+      user-select: text;
     }
 
     @media print {

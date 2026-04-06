@@ -117,7 +117,7 @@ export default function CategoriesList() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-800">Categorias</h1>
         <button
@@ -286,7 +286,7 @@ export default function CategoriesList() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/50 z-40"
+            className="fixed inset-0 bg-black/50 z-50"
             onClick={() => {
               setEditingId(null);
               loadCategories();
@@ -375,7 +375,7 @@ export default function CategoriesList() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/50 z-40"
+            className="fixed inset-0 bg-black/50 z-50"
             onClick={() => setDeleteConfirm(null)}
           />
 

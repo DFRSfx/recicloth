@@ -446,7 +446,7 @@ export default function HeroSlidesList() {
   }
 
   return (
-    <main className="space-y-6 sm:space-y-8 pb-8">
+    <main className="pb-8">
       {/* Error Message */}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
@@ -484,7 +484,7 @@ export default function HeroSlidesList() {
       {showAddForm && (
         <>
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            className="fixed inset-0 bg-black bg-opacity-50 z-50"
             onClick={closeAddModal}
             role="button"
             tabIndex={-1}
@@ -800,7 +800,7 @@ export default function HeroSlidesList() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            className="fixed inset-0 bg-black bg-opacity-50 z-50"
             onClick={() => {
               setEditingId(null);
               loadSlides();
@@ -1030,7 +1030,7 @@ export default function HeroSlidesList() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            className="fixed inset-0 bg-black bg-opacity-50 z-50"
             onClick={() => setDeleteConfirm(null)}
             role="button"
             tabIndex={-1}

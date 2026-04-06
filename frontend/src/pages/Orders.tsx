@@ -55,7 +55,7 @@ const getOrderItemImage = (item: OrderItem): string => {
 };
 
 const Orders: React.FC = () => {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, authLoading, token } = useAuth();
   const navigate = useNavigate();
   const { t, lang } = useLanguage();
   const ordersPath = getRoutePath('orders', lang);
@@ -120,10 +120,10 @@ const Orders: React.FC = () => {
   */
 
   React.useEffect(() => {
-    if (!isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       navigate(homePath);
     }
-  }, [isAuthenticated, navigate, homePath]);
+  }, [authLoading, isAuthenticated, navigate, homePath]);
 
   const getStatusConfig = (status: Order['status']) => {
     const configs = {
@@ -179,6 +179,10 @@ const Orders: React.FC = () => {
   const toggleOrder = (orderId: number) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
+
+  if (authLoading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return null;

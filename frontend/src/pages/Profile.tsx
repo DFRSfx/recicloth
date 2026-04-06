@@ -107,7 +107,7 @@ const PasswordField = ({
 );
 
 const Profile: React.FC = () => {
-  const { user, token, isAuthenticated } = useAuth();
+  const { user, token, isAuthenticated, authLoading } = useAuth();
   const { error, success } = useToast();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -160,8 +160,8 @@ const Profile: React.FC = () => {
   const API = '/api';
 
   React.useEffect(() => {
-    if (!isAuthenticated) navigate('/');
-  }, [isAuthenticated, navigate]);
+    if (!authLoading && !isAuthenticated) navigate('/');
+  }, [authLoading, isAuthenticated, navigate]);
 
   // Fetch shipping addresses
   useEffect(() => {
@@ -404,7 +404,7 @@ const Profile: React.FC = () => {
     }
   };
 
-  if (!isAuthenticated) return null;
+  if (authLoading || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] py-12 lg:py-16">

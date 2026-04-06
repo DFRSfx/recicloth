@@ -14,6 +14,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  authLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
@@ -30,6 +31,7 @@ const USER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const lastUserRefreshRef = useRef<number>(
     Number(localStorage.getItem('auth_user_refreshed_at') || 0)
   );
@@ -43,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
     }
+    setAuthLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -204,6 +207,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     token,
     isAuthenticated: !!token && !!user,
+    authLoading,
     isEmailVerified: user?.emailVerified ?? false,
     login,
     loginWithGoogle,

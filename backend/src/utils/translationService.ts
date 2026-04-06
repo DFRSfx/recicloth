@@ -31,7 +31,7 @@ async function translateDeepL(text: string, from: string | null, to: string): Pr
       'Authorization': `DeepL-Auth-Key ${DEEPL_KEY}`,
     },
     body:    body.toString(),
-    signal:  AbortSignal.timeout(8000),
+    signal:  AbortSignal.timeout(20000),
   });
 
   if (!res.ok) {
@@ -54,7 +54,7 @@ async function translateMyMemory(text: string, from: string | null, to: string):
 
   const res = await fetch(
     `https://api.mymemory.translated.net/get?${params.toString()}`,
-    { signal: AbortSignal.timeout(8000) }
+    { signal: AbortSignal.timeout(20000) }
   );
 
   if (!res.ok) throw new Error(`MyMemory HTTP ${res.status}`);

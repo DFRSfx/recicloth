@@ -134,7 +134,7 @@ export default function ReviewsList() {
   }
 
   return (
-    <main className="space-y-6 sm:space-y-8 pb-8">
+    <main className="pb-8">
       <div>
         <h1 className="text-2xl font-bold text-[#1A1A1A]">Reviews</h1>
         <p className="text-sm sm:text-base text-gray-600 mt-1">Validar e gerir reviews de produtos</p>
