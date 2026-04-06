@@ -49,6 +49,52 @@ const TermosCondicoes: React.FC = () => {
                 <li><strong>Stock:</strong> Como trabalhamos com roupa reciclada, a maioria das peças são únicas. Em caso de erro de stock simultâneo, a primeira encomenda paga terá prioridade, sendo feito o reembolso total à segunda.</li>
                 <li><strong>Preços:</strong> Os preços incluem IVA à taxa legal em vigor. Os custos de envio são somados no checkout.</li>
                 <li><strong>Pagamento:</strong> Aceitação de métodos seguros (MB Way, Transferência Bancária ou Cartão).</li>
+                <li><strong>Fatura:</strong> A fatura será emitida automaticamente após confirmação da encomenda e enviada para o email indicado pelo cliente.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Como Funciona o Processo de Compra</h2>
+              <p className="text-sm">O cliente seleciona os produtos pretendidos e adiciona-os ao carrinho. Após confirmação da encomenda e pagamento, será enviado um email automático com os detalhes da compra.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Confirmação da Encomenda</h2>
+              <p className="text-sm">Após receção do pagamento, a Recicloth enviará um email de confirmação com o resumo da encomenda e a respetiva fatura.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Erro de Preço</h2>
+              <p className="text-sm">Caso exista erro evidente no preço publicado devido a erro técnico ou humano, a Recicloth reserva-se o direito de cancelar a encomenda e proceder ao reembolso integral do valor pago.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Garantia dos Produtos</h2>
+              <ul className="list-disc pl-5 space-y-2 text-sm">
+                <li><strong>Condições da garantia:</strong> Os produtos físicos vendidos na União Europeia têm uma garantia legal mínima de 3 anos para defeitos de conformidade.</li>
+                <li><strong>Como proceder:</strong> Em caso de defeito ou avaria, contacte-nos em <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a> com o número da encomenda e descrição do problema.</li>
+                <li><strong>Garantia legal vs. adicional:</strong> A Recicloth aplica a garantia legal. Não existe garantia adicional, salvo indicação expressa.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Envios e Prazos de Entrega</h2>
+              <ul className="list-disc pl-5 space-y-2 text-sm">
+                <li><strong>Prazo médio:</strong> 2-5 dias úteis em Portugal Continental.</li>
+                <li><strong>Transportadora:</strong> CTT.</li>
+                <li><strong>Custos de envio:</strong> Apresentados no checkout antes do pagamento.</li>
+                <li><strong>Encomenda perdida:</strong> Se a encomenda se perder em transporte, procederemos ao reenvio ou reembolso total.</li>
+                <li><strong>Envios internacionais:</strong> Atualmente não realizamos envios internacionais.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Direitos do Consumidor</h2>
+              <ul className="list-disc pl-5 space-y-2 text-sm">
+                <li>Informação clara sobre produtos e preços.</li>
+                <li>Receber os produtos adquiridos nas condições anunciadas.</li>
+                <li>Exercer o direito de livre resolução no prazo de 14 dias.</li>
+                <li>Beneficiar da garantia legal aplicável.</li>
               </ul>
             </section>
 
@@ -105,6 +151,52 @@ const TermosCondicoes: React.FC = () => {
                 <li><strong>Stock:</strong> As we work with recycled clothing, most items are unique. In the event of a simultaneous stock error, the first paid order takes priority and a full refund will be issued to the second.</li>
                 <li><strong>Prices:</strong> All prices include VAT at the legally applicable rate. Shipping costs are added at checkout.</li>
                 <li><strong>Payment:</strong> Secure payment methods accepted (MB Way, Bank Transfer, or Card).</li>
+                <li><strong>Invoice:</strong> The invoice is issued automatically after order confirmation and sent to the customer’s email address.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">How the Purchase Process Works</h2>
+              <p className="text-sm">Customers select the desired products and add them to the cart. After order confirmation and payment, an automatic email is sent with the purchase details.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Order Confirmation</h2>
+              <p className="text-sm">Once payment is received, Recicloth will send a confirmation email with the order summary and the invoice.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Price Errors</h2>
+              <p className="text-sm">In the event of an obvious pricing error caused by a technical or human mistake, Recicloth reserves the right to cancel the order and fully refund the amount paid.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Product Warranty</h2>
+              <ul className="list-disc pl-5 space-y-2 text-sm">
+                <li><strong>Warranty terms:</strong> Physical products sold in the European Union have a minimum legal warranty of 3 years for lack of conformity.</li>
+                <li><strong>How to proceed:</strong> In case of defect or malfunction, contact us at <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a> with your order number and a description of the issue.</li>
+                <li><strong>Legal vs. additional warranty:</strong> Recicloth applies the legal warranty. No additional warranty is offered unless explicitly stated.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Shipping &amp; Delivery Times</h2>
+              <ul className="list-disc pl-5 space-y-2 text-sm">
+                <li><strong>Average delivery time:</strong> 2-5 business days in Mainland Portugal.</li>
+                <li><strong>Carrier:</strong> CTT.</li>
+                <li><strong>Shipping costs:</strong> Shown at checkout before payment.</li>
+                <li><strong>Lost orders:</strong> If the order is lost in transit, we will resend or fully refund.</li>
+                <li><strong>International shipping:</strong> Currently not available.</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Consumer Rights</h2>
+              <ul className="list-disc pl-5 space-y-2 text-sm">
+                <li>Clear information about products and prices.</li>
+                <li>Receive purchased products as advertised.</li>
+                <li>Exercise the right of withdrawal within 14 days.</li>
+                <li>Benefit from the applicable legal warranty.</li>
               </ul>
             </section>
 

@@ -57,8 +57,18 @@ const PoliticaDevolucao: React.FC = () => {
               </ul>
             </section>
 
+            <section>
+              <h2 className="text-xl font-bold mb-3">Reembolso</h2>
+              <p className="text-sm">Após receção e verificação do artigo devolvido, o reembolso será processado no prazo máximo de 14 dias, utilizando preferencialmente o mesmo método de pagamento utilizado na compra inicial.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">Como Iniciar uma Devolução</h2>
+              <p className="text-sm">Para iniciar uma devolução, contacte-nos em <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a> com o número de encomenda e o motivo da devolução.</p>
+            </section>
+
             <section className="bg-[#F2E8DC] rounded-lg p-5 text-sm">
-              <p>Para iniciar uma devolução, contacte-nos em <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a> com o número de encomenda e motivo da devolução.</p>
+              <p>Responderemos com os próximos passos e a morada de devolução. Recomendamos o envio com número de rastreio.</p>
             </section>
           </div>
         ) : (
@@ -86,8 +96,18 @@ const PoliticaDevolucao: React.FC = () => {
               </ul>
             </section>
 
+            <section>
+              <h2 className="text-xl font-bold mb-3">Refunds</h2>
+              <p className="text-sm">After receiving and verifying the returned item, the refund will be processed within a maximum of 14 days, preferably using the same payment method used in the original purchase.</p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold mb-3">How to Start a Return</h2>
+              <p className="text-sm">To start a return, contact us at <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a> with your order number and the reason for return.</p>
+            </section>
+
             <section className="bg-[#F2E8DC] rounded-lg p-5 text-sm">
-              <p>To initiate a return, contact us at <a href="mailto:suporte@recicloth.pt" className="text-[#2D6A4F] underline">suporte@recicloth.pt</a> with your order number and reason for return.</p>
+              <p>We will reply with the next steps and the return address. We recommend sending with a tracking number.</p>
             </section>
           </div>
         )}

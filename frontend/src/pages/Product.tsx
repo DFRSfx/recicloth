@@ -36,6 +36,7 @@ interface Review {
   likelihood?: string | null;
   activities?: string | null;
   created_at: string;
+  status?: 'approved' | 'pending' | 'rejected';
 }
 
 interface EligibleReviewItem {
@@ -247,7 +248,11 @@ const Product: React.FC = () => {
     setReviewsLoading(true);
     setReviewsError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/products/${product.id}/reviews`);
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const response = await fetch(`${API_BASE_URL}/products/${product.id}/reviews`, { headers });
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Erro ao carregar reviews');
@@ -260,7 +265,7 @@ const Product: React.FC = () => {
     } finally {
       setReviewsLoading(false);
     }
-  }, [API_BASE_URL, product?.id]);
+  }, [API_BASE_URL, product?.id, token]);
 
   useEffect(() => {
     loadReviews();
@@ -373,17 +378,22 @@ const Product: React.FC = () => {
     }
   };
 
+  const approvedReviews = useMemo(
+    () => reviews.filter(review => review.status === 'approved' || !review.status),
+    [reviews]
+  );
+
   const reviewStats = useMemo(() => {
-    if (reviews.length === 0) {
+    if (approvedReviews.length === 0) {
       return { average: 0, count: 0, topFit: null as string | null, topActivities: [] as string[] };
     }
 
-    const total = reviews.reduce((sum, r) => sum + (r.rating || 0), 0);
-    const average = Math.round((total / reviews.length) * 10) / 10;
+    const total = approvedReviews.reduce((sum, r) => sum + (r.rating || 0), 0);
+    const average = Math.round((total / approvedReviews.length) * 10) / 10;
     const fitCounts: Record<string, number> = {};
     const activityCounts: Record<string, number> = {};
 
-    reviews.forEach((review) => {
+    approvedReviews.forEach((review) => {
       if (review.fit) {
         fitCounts[review.fit] = (fitCounts[review.fit] || 0) + 1;
       }
@@ -400,8 +410,8 @@ const Product: React.FC = () => {
       .slice(0, 3)
       .map(([activity]) => activity);
 
-    return { average, count: reviews.length, topFit, topActivities };
-  }, [reviews]);
+    return { average, count: approvedReviews.length, topFit, topActivities };
+  }, [approvedReviews]);
 
   const selectedEligibleItem = useMemo(
     () => eligibleItems.find(item => String(item.order_item_id) === reviewForm.orderItemId) || null,
@@ -840,7 +850,14 @@ const Product: React.FC = () => {
                     {getInitials(review.reviewer_name)}
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900 leading-none mb-1">{review.reviewer_name}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-bold text-gray-900 leading-none">{review.reviewer_name}</p>
+                      {review.status === 'pending' && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide bg-yellow-100 text-yellow-800 border border-yellow-200 px-2 py-0.5 rounded-full">
+                          PENDENTE
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs font-medium text-green-600 flex items-center gap-1">
                       <CheckCircle2 size={12} className="fill-current text-white bg-green-600 rounded-full" /> Verified Reviewer
                     </p>

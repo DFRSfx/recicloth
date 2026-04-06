@@ -1,6 +1,6 @@
 import express from 'express';
 import pool from '../config/database.js';
-import { requireAdmin, AuthRequest, authenticateToken } from '../middleware/auth.js';
+import { requireAdmin, AuthRequest, authenticateToken, optionalAuth } from '../middleware/auth.js';
 import { upload } from '../config/upload.js';
 import path from 'path';
 import fs from 'fs';
@@ -107,6 +107,38 @@ const parseImages = (images: any): string[] => {
 
 // ── Reviews (admin moderation) ───────────────────────────────────────────────
 
+router.get('/reviews', ...requireAdmin, async (req: AuthRequest, res) => {
+  try {
+    const status = typeof req.query.status === 'string' ? req.query.status : '';
+    const allowed = ['pending', 'approved', 'rejected'];
+    if (status && !allowed.includes(status)) {
+      res.status(400).json({ error: 'Invalid status' });
+      return;
+    }
+
+    const whereClause = status ? 'WHERE r.status = ?' : '';
+    const params = status ? [status] : [];
+
+    const [rows]: any = await pool.query(
+      `SELECT
+         r.id, r.product_id, r.order_id, r.order_item_id, r.user_id,
+         r.reviewer_name, r.reviewer_email, r.rating, r.headline, r.content,
+         r.size, r.color, r.fit, r.height, r.likelihood, r.activities,
+         r.status, r.admin_notes, r.created_at,
+         p.name AS product_name
+       FROM product_reviews r
+       JOIN products p ON r.product_id = p.id
+       ${whereClause}
+       ORDER BY r.created_at DESC`,
+      params
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
 router.get('/reviews/pending', ...requireAdmin, async (_req: AuthRequest, res) => {
   try {
     const [rows]: any = await pool.query(
@@ -159,9 +191,33 @@ router.patch('/reviews/:reviewId', ...requireAdmin, async (req: AuthRequest, res
   }
 });
 
+router.delete('/reviews/:reviewId', ...requireAdmin, async (req: AuthRequest, res) => {
+  try {
+    const reviewId = Number(req.params.reviewId);
+    if (!reviewId || Number.isNaN(reviewId)) {
+      res.status(400).json({ error: 'Invalid review id' });
+      return;
+    }
+
+    const [result]: any = await pool.execute(
+      'DELETE FROM product_reviews WHERE id = ?',
+      [reviewId]
+    );
+
+    if (result.affectedRows === 0) {
+      res.status(404).json({ error: 'Review not found' });
+      return;
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    res.status(500).json({ error: 'Failed to delete review' });
+  }
+});
+
 // ── Reviews (public + authenticated) ─────────────────────────────────────────
 
-router.get('/:id/reviews', async (req, res) => {
+router.get('/:id/reviews', optionalAuth, async (req: AuthRequest, res) => {
   try {
     const productId = Number(req.params.id);
     if (!productId || Number.isNaN(productId)) {
@@ -169,14 +225,20 @@ router.get('/:id/reviews', async (req, res) => {
       return;
     }
 
+    const userId = req.user?.id;
+    const includePending = Boolean(userId);
     const [rows]: any = await pool.query(
       `SELECT
          id, rating, headline, content, reviewer_name,
-         size, color, fit, height, likelihood, activities, created_at
+         size, color, fit, height, likelihood, activities, created_at, status
        FROM product_reviews
-       WHERE product_id = ? AND status = 'approved'
+       WHERE product_id = ?
+         AND (
+           status = 'approved'
+           ${includePending ? 'OR (status = \'pending\' AND user_id = ?)' : ''}
+         )
        ORDER BY created_at DESC`,
-      [productId]
+      includePending ? [productId, userId] : [productId]
     );
     res.json(rows);
   } catch (error) {

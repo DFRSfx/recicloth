@@ -11,7 +11,8 @@ import {
   User,
   ArrowLeft,
   Image,
-  Users
+  Users,
+  Star
 } from 'lucide-react';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 
@@ -30,6 +31,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Categorias', path: '/admin/categorias', icon: FolderOpen },
     { name: 'Produtos', path: '/admin/produtos', icon: Package },
     { name: 'Encomendas', path: '/admin/encomendas', icon: ShoppingCart },
+    { name: 'Avaliações', path: '/admin/avaliacoes', icon: Star },
     { name: 'Utilizadores', path: '/admin/utilizadores', icon: Users },
   ];
 
