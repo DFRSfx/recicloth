@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Check, X, Trash2 } from 'lucide-react';
+import { Search, Check, X, Trash2, Eye } from 'lucide-react';
 import AdminSelect from '../components/AdminSelect';
 import { fetchWithAuth } from '../../utils/apiHelpers';
 
@@ -12,6 +12,12 @@ interface Review {
   rating: number;
   headline: string;
   content: string;
+  size?: string | null;
+  color?: string | null;
+  fit?: string | null;
+  height?: string | null;
+  likelihood?: string | null;
+  activities?: string | null;
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
 }
@@ -23,6 +29,7 @@ export default function ReviewsList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
 
   const loadReviews = useCallback(async () => {
     try {
@@ -115,6 +122,8 @@ export default function ReviewsList() {
     }
   };
 
+  const closeModal = () => setSelectedReview(null);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4" role="status">
@@ -196,6 +205,12 @@ export default function ReviewsList() {
                   <td className="px-4 py-4">
                     <div className="flex justify-end gap-2">
                       <button
+                        onClick={() => setSelectedReview(review)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white text-gray-700 border border-gray-200 rounded-md hover:bg-gray-50"
+                      >
+                        <Eye size={14} /> Ver
+                      </button>
+                      <button
                         onClick={() => updateStatus(review.id, 'approved')}
                         disabled={updatingId === review.id || review.status === 'approved'}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-green-50 text-green-700 border border-green-200 rounded-md hover:bg-green-100 disabled:opacity-50"
@@ -249,6 +264,12 @@ export default function ReviewsList() {
               <div className="text-xs text-gray-500">{formatDate(review.created_at)}</div>
               <div className="flex flex-wrap gap-2 pt-2">
                 <button
+                  onClick={() => setSelectedReview(review)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-white text-gray-700 border border-gray-200 rounded-md hover:bg-gray-50"
+                >
+                  <Eye size={14} /> Ver
+                </button>
+                <button
                   onClick={() => updateStatus(review.id, 'approved')}
                   disabled={updatingId === review.id || review.status === 'approved'}
                   className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-green-50 text-green-700 border border-green-200 rounded-md hover:bg-green-100 disabled:opacity-50"
@@ -279,6 +300,80 @@ export default function ReviewsList() {
           )}
         </div>
       </div>
+
+      {selectedReview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={closeModal}></div>
+          <div className="relative bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-[#1A1A1A]">{selectedReview.product_name}</h2>
+                <p className="text-sm text-gray-500">Review #{selectedReview.id} · {formatDate(selectedReview.created_at)}</p>
+              </div>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-700">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${getStatusColor(selectedReview.status)}`}>
+                {getStatusLabel(selectedReview.status)}
+              </span>
+              <span className="text-sm font-semibold text-gray-800">{selectedReview.rating}/5</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700 mb-6">
+              <div>
+                <p className="font-semibold text-gray-900">Cliente</p>
+                <p>{selectedReview.reviewer_name}</p>
+                <p className="text-xs text-gray-500">{selectedReview.reviewer_email}</p>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">Detalhes</p>
+                <p>Tamanho: {selectedReview.size || '—'}</p>
+                <p>Cor: {selectedReview.color || '—'}</p>
+                <p>Fit: {selectedReview.fit || '—'}</p>
+                <p>Altura: {selectedReview.height || '—'}</p>
+                <p>Recomendaria: {selectedReview.likelihood || '—'}</p>
+                <p>Atividades: {selectedReview.activities || '—'}</p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="font-semibold text-gray-900 mb-2">Título</p>
+              <p className="text-gray-700">{selectedReview.headline}</p>
+            </div>
+            <div className="mb-8">
+              <p className="font-semibold text-gray-900 mb-2">Review</p>
+              <p className="text-gray-700 whitespace-pre-line">{selectedReview.content}</p>
+            </div>
+
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                onClick={() => updateStatus(selectedReview.id, 'approved')}
+                disabled={updatingId === selectedReview.id || selectedReview.status === 'approved'}
+                className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium bg-green-50 text-green-700 border border-green-200 rounded-md hover:bg-green-100 disabled:opacity-50"
+              >
+                <Check size={16} /> Aprovar
+              </button>
+              <button
+                onClick={() => updateStatus(selectedReview.id, 'rejected')}
+                disabled={updatingId === selectedReview.id || selectedReview.status === 'rejected'}
+                className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium bg-red-50 text-red-700 border border-red-200 rounded-md hover:bg-red-100 disabled:opacity-50"
+              >
+                <X size={16} /> Rejeitar
+              </button>
+              <button
+                onClick={() => deleteReview(selectedReview.id)}
+                disabled={updatingId === selectedReview.id}
+                className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium bg-gray-50 text-gray-700 border border-gray-200 rounded-md hover:bg-gray-100 disabled:opacity-50"
+              >
+                <Trash2 size={16} /> Apagar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
