@@ -127,6 +127,31 @@ router.get('/:dir/:subdir/:filename', async (req, res) => {
 
 /**
  * GET /api/images/check/:dir/:subdir/:filename
+ * Newsletter images — flat path: /api/images/newsletters/:filename
+ */
+router.get('/newsletters/:filename', async (req: any, res: any) => {
+  try {
+    const { filename } = req.params;
+    if (filename.includes('..') || filename.includes('/')) {
+      res.status(400).json({ error: 'Invalid path' });
+      return;
+    }
+    const key = `newsletters/${filename}`;
+    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+    const s3Res = await s3Client.send(command);
+    res.set('Content-Type', s3Res.ContentType || 'image/webp');
+    res.set('Cache-Control', 'public, max-age=31536000');
+    (s3Res.Body as any).pipe(res);
+  } catch (err: any) {
+    if (err.name === 'NoSuchKey' || err.$metadata?.httpStatusCode === 404) {
+      res.status(404).json({ error: 'Not found' });
+    } else {
+      res.status(500).json({ error: 'Image error' });
+    }
+  }
+});
+
+/**
  * Diagnostic endpoint to verify if an image exists in S3
  * Returns: { exists: boolean, contentType, contentLength, bucket }
  */

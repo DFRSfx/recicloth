@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Heart } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { getRoutePath } from '../utils/routes';
 
@@ -19,6 +19,14 @@ const MarketingConsent: React.FC = () => {
   const [emailError, setEmailError] = useState('');
   const [marketingChecked, setMarketingChecked] = useState(false);
   const [marketingError, setMarketingError] = useState('');
+  const [otpStep, setOtpStep] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+  const [alreadySubscribed, setAlreadySubscribed] = useState(false);
+  const navigate = useNavigate();
 
   const [cookieConsent, setCookieConsent] = useState({
     required: true,
@@ -71,11 +79,11 @@ const MarketingConsent: React.FC = () => {
     localStorage.setItem('hasSeenNewsletter', 'true');
   };
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     let valid = true;
-    if (!email.trim()) {
-      setEmailError(t('marketing.emailPlaceholder'));
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError('Email inválido');
       valid = false;
     } else {
       setEmailError('');
@@ -87,8 +95,55 @@ const MarketingConsent: React.FC = () => {
       setMarketingError('');
     }
     if (!valid) return;
-    console.log(`Subscribed: ${email}`);
-    handleCloseNewsletter();
+
+    setOtpSending(true);
+    setOtpError('');
+    try {
+      const res = await fetch('/api/newsletter/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+      const data = await res.json();
+      if (res.status === 409) {
+        setAlreadySubscribed(true);
+        return;
+      }
+      if (!res.ok) {
+        setEmailError(data.message || 'Erro ao enviar código.');
+        return;
+      }
+      setOtpStep(true);
+    } catch {
+      setEmailError('Erro ao enviar código. Tente novamente.');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const handleOtpVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otpCode.length !== 6) { setOtpError('Código deve ter 6 dígitos.'); return; }
+    setOtpVerifying(true);
+    setOtpError('');
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), code: otpCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setOtpError(data.message || 'Código inválido.');
+        return;
+      }
+      setSubscribed(true);
+      setTimeout(() => handleCloseNewsletter(), 2000);
+    } catch {
+      setOtpError('Erro ao verificar código.');
+    } finally {
+      setOtpVerifying(false);
+    }
   };
 
   const handlePrivacyAction = (action: 'accept' | 'decline' | 'manage') => {
@@ -158,41 +213,101 @@ const MarketingConsent: React.FC = () => {
             </div>
 
             <div className="p-8 md:p-10 flex flex-col justify-center items-center text-center bg-[#f4f4f4]">
-              <h3 className="text-xl font-medium text-gray-900 mb-2 leading-relaxed tracking-wide">
-                Receba novidades sobre<br />moda sustentável e<br />novas peças!
-              </h3>
-              <form onSubmit={handleNewsletterSubmit} noValidate className="w-full max-w-[260px] space-y-3 mt-6">
-                <div>
-                  <input
-                    type="email"
-                    placeholder={t('marketing.emailPlaceholder')}
-                    value={email}
-                    onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(''); }}
-                    className={`w-full px-4 py-3 bg-[#e9e9e9] border-none text-gray-900 placeholder:text-gray-500 focus:ring-1 focus:ring-gray-400 outline-none text-center text-sm ${emailError ? 'ring-1 ring-red-400' : ''}`}
-                  />
-                  {emailError && <p className="mt-1 text-xs text-red-500 text-center">{emailError}</p>}
-                </div>
-                <div className="text-left">
-                  <label className="flex items-start gap-2 cursor-pointer">
+              {subscribed ? (
+                <>
+                  <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                    <Heart className="h-6 w-6 text-green-600 fill-green-600" />
+                  </div>
+                  <h3 className="text-xl font-medium text-gray-900 mb-2">Subscrição confirmada!</h3>
+                  <p className="text-sm text-gray-500">Bem-vindo/a à newsletter da Recicloth.</p>
+                </>
+              ) : otpStep ? (
+                <>
+                  <h3 className="text-xl font-medium text-gray-900 mb-2 leading-relaxed tracking-wide">
+                    Confirme o seu email
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-6">
+                    Enviámos um código de 6 dígitos para<br /><strong>{email}</strong>
+                  </p>
+                  <form onSubmit={handleOtpVerify} noValidate className="w-full max-w-[260px] space-y-3">
                     <input
-                      type="checkbox"
-                      checked={marketingChecked}
-                      onChange={(e) => { setMarketingChecked(e.target.checked); if (marketingError) setMarketingError(''); }}
-                      className="mt-0.5 w-4 h-4 rounded border-gray-400 text-black focus:ring-black cursor-pointer flex-shrink-0"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="000000"
+                      value={otpCode}
+                      onChange={e => { setOtpCode(e.target.value.replace(/\D/g, '')); setOtpError(''); }}
+                      className={`w-full px-4 py-3 bg-[#e9e9e9] border-none text-gray-900 placeholder:text-gray-400 focus:ring-1 focus:ring-gray-400 outline-none text-center text-2xl tracking-[0.4em] font-mono ${otpError ? 'ring-1 ring-red-400' : ''}`}
                     />
-                    <span className="text-[11px] text-gray-600 leading-relaxed">
-                      {t('marketing.acceptDesc')}
-                    </span>
-                  </label>
-                  {marketingError && <p className="mt-1 text-xs text-red-500">{marketingError}</p>}
-                </div>
-                <button
-                  type="submit"
-                  className="w-full py-3 bg-black text-white hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 text-[11px] tracking-[0.2em] uppercase font-bold"
-                >
-                  QUERO RECEBER <Heart className="h-3 w-3 fill-white" />
-                </button>
-              </form>
+                    {otpError && <p className="text-xs text-red-500">{otpError}</p>}
+                    <button
+                      type="submit"
+                      disabled={otpVerifying}
+                      className="w-full py-3 bg-black text-white hover:bg-gray-800 transition-colors text-[11px] tracking-[0.2em] uppercase font-bold disabled:opacity-50"
+                    >
+                      {otpVerifying ? 'A verificar…' : 'CONFIRMAR'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setOtpStep(false); setOtpCode(''); setOtpError(''); }}
+                      className="text-xs text-gray-400 hover:text-gray-600 underline"
+                    >
+                      Voltar
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-xl font-medium text-gray-900 mb-2 leading-relaxed tracking-wide">
+                    Receba novidades sobre<br />moda sustentável e<br />novas peças!
+                  </h3>
+                  <form onSubmit={handleNewsletterSubmit} noValidate className="w-full max-w-[260px] space-y-3 mt-6">
+                    <div>
+                      <input
+                        type="email"
+                        placeholder={t('marketing.emailPlaceholder')}
+                        value={email}
+                        onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError(''); if (alreadySubscribed) setAlreadySubscribed(false); }}
+                        className={`w-full px-4 py-3 bg-[#e9e9e9] border-none text-gray-900 placeholder:text-gray-500 focus:ring-1 focus:ring-gray-400 outline-none text-center text-sm ${emailError ? 'ring-1 ring-red-400' : ''}`}
+                      />
+                      {emailError && <p className="mt-1 text-xs text-red-500 text-center">{emailError}</p>}
+                      {alreadySubscribed && (
+                        <div className="mt-2 text-center space-y-1">
+                          <p className="text-xs text-gray-500">Este email já está subscrito.</p>
+                          <button
+                            type="button"
+                            onClick={() => { handleCloseNewsletter(); navigate('/newsletter/cancelar', { state: { email } }); }}
+                            className="text-xs text-red-500 hover:text-red-700 underline underline-offset-2 transition-colors"
+                          >
+                            Pretende cancelar a subscrição?
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={marketingChecked}
+                          onChange={(e) => { setMarketingChecked(e.target.checked); if (marketingError) setMarketingError(''); }}
+                          className="mt-0.5 w-4 h-4 rounded border-gray-400 text-black focus:ring-black cursor-pointer flex-shrink-0"
+                        />
+                        <span className="text-[11px] text-gray-600 leading-relaxed">
+                          {t('marketing.acceptDesc')}
+                        </span>
+                      </label>
+                      {marketingError && <p className="mt-1 text-xs text-red-500">{marketingError}</p>}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={otpSending}
+                      className="w-full py-3 bg-black text-white hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 text-[11px] tracking-[0.2em] uppercase font-bold disabled:opacity-50"
+                    >
+                      {otpSending ? 'A enviar…' : <><span>QUERO RECEBER</span> <Heart className="h-3 w-3 fill-white" /></>}
+                    </button>
+                  </form>
+                </>
+              )}
             </div>
           </div>
         </div>

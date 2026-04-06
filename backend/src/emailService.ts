@@ -1211,6 +1211,135 @@ ${content.validFor}
 ${content.copyright.replace('{year}', new Date().getFullYear().toString())}
     `;
   }
+
+  async sendNewsletterOtp(email: string, code: string) {
+    if (!this.resend) throw new Error('Email service not configured.');
+    const year = new Date().getFullYear();
+    const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <tr><td style="background:#1E4D3B;padding:28px 40px;">
+          <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">Recicloth</h1>
+        </td></tr>
+        <tr><td style="padding:40px;">
+          <h2 style="margin:0 0 8px;font-size:24px;color:#1a1a1a;">Confirme a sua subscrição</h2>
+          <p style="margin:0 0 32px;color:#666;font-size:15px;">Use o código abaixo para confirmar o seu email e subscrever a newsletter da Recicloth.</p>
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:28px;text-align:center;margin-bottom:28px;">
+            <p style="margin:0 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Código de confirmação</p>
+            <p style="margin:0;font-size:42px;font-weight:800;letter-spacing:10px;color:#1E4D3B;font-family:monospace;">${code}</p>
+            <p style="margin:12px 0 0;font-size:12px;color:#9ca3af;">Válido por 10 minutos</p>
+          </div>
+          <p style="margin:0;font-size:13px;color:#9ca3af;">Se não pediu esta subscrição, ignore este email.</p>
+        </td></tr>
+        <tr><td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">© ${year} Recicloth — Todos os direitos reservados</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+    await this.resend.emails.send({
+      from: this.from,
+      to: email,
+      subject: `${code} — Confirme a subscrição da newsletter Recicloth`,
+      html,
+    });
+  }
+
+  async sendNewsletterUnsubscribeOtp(email: string, code: string) {
+    if (!this.resend) throw new Error('Email service not configured.');
+    const year = new Date().getFullYear();
+    const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <tr><td style="background:#1E4D3B;padding:28px 40px;">
+          <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">Recicloth</h1>
+        </td></tr>
+        <tr><td style="padding:40px;">
+          <h2 style="margin:0 0 8px;font-size:24px;color:#1a1a1a;">Cancelar subscrição</h2>
+          <p style="margin:0 0 32px;color:#666;font-size:15px;">Use o código abaixo para confirmar o cancelamento da sua subscrição à newsletter da Recicloth.</p>
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:28px;text-align:center;margin-bottom:28px;">
+            <p style="margin:0 0 8px;font-size:13px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Código de confirmação</p>
+            <p style="margin:0;font-size:42px;font-weight:800;letter-spacing:10px;color:#1E4D3B;font-family:monospace;">${code}</p>
+            <p style="margin:12px 0 0;font-size:12px;color:#9ca3af;">Válido por 10 minutos</p>
+          </div>
+          <p style="margin:0;font-size:13px;color:#9ca3af;">Se não pediu o cancelamento, ignore este email — a sua subscrição mantém-se ativa.</p>
+        </td></tr>
+        <tr><td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">© ${year} Recicloth — Todos os direitos reservados</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+    await this.resend.emails.send({
+      from: this.from,
+      to: email,
+      subject: `${code} — Confirme o cancelamento da newsletter Recicloth`,
+      html,
+    });
+  }
+
+  async sendNewsletterCampaign(
+    email: string,
+    subject: string,
+    contentHtml: string,
+    unsubscribeToken: string
+  ) {
+    if (!this.resend) throw new Error('Email service not configured.');
+    const frontendUrl = process.env.FRONTEND_URL?.split(',')[0]?.trim() || 'http://localhost:5173';
+    const unsubscribeUrl = `${frontendUrl}/api/newsletter/unsubscribe?token=${unsubscribeToken}`;
+    const year = new Date().getFullYear();
+
+    const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:40px 0;">
+    <tr><td align="center">
+      <table width="620" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <tr><td style="background:#1E4D3B;padding:24px 40px;">
+          <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">Recicloth</h1>
+          <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:13px;">Moda Sustentável e Upcycled</p>
+        </td></tr>
+        <tr><td style="padding:0;">
+          ${contentHtml}
+        </td></tr>
+        <tr><td style="background:#f9fafb;padding:20px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+          <p style="margin:0 0 8px;font-size:12px;color:#9ca3af;">© ${year} Recicloth — Todos os direitos reservados</p>
+          <p style="margin:0;font-size:11px;color:#9ca3af;">
+            Recebeu este email porque subscreveu a newsletter da Recicloth.<br/>
+            <a href="${unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Cancelar subscrição</a>
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+    await this.resend.emails.send({
+      from: this.from,
+      to: email,
+      subject,
+      html,
+      headers: {
+        'List-Unsubscribe': `<${unsubscribeUrl}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
+    });
+  }
 }
 
 export default new EmailService();

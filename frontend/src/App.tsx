@@ -28,6 +28,7 @@ import TrackOrder from './pages/TrackOrder';
 import PoliticaPrivacidade from './pages/PoliticaPrivacidade';
 import PoliticaDevolucao from './pages/PoliticaDevolucao';
 import TermosCondicoes from './pages/TermosCondicoes';
+import NewsletterUnsubscribe from './pages/NewsletterUnsubscribe';
 
 // Lazy-load Stripe-dependent pages so stripe.js is not fetched on every page
 const Checkout = lazy(() => import('./pages/Checkout'));
@@ -108,6 +109,8 @@ function App() {
                         <Route path="/return-policy" element={<PoliticaDevolucao />} />
                         <Route path="/termos-condicoes" element={<TermosCondicoes />} />
                         <Route path="/terms-conditions" element={<TermosCondicoes />} />
+                        <Route path="/newsletter/cancelar" element={<NewsletterUnsubscribe />} />
+                        <Route path="/newsletter/unsubscribe" element={<NewsletterUnsubscribe />} />
                         {/* <Route path="/sobre" element={<About />} /> */}
                       </Routes>
                     </main>

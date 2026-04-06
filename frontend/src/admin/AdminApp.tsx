@@ -10,6 +10,7 @@ import CategoriesList from './pages/CategoriesList';
 import HeroSlidesList from './pages/HeroSlidesList';
 import UsersList from './pages/UsersList';
 import ReviewsList from './pages/ReviewsList';
+import NewsletterAdmin from './pages/NewsletterAdmin';
 
 export default function AdminApp() {
   const { user, isAuthenticated } = useAuth();
@@ -45,6 +46,7 @@ export default function AdminApp() {
         <Route path="/avaliacoes" element={<ReviewsList />} />
         <Route path="/utilizadores" element={<UsersList />} />
         <Route path="/hero-slides" element={<HeroSlidesList />} />
+        <Route path="/newsletter" element={<NewsletterAdmin />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </AdminLayout>

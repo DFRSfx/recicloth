@@ -37,7 +37,7 @@ const TermosCondicoes: React.FC = () => {
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li><strong>Stock:</strong> Como trabalhamos com roupa reciclada, a maioria das peças são únicas. Em caso de erro de stock simultâneo, a primeira encomenda paga terá prioridade, sendo feito o reembolso total à segunda.</li>
                 <li><strong>Preços:</strong> Os preços incluem IVA à taxa legal em vigor. Os custos de envio são somados no checkout.</li>
-                <li><strong>Pagamento:</strong> Aceitação de métodos seguros (MB Way, Transferência Bancária ou Cartão).</li>
+                <li><strong>Pagamento:</strong> Aceitação de métodos seguros (MB Way ou Cartão).</li>
                 <li><strong>Fatura:</strong> A fatura será emitida automaticamente após confirmação da encomenda e enviada para o email indicado pelo cliente.</li>
               </ul>
             </section>

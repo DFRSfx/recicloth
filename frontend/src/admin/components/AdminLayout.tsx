@@ -12,7 +12,8 @@ import {
   ArrowLeft,
   Image,
   Users,
-  Star
+  Star,
+  Mail
 } from 'lucide-react';
 import LanguageSwitcher from '../../components/LanguageSwitcher';
 
@@ -33,6 +34,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Encomendas', path: '/admin/encomendas', icon: ShoppingCart },
     { name: 'Avaliações', path: '/admin/avaliacoes', icon: Star },
     { name: 'Utilizadores', path: '/admin/utilizadores', icon: Users },
+    { name: 'Newsletter', path: '/admin/newsletter', icon: Mail },
   ];
 
   const isActive = (path: string) => {

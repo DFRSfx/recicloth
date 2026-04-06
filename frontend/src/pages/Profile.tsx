@@ -136,6 +136,10 @@ const Profile: React.FC = () => {
   const [addressSaving, setAddressSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
+  // Newsletter subscription
+  const [newsletterSubscribed, setNewsletterSubscribed] = useState<boolean | null>(null);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+
   // Field-level validation errors
   const [profileFieldErrors, setProfileFieldErrors] = useState<Record<string, string>>({});
   const [addressFieldErrors, setAddressFieldErrors] = useState<Record<string, string>>({});
@@ -180,6 +184,31 @@ const Profile: React.FC = () => {
     };
     fetchAddresses();
   }, [token]);
+
+  // Fetch newsletter subscription status
+  useEffect(() => {
+    if (!token) return;
+    fetch('/api/newsletter/status', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => setNewsletterSubscribed(d.subscribed ?? false))
+      .catch(() => setNewsletterSubscribed(false));
+  }, [token]);
+
+  const handleNewsletterUnsubscribe = async () => {
+    if (!token) return;
+    setNewsletterLoading(true);
+    try {
+      const res = await fetch('/api/newsletter/unsubscribe', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) setNewsletterSubscribed(false);
+    } catch {
+      // silent
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
 
   const clearProfileError = (field: string) => {
     setProfileFieldErrors(prev => { const next = { ...prev }; delete next[field]; return next; });
@@ -517,6 +546,34 @@ const Profile: React.FC = () => {
                       </div>
                     </form>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Newsletter */}
+            {newsletterSubscribed !== null && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-primary-50 rounded-full flex-shrink-0">
+                    <Mail className="w-4 h-4 text-primary-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-1">Newsletter</h3>
+                    {newsletterSubscribed ? (
+                      <>
+                        <p className="text-xs text-gray-500 mb-3">Está subscrito/a à newsletter da Recicloth.</p>
+                        <button
+                          onClick={handleNewsletterUnsubscribe}
+                          disabled={newsletterLoading}
+                          className="text-xs text-red-500 hover:text-red-700 underline underline-offset-2 disabled:opacity-50 transition-colors"
+                        >
+                          {newsletterLoading ? 'A cancelar…' : 'Cancelar subscrição'}
+                        </button>
+                      </>
+                    ) : (
+                      <p className="text-xs text-gray-400">Não está subscrito/a à newsletter.</p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

@@ -74,6 +74,11 @@ const Footer: React.FC = () => {
                   {t('footer.links.terms')}
                 </Link>
               </li>
+              <li>
+                <Link to="/newsletter/cancelar" className="hover:text-white transition-colors block text-primary-300 text-sm">
+                  {lang === 'en' ? 'Unsubscribe newsletter' : 'Cancelar newsletter'}
+                </Link>
+              </li>
               <li className="pt-2">
                 <a href="https://www.livroreclamacoes.pt" target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity inline-block">
                   <img src="https://www.livroreclamacoes.pt/Inicio/img/LRE_Theme.Logo_White.png?05CfBRVXskp07svwn4m+4A" alt={t('footer.links.complaints')} className="h-8 w-auto" />
