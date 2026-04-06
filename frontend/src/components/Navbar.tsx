@@ -61,7 +61,9 @@ const Navbar: React.FC = () => {
     if (isAuthenticated) {
       refreshUser();
     }
-  }, [isAuthenticated, refreshUser]);
+    // refreshUser is intentionally omitted — it has its own 10-min throttle
+    // and should only run when auth state changes, not when its reference changes
+  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);

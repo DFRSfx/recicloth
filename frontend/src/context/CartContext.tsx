@@ -214,7 +214,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     loadCartFromDB(lang);
-  }, [lang, loadCartFromDB]);
+    // loadCartFromDB intentionally omitted — only re-fetch on lang change, not on token load
+  }, [lang]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(state));
