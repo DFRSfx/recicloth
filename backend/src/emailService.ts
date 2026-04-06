@@ -110,7 +110,7 @@ const emailTranslations: EmailTranslations = {
     },
     orderConfirmation: {
       subject: 'Confirmação de Pedido #{orderNumber} - Recicloth',
-      title: 'Obrigado pelo teu pedido! 🎉',
+      title: 'Obrigado pelo teu pedido!',
       subtitle: 'Já recebemos a tua encomenda.',
       greeting: 'Olá',
       orderNumber: 'Número do pedido',
@@ -186,7 +186,7 @@ const emailTranslations: EmailTranslations = {
     },
     orderConfirmation: {
       subject: 'Order Confirmation #{orderNumber} - Recicloth',
-      title: 'Thank you for your order! 🎉',
+      title: 'Thank you for your order!',
       subtitle: 'We have received your order.',
       greeting: 'Hello',
       orderNumber: 'Order number',
@@ -609,7 +609,7 @@ private getOrderConfirmationHTML(
       const lineTotal = (price * item.quantity).toFixed(2);
       const meta = [item.color, item.size].filter(Boolean).join(' · ');
       const imgSrc = item.image
-        ? (item.image.startsWith('http') ? item.image : `${backendUrl}${item.image.startsWith('/') ? '' : '/'}${item.image}`)
+        ? (item.image.startsWith('http') ? item.image : `${backendUrl}/api/images/${item.image.replace(/^\//, '')}`)
         : null;
       return `
       <tr>
@@ -870,7 +870,9 @@ ${content.copyright.replace('{{year}}', year)}
       const price = parseFloat(String(item.price));
       const lineTotal = (price * item.quantity).toFixed(2);
       const meta = [item.color, item.size].filter(Boolean).join(' · ');
-      const imgSrc = item.image ? `${frontendUrl}${item.image}` : null;
+      const imgSrc = item.image
+        ? (item.image.startsWith('http') ? item.image : `${frontendUrl}/api/images/${item.image.replace(/^\//, '')}`)
+        : null;
       return `
       <tr>
         <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; vertical-align: top;">
