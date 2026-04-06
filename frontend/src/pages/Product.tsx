@@ -12,7 +12,7 @@ import { getAbsoluteImageUrl, imgVariant } from '../utils/imageUtils';
 import Toast, { ToastType } from '../components/Toast';
 import { fireCartToast } from '../utils/cartToast';
 import { useLanguage } from '../context/LanguageContext';
-import { getProductPath, getRoutePath, withQuery } from '../utils/routes';
+import { getProductPath, getRoutePath, getShopPath } from '../utils/routes';
 
 const toColorSlug = (value: string): string =>
   value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
@@ -499,7 +499,7 @@ const Product: React.FC = () => {
       getBreadcrumbSchema([
         { name: t('nav.home'), url: getRoutePath('home', lang) },
         { name: t('nav.shop'), url: shopPath },
-        { name: product.category, url: withQuery(shopPath, { categoria: product.category }) },
+        { name: product.category, url: getShopPath(lang, product.category_slug) },
         { name: product.name, url: getProductPath(lang, product.id) }
       ])
     ],
@@ -513,7 +513,7 @@ const Product: React.FC = () => {
       <div className="hidden lg:block max-w-[1440px] mx-auto px-8 py-6 text-sm font-medium text-gray-500">
         <Link to={shopPath} className="hover:text-black hover:underline">{t('nav.shop')}</Link>
         <span className="mx-2">/</span>
-        <Link to={withQuery(shopPath, { categoria: product.category })} className="hover:text-black hover:underline">{product.category}</Link>
+        <Link to={getShopPath(lang, product.category_slug)} className="hover:text-black hover:underline">{product.category}</Link>
         <span className="mx-2">/</span>
         <span className="text-gray-900">{product.name}</span>
       </div>
@@ -585,7 +585,7 @@ const Product: React.FC = () => {
         <div className="w-full lg:w-5/12 xl:w-1/3 px-4 py-6 lg:px-0 lg:py-0 lg:sticky lg:top-24">
 
           <div className="block lg:hidden mb-6">
-            <Link to={withQuery(shopPath, { categoria: product.category })} className="flex items-center text-sm font-bold text-gray-900 mb-4">
+            <Link to={getShopPath(lang, product.category_slug)} className="flex items-center text-sm font-bold text-gray-900 mb-4">
               <ChevronLeft size={16} className="mr-1" strokeWidth={2.5} /> {t('product.backToShop')}
             </Link>
             <h1 className="text-2xl font-bold tracking-tight mb-2">{product.name}</h1>

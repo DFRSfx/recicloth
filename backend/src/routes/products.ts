@@ -469,7 +469,9 @@ router.get('/', async (req, res) => {
          COALESCE(pt.name,        p.name)        AS name,
          COALESCE(pt.description, p.description) AS description,
          COALESCE(ct.name,        c.name)        AS category_name,
-         c.slug                                  AS category_slug
+         c.slug                                  AS category_slug,
+         (SELECT ROUND(AVG(r.rating), 1) FROM product_reviews r WHERE r.product_id = p.id AND r.status = 'approved') AS rating_avg,
+         (SELECT COUNT(*)               FROM product_reviews r WHERE r.product_id = p.id AND r.status = 'approved') AS review_count
        FROM products p
        LEFT JOIN categories c ON p.category_id = c.id
        LEFT JOIN product_translations pt  ON pt.product_id  = p.id  AND pt.lang  = ?

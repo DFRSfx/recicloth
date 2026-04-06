@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, ChevronLeft, ChevronRight, Plus, Check } from 'lucide-react';
+import { Heart, ChevronLeft, ChevronRight, Plus, Check, Star } from 'lucide-react';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
@@ -315,11 +315,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, hideActions = false,
           </Link>
           <p className="text-sm font-medium text-gray-900 mb-2">€ {product.price.toFixed(2)}</p>
 
-          {/* Reviews (Mocked) */}
-          <div className="flex items-center gap-1 mb-3">
-            <div className="flex text-black text-xs">★★★★☆</div>
-            <span className="text-xs text-gray-500">(2)</span>
-          </div>
+          {/* Reviews */}
+          {(product.review_count ?? 0) > 0 && (
+            <div className="flex items-center gap-1 mb-3">
+              <div className="flex items-center text-black">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={11}
+                    className={i < Math.round(product.rating_avg ?? 0) ? 'fill-current' : 'text-gray-300'}
+                    strokeWidth={1.5}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-gray-500">({product.review_count})</span>
+            </div>
+          )}
 
           {/* Feature Tags */}
           <div className="flex flex-wrap gap-1 mt-auto pb-1">

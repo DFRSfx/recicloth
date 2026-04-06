@@ -119,6 +119,7 @@ export function adaptProductToFrontend(backendProduct: BackendProduct): Frontend
     price: price,
     images: images,
     category: backendProduct.category_name || 'Sem Categoria',
+    category_slug: backendProduct.category_slug,
     colors: colorsArray,
     inStock: stock > 0,
     stock_mode: backendProduct.stock_mode || 'unit',

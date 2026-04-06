@@ -24,6 +24,9 @@ export interface Product {
   featured: boolean;
   new: boolean;
   tags: string[];
+  category_slug?: string;
+  rating_avg?: number | null;
+  review_count?: number | null;
 }
 
 export interface CartItem {
