@@ -31,8 +31,13 @@ const Navbar: React.FC = () => {
     const categoryProducts = products.filter(p => p.category === categoryName);
     if (categoryProducts.length === 0) return null;
 
-    const randomProduct = categoryProducts[Math.floor(Math.random() * categoryProducts.length)];
-    return randomProduct.images[0] ? getAbsoluteImageUrl(imgVariant(randomProduct.images[0], 'md')) : null;
+    // Usamos sempre o primeiro produto (índice 0) em vez de um aleatório.
+    // Isto mantém a imagem estática para cada categoria, evitando mudanças inesperadas.
+    const stableProduct = categoryProducts[0];
+    
+    return stableProduct.images[0] 
+      ? getAbsoluteImageUrl(imgVariant(stableProduct.images[0], 'md')) 
+      : null;
   };
 
   const CategoryPlaceholder = () => (
