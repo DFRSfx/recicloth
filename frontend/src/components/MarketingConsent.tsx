@@ -205,7 +205,7 @@ const MarketingConsent: React.FC = () => {
   return (
     <>
       {(showNewsletter || showPreferences) && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-[1px] z-[51] animate-fade-in" />
+        <div className="fixed inset-0 bg-black/40 z-[51] animate-fade-in" />
       )}
 
       {showNewsletter && (

@@ -432,6 +432,85 @@ const Product: React.FC = () => {
     return { average, count: approvedReviews.length, topFit, topActivities };
   }, [approvedReviews]);
 
+  // ── Review filters / search / sort / pagination ───────────────────────────
+  const [reviewSearch, setReviewSearch] = useState('');
+  const [reviewSort, setReviewSort] = useState<'newest' | 'highest' | 'lowest'>('newest');
+  const [reviewPage, setReviewPage] = useState(1);
+  const REVIEWS_PER_PAGE = 3;
+
+  type FilterKey = 'rating' | 'likelihood' | 'size' | 'height' | 'activity' | 'fit';
+  const [activeFilters, setActiveFilters] = useState<Record<FilterKey, string>>({
+    rating: '', likelihood: '', size: '', height: '', activity: '', fit: '',
+  });
+  const [openDropdown, setOpenDropdown] = useState<FilterKey | null>(null);
+
+  // Unique option sets derived from approved reviews
+  const filterOptions = useMemo<Record<FilterKey, string[]>>(() => {
+    const unique = (vals: (string | null | undefined)[]) =>
+      [...new Set(vals.filter(Boolean) as string[])].sort();
+    const activities = approvedReviews.flatMap(r =>
+      r.activities ? r.activities.split(',').map(a => a.trim()).filter(Boolean) : []
+    );
+    return {
+      rating: ['5', '4', '3', '2', '1'],
+      likelihood: unique(approvedReviews.map(r => r.likelihood)),
+      size: unique(approvedReviews.map(r => r.size)),
+      height: unique(approvedReviews.map(r => r.height)),
+      activity: [...new Set(activities)].sort(),
+      fit: unique(approvedReviews.map(r => r.fit)),
+    };
+  }, [approvedReviews]);
+
+  const filteredReviews = useMemo(() => {
+    let list = [...approvedReviews];
+
+    if (activeFilters.rating)
+      list = list.filter(r => r.rating === Number(activeFilters.rating));
+    if (activeFilters.likelihood)
+      list = list.filter(r => r.likelihood === activeFilters.likelihood);
+    if (activeFilters.size)
+      list = list.filter(r => r.size === activeFilters.size);
+    if (activeFilters.height)
+      list = list.filter(r => r.height === activeFilters.height);
+    if (activeFilters.activity)
+      list = list.filter(r => r.activities?.split(',').map(a => a.trim()).includes(activeFilters.activity));
+    if (activeFilters.fit)
+      list = list.filter(r => r.fit === activeFilters.fit);
+    if (reviewSearch.trim())
+      list = list.filter(r =>
+        r.headline.toLowerCase().includes(reviewSearch.toLowerCase()) ||
+        r.content.toLowerCase().includes(reviewSearch.toLowerCase())
+      );
+
+    list.sort((a, b) => {
+      if (reviewSort === 'highest') return b.rating - a.rating;
+      if (reviewSort === 'lowest') return a.rating - b.rating;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    return list;
+  }, [approvedReviews, activeFilters, reviewSearch, reviewSort]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredReviews.length / REVIEWS_PER_PAGE));
+  const paginatedReviews = filteredReviews.slice(
+    (reviewPage - 1) * REVIEWS_PER_PAGE,
+    reviewPage * REVIEWS_PER_PAGE
+  );
+
+  const setFilter = (key: FilterKey, value: string) => {
+    setActiveFilters(prev => ({ ...prev, [key]: prev[key] === value ? '' : value }));
+    setOpenDropdown(null);
+    setReviewPage(1);
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters({ rating: '', likelihood: '', size: '', height: '', activity: '', fit: '' });
+    setReviewSearch('');
+    setReviewPage(1);
+  };
+
+  const hasActiveFilters = Object.values(activeFilters).some(Boolean) || reviewSearch.trim();
+
   const selectedEligibleItem = useMemo(
     () => eligibleItems.find(item => String(item.order_item_id) === reviewForm.orderItemId) || null,
     [eligibleItems, reviewForm.orderItemId]
@@ -802,29 +881,31 @@ const Product: React.FC = () => {
           </div>
         </div>
 
-        {/* Action Buttons & Filters */}
+        {/* Action Buttons & Search */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <button 
+              <button
                 onClick={() => setIsAskModalOpen(true)}
                 className="px-6 py-2.5 bg-black text-white font-bold rounded-full hover:bg-gray-800 transition-colors text-sm"
               >
                 Ask a Question
               </button>
-              <button 
+              <button
                 onClick={() => setIsReviewModalOpen(true)}
                 className="px-6 py-2.5 bg-white text-black border-2 border-black font-bold rounded-full hover:bg-gray-50 transition-colors text-sm"
               >
                 Write a Review
               </button>
             </div>
-            
+
             <div className="relative max-w-xs mt-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search reviews" 
+              <input
+                type="text"
+                placeholder="Search reviews"
+                value={reviewSearch}
+                onChange={e => { setReviewSearch(e.target.value); setReviewPage(1); }}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-black"
               />
             </div>
@@ -832,22 +913,92 @@ const Product: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Sort by:</span>
-            <select className="border-none bg-transparent font-medium text-sm focus:ring-0 cursor-pointer pr-6">
-              <option>Newest</option>
-              <option>Highest Rating</option>
+            <select
+              value={reviewSort}
+              onChange={e => { setReviewSort(e.target.value as typeof reviewSort); setReviewPage(1); }}
+              className="border-none bg-transparent font-medium text-sm focus:ring-0 cursor-pointer pr-6"
+            >
+              <option value="newest">Newest</option>
+              <option value="highest">Highest Rating</option>
+              <option value="lowest">Lowest Rating</option>
             </select>
           </div>
         </div>
 
         {/* Filters Row */}
-        <div className="flex flex-wrap gap-4 border-b border-gray-200 pb-4 mb-8">
-          {['Rating', 'Likelihood to...', 'Size', 'Height', 'Activity', 'Fit'].map((filter) => (
-            <div key={filter} className="flex items-center justify-between min-w-[120px] pb-1 border-b-2 border-black cursor-pointer group">
-              <span className="text-sm font-medium text-gray-700 group-hover:text-black">{filter}</span>
-              <ChevronDown size={16} className="text-gray-500" />
-            </div>
-          ))}
+        <div className="flex flex-wrap gap-4 border-b border-gray-200 pb-4 mb-4" onClick={() => setOpenDropdown(null)}>
+          {(
+            [
+              { key: 'rating' as FilterKey, label: 'Rating' },
+              { key: 'likelihood' as FilterKey, label: 'Likelihood to...' },
+              { key: 'size' as FilterKey, label: 'Size' },
+              { key: 'height' as FilterKey, label: 'Height' },
+              { key: 'activity' as FilterKey, label: 'Activity' },
+              { key: 'fit' as FilterKey, label: 'Fit' },
+            ] as { key: FilterKey; label: string }[]
+          ).map(({ key, label }) => {
+            const opts = filterOptions[key];
+            if (opts.length === 0) return null;
+            const selected = activeFilters[key];
+            const isOpen = openDropdown === key;
+            return (
+              <div key={key} className="relative">
+                <div
+                  className={`flex items-center justify-between gap-2 min-w-[120px] pb-1 border-b-2 cursor-pointer group ${selected ? 'border-black' : 'border-black'}`}
+                  onClick={e => { e.stopPropagation(); setOpenDropdown(isOpen ? null : key); }}
+                >
+                  <span className={`text-sm font-medium group-hover:text-black ${selected ? 'text-black' : 'text-gray-700'}`}>
+                    {selected ? (key === 'rating' ? `${selected} ★` : selected) : label}
+                  </span>
+                  <ChevronDown size={16} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </div>
+                {isOpen && (
+                  <div
+                    className="absolute top-full left-0 mt-1 bg-white border border-gray-200 shadow-lg rounded-md z-20 min-w-[160px] py-1"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <button
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${!selected ? 'font-bold' : ''}`}
+                      onClick={() => setFilter(key, '')}
+                    >
+                      All
+                    </button>
+                    {opts.map(opt => (
+                      <button
+                        key={opt}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center justify-between ${selected === opt ? 'font-bold' : ''}`}
+                        onClick={() => setFilter(key, opt)}
+                      >
+                        <span>{key === 'rating' ? `${'★'.repeat(Number(opt))} ${opt}` : opt}</span>
+                        {selected === opt && <span className="text-xs text-gray-400">✓</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {hasActiveFilters && (
+            <button
+              onClick={clearAllFilters}
+              className="text-xs text-gray-500 hover:text-black underline underline-offset-2 self-end pb-1"
+            >
+              Clear all
+            </button>
+          )}
         </div>
+
+        {/* Active filter chips */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {(Object.entries(activeFilters) as [FilterKey, string][]).filter(([, v]) => v).map(([k, v]) => (
+              <span key={k} className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-sm rounded-full">
+                {v}
+                <button onClick={() => setFilter(k, v)} className="text-gray-400 hover:text-black leading-none">×</button>
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Reviews List */}
         <div className="space-y-10">
@@ -857,10 +1008,13 @@ const Product: React.FC = () => {
           {!reviewsLoading && reviewsError && (
             <p className="text-sm text-red-600">{reviewsError}</p>
           )}
-          {!reviewsLoading && !reviewsError && reviews.length === 0 && (
+          {!reviewsLoading && !reviewsError && approvedReviews.length === 0 && (
             <p className="text-sm text-gray-500">Ainda não existem reviews para este produto.</p>
           )}
-          {reviews.map((review) => (
+          {!reviewsLoading && !reviewsError && approvedReviews.length > 0 && filteredReviews.length === 0 && (
+            <p className="text-sm text-gray-500">Nenhuma review corresponde aos filtros selecionados.</p>
+          )}
+          {paginatedReviews.map((review) => (
             <div key={review.id} className="flex flex-col md:flex-row gap-6">
               {/* Left Column: User Info & Meta */}
               <div className="w-full md:w-1/3 xl:w-1/4">
@@ -913,16 +1067,17 @@ const Product: React.FC = () => {
 
               {/* Right Column: Review Content */}
               <div className="w-full md:w-2/3 xl:w-3/4">
-                <p className="text-xs font-bold mb-2 cursor-pointer hover:underline">See more</p>
                 <div className="flex text-black mb-3">
-                  {[...Array(review.rating)].map((_, i) => <Star key={i} size={16} className="fill-current" />)}
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={16} className={i < review.rating ? 'fill-current' : 'text-gray-300'} />
+                  ))}
                 </div>
                 <h4 className="text-xl font-bold text-gray-900 mb-4">{review.headline}</h4>
                 <p className="text-[15px] text-gray-800 leading-relaxed mb-6">
                   {review.content}
                 </p>
                 <p className="text-sm text-gray-500 mb-6">{formatReviewDate(review.created_at)}</p>
-                
+
                 <div className="flex items-center justify-between border-t border-gray-100 pt-4">
                   <div className="w-64">
                     <p className="text-sm font-bold text-gray-900 mb-2">Fit</p>
@@ -932,7 +1087,7 @@ const Product: React.FC = () => {
                     </div>
                     <p className="text-xs font-bold text-center mt-2">{review.fit || '—'}</p>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 text-sm text-gray-500">
                     <span>Helpful?</span>
                     <button className="flex items-center gap-1 hover:text-black"><ThumbsUp size={16} /> 0</button>
@@ -943,12 +1098,49 @@ const Product: React.FC = () => {
             </div>
           ))}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-10">
+            <button
+              onClick={() => setReviewPage(p => Math.max(1, p - 1))}
+              disabled={reviewPage === 1}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              ←
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+              <button
+                key={p}
+                onClick={() => setReviewPage(p)}
+                className={`px-3 py-1.5 text-sm border rounded transition-colors ${
+                  p === reviewPage ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => setReviewPage(p => Math.min(totalPages, p + 1))}
+              disabled={reviewPage === totalPages}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              →
+            </button>
+          </div>
+        )}
+
+        {filteredReviews.length > 0 && (
+          <p className="text-xs text-center text-gray-400 mt-3">
+            {(reviewPage - 1) * REVIEWS_PER_PAGE + 1}–{Math.min(reviewPage * REVIEWS_PER_PAGE, filteredReviews.length)} of {filteredReviews.length} reviews
+          </p>
+        )}
       </div>
 
       {/* --- "Ask a Question" Modal --- */}
       {isAskModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsAskModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={() => setIsAskModalOpen(false)}></div>
           <div className="relative bg-white w-full max-w-2xl rounded-md shadow-2xl p-8 max-h-[90vh] overflow-y-auto">
             <button onClick={() => setIsAskModalOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-black">
               <X size={24} strokeWidth={1.5} />
@@ -988,7 +1180,7 @@ const Product: React.FC = () => {
       {/* --- "Write a Review" Modal --- */}
       {isReviewModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsReviewModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={() => setIsReviewModalOpen(false)}></div>
           <div className="relative bg-white w-full max-w-2xl rounded-md shadow-2xl p-8 max-h-[90vh] overflow-y-auto hide-scrollbar">
             <button onClick={() => setIsReviewModalOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-black">
               <X size={24} strokeWidth={1.5} />
