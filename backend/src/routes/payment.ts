@@ -6,6 +6,7 @@ import pool from '../config/database.js';
 import emailService from '../emailService.js';
 import { calculateShipping } from '../utils/shippingCalculator.js';
 import { BUSINESS_RULES } from '../config/businessRules.js';
+import { generateInvoicePdf } from '../utils/generateInvoicePdf.js';
 
 const router = express.Router();
 
@@ -403,9 +404,9 @@ router.post(
 
         console.log(`✅ Order ${orderId} created for PI ${payment_intent_id}`);
 
-        // If PI already succeeded (card payments), update order immediately.
-        // Email is sent exclusively by the webhook (payment_intent.succeeded)
-        // to avoid duplicates.
+        // If PI already succeeded (card payments), update order status and send email.
+        // Card payments: Stripe fires the webhook BEFORE the frontend calls /finalize,
+        // so the webhook finds no order and skips the email. We must send it here instead.
         try {
           const pi = await requireStripe().paymentIntents.retrieve(payment_intent_id);
           if (pi.status === 'succeeded') {
@@ -413,6 +414,53 @@ router.post(
               "UPDATE orders SET status = 'processing', payment_status = 'paid' WHERE id = ?",
               [orderId]
             );
+
+            // Fetch full order + items to send confirmation email
+            const [orderRows]: any = await pool.query(
+              `SELECT customer_name, customer_email, total, subtotal, vat_amount, shipping_cost,
+                      created_at, customer_address, customer_city, customer_postal_code,
+                      payment_method, tracking_token
+               FROM orders WHERE id = ?`, [orderId]
+            );
+            const [itemRows]: any = await pool.query(
+              `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name,
+                      JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]')) AS first_image
+               FROM order_items oi JOIN products p ON oi.product_id = p.id
+               WHERE oi.order_id = ?`, [orderId]
+            );
+            if (orderRows.length > 0) {
+              const o = orderRows[0];
+              const orderDetailsForEmail = {
+                total: parseFloat(o.total),
+                subtotal: parseFloat(o.subtotal || o.total),
+                shipping_cost: parseFloat(o.shipping_cost || 0),
+                vat_amount: parseFloat(o.vat_amount || 0),
+                created_at: o.created_at,
+                customer_address: o.customer_address,
+                customer_city: o.customer_city,
+                customer_postal_code: o.customer_postal_code,
+                payment_method: o.payment_method,
+                tracking_token: o.tracking_token,
+                items: itemRows.map((r: any) => ({
+                  name: r.name, quantity: r.quantity, price: parseFloat(r.price),
+                  color: r.color || undefined, size: r.size || undefined,
+                  image: r.first_image || undefined,
+                })),
+              };
+              generateInvoicePdf({
+                id: orderId,
+                payment_status: 'paid',
+                customer_name: o.customer_name,
+                customer_email: o.customer_email,
+                customer_phone: o.customer_phone || '',
+                ...orderDetailsForEmail,
+              }).then(pdfBuffer =>
+                emailService.sendOrderConfirmation(
+                  o.customer_email, o.customer_name, String(orderId),
+                  orderDetailsForEmail, 'pt', pdfBuffer
+                )
+              ).catch((err: any) => console.error('❌ Finalize email error:', err.message));
+            }
           }
         } catch (piErr: any) {
           console.error('Warning: could not check PI status:', piErr.message);
@@ -636,32 +684,42 @@ router.post('/webhook', async (req: any, res: any) => {
              FROM orders WHERE id = ?`, [orderId]
           );
           const [itemRows]: any = await pool.query(
-            `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name
+            `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name,
+                    JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]')) AS first_image
              FROM order_items oi JOIN products p ON oi.product_id = p.id
              WHERE oi.order_id = ?`, [orderId]
           );
           if (orderRows.length > 0) {
             const o = orderRows[0];
-            emailService.sendOrderConfirmation(
-              o.customer_email,
-              o.customer_name,
-              String(orderId),
-              {
-                total: parseFloat(o.total),
-                subtotal: parseFloat(o.subtotal || o.total),
-                shipping_cost: parseFloat(o.shipping_cost || 0),
-                vat_amount: parseFloat(o.vat_amount || 0),
-                created_at: o.created_at,
-                customer_address: o.customer_address,
-                customer_city: o.customer_city,
-                customer_postal_code: o.customer_postal_code,
-                payment_method: o.payment_method,
-                tracking_token: o.tracking_token,
-                items: itemRows.map((r: any) => ({
-                  name: r.name, quantity: r.quantity, price: parseFloat(r.price),
-                  color: r.color || undefined, size: r.size || undefined
-                }))
-              }
+            const orderDetailsForEmail = {
+              total: parseFloat(o.total),
+              subtotal: parseFloat(o.subtotal || o.total),
+              shipping_cost: parseFloat(o.shipping_cost || 0),
+              vat_amount: parseFloat(o.vat_amount || 0),
+              created_at: o.created_at,
+              customer_address: o.customer_address,
+              customer_city: o.customer_city,
+              customer_postal_code: o.customer_postal_code,
+              payment_method: o.payment_method,
+              tracking_token: o.tracking_token,
+              items: itemRows.map((r: any) => ({
+                name: r.name, quantity: r.quantity, price: parseFloat(r.price),
+                color: r.color || undefined, size: r.size || undefined,
+                image: r.first_image || undefined,
+              })),
+            };
+            generateInvoicePdf({
+              id: orderId,
+              payment_status: 'paid',
+              customer_name: o.customer_name,
+              customer_email: o.customer_email,
+              customer_phone: o.customer_phone || '',
+              ...orderDetailsForEmail,
+            }).then(pdfBuffer =>
+              emailService.sendOrderConfirmation(
+                o.customer_email, o.customer_name, String(orderId),
+                orderDetailsForEmail, 'pt', pdfBuffer
+              )
             ).catch((err: any) => console.error('❌ Webhook email error:', err.message));
           }
         } else {

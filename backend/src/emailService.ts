@@ -333,9 +333,10 @@ class EmailService {
       customer_postal_code?: string;
       payment_method?: string;
       tracking_token?: string;
-      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string; image?: string }>;
     },
-    language = 'pt'
+    language = 'pt',
+    invoicePdf?: Buffer
   ) {
     if (!this.resend) {
       return { success: false, error: 'Email service not configured (RESEND_API_KEY missing).' };
@@ -348,13 +349,21 @@ class EmailService {
     const subject = content.subject.replace('{orderNumber}', orderNumber);
     console.log(`📧 Order confirmation → to: "${sanitizedEmail}" | from: "${this.from}" | subject: "${subject}"`);
 
+    const year = orderDetails.created_at
+      ? new Date(orderDetails.created_at).getFullYear()
+      : new Date().getFullYear();
+    const invoiceFilename = `fatura-recicloth-${year}-${String(orderNumber).padStart(4, '0')}.pdf`;
+
     try {
       const { data, error } = await this.resend.emails.send({
         from: this.from,
         to: sanitizedEmail,
         subject,
         html: this.getOrderConfirmationHTML(userName, orderNumber, orderDetails, content),
-        text: this.getOrderConfirmationText(userName, orderNumber, orderDetails, content)
+        text: this.getOrderConfirmationText(userName, orderNumber, orderDetails, content),
+        ...(invoicePdf
+          ? { attachments: [{ filename: invoiceFilename, content: invoicePdf }] }
+          : {}),
       });
       if (error) throw new Error(error.message);
       console.log(`✅ Order confirmation sent to "${sanitizedEmail}":`, data?.id);
@@ -569,7 +578,7 @@ private getOrderConfirmationHTML(
       customer_postal_code?: string;
       payment_method?: string;
       tracking_token?: string;
-      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string; image?: string }>;
     },
     content: any
   ): string {
@@ -594,15 +603,24 @@ private getOrderConfirmationHTML(
     const shippingCost = orderDetails.shipping_cost ?? 0;
     const vatAmount = orderDetails.vat_amount ?? 0;
 
+    const backendUrl = process.env.BACKEND_URL || process.env.FRONTEND_URL?.split(',')[0]?.trim() || 'http://localhost:3001';
     const itemsHTML = orderDetails.items.map((item) => {
       const price = parseFloat(String(item.price));
       const lineTotal = (price * item.quantity).toFixed(2);
       const meta = [item.color, item.size].filter(Boolean).join(' · ');
+      const imgSrc = item.image
+        ? (item.image.startsWith('http') ? item.image : `${backendUrl}${item.image.startsWith('/') ? '' : '/'}${item.image}`)
+        : null;
       return `
       <tr>
         <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; vertical-align: top;">
-          <div style="font-size: 14px; font-weight: 600; color: #1a2e25; margin-bottom: 2px;">${item.name}</div>
-          ${meta ? `<div style="font-size: 12px; color: #6b7280;">${meta}</div>` : ''}
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+            ${imgSrc ? `<td style="padding-right: 12px; vertical-align: top;"><img src="${imgSrc}" alt="${item.name}" width="56" height="56" style="border-radius: 6px; object-fit: cover; display: block;" /></td>` : ''}
+            <td style="vertical-align: top;">
+              <div style="font-size: 14px; font-weight: 600; color: #1a2e25; margin-bottom: 2px;">${item.name}</div>
+              ${meta ? `<div style="font-size: 12px; color: #6b7280;">${meta}</div>` : ''}
+            </td>
+          </tr></table>
         </td>
         <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; text-align: center; font-size: 14px; color: #374151; vertical-align: top; white-space: nowrap;">× ${item.quantity}</td>
         <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; text-align: right; font-size: 14px; font-weight: 600; color: #1a2e25; vertical-align: top; white-space: nowrap;">${lineTotal}€</td>
@@ -738,7 +756,7 @@ private getOrderConfirmationHTML(
       customer_postal_code?: string;
       payment_method?: string;
       tracking_token?: string;
-      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string; image?: string }>;
     },
     content: any
   ): string {
