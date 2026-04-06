@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, useCallback, useRef } from 'react';
 import { CartItem, Product } from '../types';
 import { useAuth } from './AuthContext';
 import { useLanguage } from './LanguageContext';
@@ -112,7 +112,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { token, isAuthenticated } = useAuth();
   const { lang } = useLanguage();
   const [sessionId] = useState(getSessionId());
-  const [isSyncing, setIsSyncing] = useState(false);
+  const isSyncingRef = useRef(false);
 
   const getHeaders = useCallback(() => {
     const headers: HeadersInit = {
@@ -177,8 +177,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [getHeaders, lang]);
 
   const syncCart = useCallback(async () => {
-    if (isSyncing) return;
-    setIsSyncing(true);
+    if (isSyncingRef.current) return;
+    isSyncingRef.current = true;
 
     try {
       if (isAuthenticated && token) {
@@ -192,9 +192,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error syncing cart:', error);
     } finally {
-      setIsSyncing(false);
+      isSyncingRef.current = false;
     }
-  }, [getHeaders, isAuthenticated, isSyncing, loadCartFromDB, sessionId, token]);
+  }, [getHeaders, isAuthenticated, loadCartFromDB, sessionId, token]);
 
   useEffect(() => {
     loadCartFromDB();
@@ -206,12 +206,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [isAuthenticated, token, syncCart]);
 
-  // Re-fetch cart with new language translations when lang changes
+  // Re-fetch cart with new language translations when lang changes (skip initial render)
+  const isFirstLangRender = useRef(true);
   useEffect(() => {
-    if (state.items.length > 0) {
-      loadCartFromDB(lang);
+    if (isFirstLangRender.current) {
+      isFirstLangRender.current = false;
+      return;
     }
-  }, [lang, loadCartFromDB, state.items.length]);
+    loadCartFromDB(lang);
+  }, [lang, loadCartFromDB]);
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(state));
