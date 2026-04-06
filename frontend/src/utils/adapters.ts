@@ -12,6 +12,8 @@ export interface BackendProduct {
   category_id: number;
   category_name?: string;
   category_slug?: string;
+  rating_avg?: number | string | null;
+  review_count?: number | string | null;
   images?: string[]; // Array of image file paths (e.g. ["/public/produtos/1/image-1-1.webp"])
   colors?: { name: string; hex: string }[] | string; // JSON field
   stock: number | string; // May come as string
@@ -128,6 +130,8 @@ export function adaptProductToFrontend(backendProduct: BackendProduct): Frontend
     new: isNew,
     tags: [],
     stock: stock,
+    rating_avg: backendProduct.rating_avg != null ? Number(backendProduct.rating_avg) : null,
+    review_count: backendProduct.review_count != null ? Number(backendProduct.review_count) : null,
   };
 }
 

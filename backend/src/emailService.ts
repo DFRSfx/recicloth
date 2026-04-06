@@ -39,6 +39,35 @@ interface EmailTranslations {
       items: string;
       thankYou: string;
       copyright: string;
+      shippingAddress: string;
+      paymentMethod: string;
+      yourProducts: string;
+      orderDate: string;
+      subtotal: string;
+      shipping: string;
+      vat: string;
+      trackButton: string;
+      disclaimer: string;
+    };
+    orderShipped: {
+      subject: string;
+      title: string;
+      subtitle: string;
+      greeting: string;
+      bodyText: string;
+      trackButton: string;
+      shippingAddress: string;
+      paymentMethod: string;
+      yourProducts: string;
+      shipped: string;
+      orderDate: string;
+      orderNumber: string;
+      total: string;
+      subtotal: string;
+      shipping: string;
+      vat: string;
+      copyright: string;
+      disclaimer: string;
     };
     emailVerification: {
       subject: string;
@@ -81,14 +110,43 @@ const emailTranslations: EmailTranslations = {
     },
     orderConfirmation: {
       subject: 'Confirmação de Pedido #{orderNumber} - Recicloth',
-      title: 'Pedido Confirmado!',
-      subtitle: 'Obrigado pela sua compra',
+      title: 'Obrigado pelo teu pedido! 🎉',
+      subtitle: 'Já recebemos a tua encomenda.',
       greeting: 'Olá',
-      orderNumber: 'Pedido',
+      orderNumber: 'Número do pedido',
       total: 'Total',
       items: 'Artigos',
       thankYou: 'Obrigado por comprar na Recicloth!',
-      copyright: '© {year} Recicloth - Todos os direitos reservados'
+      copyright: '© {{year}} Recicloth - Todos os direitos reservados',
+      shippingAddress: 'Endereço de entrega',
+      paymentMethod: 'Método de pagamento',
+      yourProducts: 'Os teus produtos',
+      orderDate: 'Data do pedido',
+      subtotal: 'Subtotal',
+      shipping: 'Envio',
+      vat: 'IVA (23%)',
+      trackButton: 'Acompanhar encomenda',
+      disclaimer: 'Este e-mail é gerado automaticamente. Podes verificar o estado da tua encomenda na tua conta a qualquer altura.'
+    },
+    orderShipped: {
+      subject: 'A tua encomenda está a caminho! #{{orderNumber}} - Recicloth',
+      title: 'Encomenda enviada!',
+      subtitle: 'A tua encomenda está a caminho',
+      greeting: 'Olá',
+      bodyText: 'A tua encomenda já saiu e está a caminho. Podes acompanhar o estado na tua conta.',
+      trackButton: 'Acompanhar encomenda',
+      shippingAddress: 'Endereço de entrega',
+      paymentMethod: 'Método de pagamento',
+      yourProducts: 'Os teus produtos',
+      shipped: 'Enviado',
+      orderDate: 'Data do pedido',
+      orderNumber: 'Número do pedido',
+      total: 'Total',
+      subtotal: 'Subtotal',
+      shipping: 'Envio',
+      vat: 'IVA (23%)',
+      copyright: '© {{year}} Recicloth - Todos os direitos reservados',
+      disclaimer: 'Este e-mail é enviado automaticamente. Podes verificar o estado da tua encomenda na tua conta.'
     },
     emailVerification: {
       subject: 'Verificar Email - Recicloth',
@@ -128,14 +186,43 @@ const emailTranslations: EmailTranslations = {
     },
     orderConfirmation: {
       subject: 'Order Confirmation #{orderNumber} - Recicloth',
-      title: 'Order Confirmed!',
-      subtitle: 'Thank you for your purchase',
+      title: 'Thank you for your order! 🎉',
+      subtitle: 'We have received your order.',
       greeting: 'Hello',
-      orderNumber: 'Order',
+      orderNumber: 'Order number',
       total: 'Total',
       items: 'Items',
       thankYou: 'Thank you for shopping at Recicloth!',
-      copyright: '© {year} Recicloth - All rights reserved'
+      copyright: '© {{year}} Recicloth - All rights reserved',
+      shippingAddress: 'Shipping address',
+      paymentMethod: 'Payment method',
+      yourProducts: 'Your products',
+      orderDate: 'Order date',
+      subtotal: 'Subtotal',
+      shipping: 'Shipping',
+      vat: 'VAT (23%)',
+      trackButton: 'Track order',
+      disclaimer: 'This email is generated automatically. You can check your order status in your account at any time.'
+    },
+    orderShipped: {
+      subject: 'Your order is on its way! #{{orderNumber}} - Recicloth',
+      title: 'Order shipped!',
+      subtitle: 'Your order is on its way',
+      greeting: 'Hello',
+      bodyText: 'Your order has left and is on its way. You can track the status in your account.',
+      trackButton: 'Track order',
+      shippingAddress: 'Shipping address',
+      paymentMethod: 'Payment method',
+      yourProducts: 'Your products',
+      shipped: 'Shipped',
+      orderDate: 'Order date',
+      orderNumber: 'Order number',
+      total: 'Total',
+      subtotal: 'Subtotal',
+      shipping: 'Shipping',
+      vat: 'VAT (23%)',
+      copyright: '© {{year}} Recicloth - All rights reserved',
+      disclaimer: 'This email is sent automatically. You can check your order status in your account.'
     },
     emailVerification: {
       subject: 'Verify Email - Recicloth',
@@ -147,6 +234,16 @@ const emailTranslations: EmailTranslations = {
       validFor: 'This link is valid for 24 hours',
       copyright: '© {year} Recicloth - All rights reserved'
     }
+  }
+};
+
+const paymentMethodLabel = (method?: string): string => {
+  switch (method?.toLowerCase()) {
+    case 'mbway': return 'MBWay';
+    case 'multibanco': return 'Multibanco';
+    case 'card':
+    case 'stripe': return 'Cartão de Crédito';
+    default: return method || '—';
   }
 };
 
@@ -225,7 +322,19 @@ class EmailService {
     email: string,
     userName: string,
     orderNumber: string,
-    orderDetails: any,
+    orderDetails: {
+      total: number;
+      subtotal?: number;
+      shipping_cost?: number;
+      vat_amount?: number;
+      created_at?: string;
+      customer_address?: string;
+      customer_city?: string;
+      customer_postal_code?: string;
+      payment_method?: string;
+      tracking_token?: string;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+    },
     language = 'pt'
   ) {
     if (!this.resend) {
@@ -446,15 +555,312 @@ ${content.copyright.replace('{year}', new Date().getFullYear().toString())}
     `;
   }
 
-private getOrderConfirmationHTML(userName: string, orderNumber: string, orderDetails: any, content: any): string {
-    const itemsHTML = orderDetails.items.map((item: any) => {
+private getOrderConfirmationHTML(
+    userName: string,
+    orderNumber: string,
+    orderDetails: {
+      total: number;
+      subtotal?: number;
+      shipping_cost?: number;
+      vat_amount?: number;
+      created_at?: string;
+      customer_address?: string;
+      customer_city?: string;
+      customer_postal_code?: string;
+      payment_method?: string;
+      tracking_token?: string;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+    },
+    content: any
+  ): string {
+    const frontendUrl = process.env.FRONTEND_URL?.split(',')[0]?.trim() || 'http://localhost:5173';
+    const year = new Date().getFullYear().toString();
+    const brand = '#1E4D3B';
+
+    const formatDate = (raw?: string): string => {
+      if (!raw) return '—';
+      const d = new Date(raw);
+      return isNaN(d.getTime()) ? raw : d.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    };
+
+    const addressParts = [
+      orderDetails.customer_address,
+      orderDetails.customer_postal_code,
+      orderDetails.customer_city
+    ].filter(Boolean);
+    const addressLine = addressParts.length > 0 ? addressParts.join(', ') : '—';
+
+    const subtotal = orderDetails.subtotal ?? orderDetails.total;
+    const shippingCost = orderDetails.shipping_cost ?? 0;
+    const vatAmount = orderDetails.vat_amount ?? 0;
+
+    const itemsHTML = orderDetails.items.map((item) => {
       const price = parseFloat(String(item.price));
       const lineTotal = (price * item.quantity).toFixed(2);
+      const meta = [item.color, item.size].filter(Boolean).join(' · ');
       return `
       <tr>
-        <td style="padding: 12px 8px; border-bottom: 1px solid #f0e9e4;">${item.name}</td>
-        <td style="padding: 12px 8px; border-bottom: 1px solid #f0e9e4; text-align: center;">${item.quantity}</td>
-        <td style="padding: 12px 8px; border-bottom: 1px solid #f0e9e4; text-align: right; font-weight: 500;">${price.toFixed(2)}€</td>
+        <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; vertical-align: top;">
+          <div style="font-size: 14px; font-weight: 600; color: #1a2e25; margin-bottom: 2px;">${item.name}</div>
+          ${meta ? `<div style="font-size: 12px; color: #6b7280;">${meta}</div>` : ''}
+        </td>
+        <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; text-align: center; font-size: 14px; color: #374151; vertical-align: top; white-space: nowrap;">× ${item.quantity}</td>
+        <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; text-align: right; font-size: 14px; font-weight: 600; color: #1a2e25; vertical-align: top; white-space: nowrap;">${lineTotal}€</td>
+      </tr>`;
+    }).join('');
+
+    const trackUrl = orderDetails.tracking_token
+      ? `${frontendUrl}/track-order/${orderDetails.tracking_token}`
+      : `${frontendUrl}/conta`;
+
+    return `
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${content.title}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="padding: 32px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.07);">
+
+          <!-- Brand stripe -->
+          <tr><td style="height: 12px; background-color: ${brand};"></td></tr>
+
+          <!-- Header -->
+          <tr>
+            <td style="padding: 36px 40px 28px; text-align: center; background-color: #ffffff;">
+              <img src="${frontendUrl}/images/logo.png" alt="Recicloth" width="140" style="display: block; margin: 0 auto 24px; max-width: 140px; height: auto;" />
+              <h1 style="margin: 0 0 8px; font-size: 26px; font-weight: 700; color: #1a2e25;">${content.title}</h1>
+              <p style="margin: 0; font-size: 15px; color: #6b7280;">${content.subtitle}</p>
+            </td>
+          </tr>
+
+          <!-- Order meta band -->
+          <tr>
+            <td style="padding: 16px 40px; background-color: #f8fafc; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="font-size: 13px; color: #6b7280;">${content.orderDate}: <strong style="color: #1a2e25;">${formatDate(orderDetails.created_at)}</strong></td>
+                  <td style="font-size: 13px; color: #6b7280; text-align: right;">${content.orderNumber}: <strong style="color: #1a2e25;">#${orderNumber}</strong></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding: 32px 40px 0;">
+              <p style="margin: 0 0 28px; font-size: 15px; line-height: 1.7; color: #374151;">
+                ${content.greeting} <strong>${userName}</strong>, obrigado pelo teu pedido na Recicloth! Já recebemos a tua encomenda e estamos a processá-la.
+              </p>
+
+              <!-- Shipping address -->
+              <div style="margin-bottom: 20px;">
+                <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af;">${content.shippingAddress}</p>
+                <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.6;">${addressLine}</p>
+              </div>
+
+              <!-- Payment method -->
+              <div style="margin-bottom: 28px;">
+                <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af;">${content.paymentMethod}</p>
+                <p style="margin: 0; font-size: 14px; color: #374151;">${paymentMethodLabel(orderDetails.payment_method)}</p>
+              </div>
+
+              <!-- Products -->
+              <p style="margin: 0 0 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af;">${content.yourProducts}</p>
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 24px;">
+                <tbody>${itemsHTML}</tbody>
+              </table>
+
+              <!-- Totals -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px;">
+                <tr>
+                  <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">${content.subtotal}</td>
+                  <td style="padding: 6px 0; font-size: 14px; color: #374151; text-align: right;">${parseFloat(String(subtotal)).toFixed(2)}€</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">${content.shipping}</td>
+                  <td style="padding: 6px 0; font-size: 14px; color: #374151; text-align: right;">${shippingCost > 0 ? `${parseFloat(String(shippingCost)).toFixed(2)}€` : 'Grátis'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">${content.vat}</td>
+                  <td style="padding: 6px 0; font-size: 14px; color: #374151; text-align: right;">${parseFloat(String(vatAmount)).toFixed(2)}€</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 0 0; font-size: 16px; font-weight: 700; color: ${brand}; border-top: 2px solid #e5e7eb;">${content.total}</td>
+                  <td style="padding: 12px 0 0; font-size: 16px; font-weight: 700; color: ${brand}; text-align: right; border-top: 2px solid #e5e7eb;">${parseFloat(String(orderDetails.total)).toFixed(2)}€</td>
+                </tr>
+              </table>
+
+              <!-- Track button -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px;">
+                <tr>
+                  <td align="center">
+                    <a href="${trackUrl}" style="display: inline-block; background-color: ${brand}; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 40px; border-radius: 8px;">${content.trackButton}</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 24px 40px; border-top: 1px solid #e5e7eb; background-color: #f8fafc; text-align: center;">
+              <p style="margin: 0 0 8px; font-size: 12px; color: #9ca3af;">${content.disclaimer}</p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">${content.copyright.replace('{{year}}', year)}</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `;
+  }
+
+  private getOrderConfirmationText(
+    userName: string,
+    orderNumber: string,
+    orderDetails: {
+      total: number;
+      subtotal?: number;
+      shipping_cost?: number;
+      vat_amount?: number;
+      created_at?: string;
+      customer_address?: string;
+      customer_city?: string;
+      customer_postal_code?: string;
+      payment_method?: string;
+      tracking_token?: string;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+    },
+    content: any
+  ): string {
+    const year = new Date().getFullYear().toString();
+    const itemsText = orderDetails.items.map((item) => {
+      const meta = [item.color, item.size].filter(Boolean).join(', ');
+      return `${item.name}${meta ? ` (${meta})` : ''} x${item.quantity} - ${parseFloat(String(item.price)).toFixed(2)}€`;
+    }).join('\n');
+
+    return `
+${content.title}
+
+${content.greeting} ${userName},
+
+${content.orderNumber}: #${orderNumber}
+${content.total}: ${parseFloat(String(orderDetails.total)).toFixed(2)}€
+
+${content.yourProducts}:
+${itemsText}
+
+${content.thankYou}
+
+${content.copyright.replace('{{year}}', year)}
+    `;
+  }
+
+  async sendShippingConfirmation(
+    email: string,
+    userName: string,
+    orderNumber: string,
+    orderDetails: {
+      total: number;
+      created_at?: string;
+      customer_address?: string;
+      customer_city?: string;
+      customer_postal_code?: string;
+      payment_method?: string;
+      tracking_token?: string;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+    },
+    language = 'pt'
+  ) {
+    if (!this.resend) {
+      return { success: false, error: 'Email service not configured (RESEND_API_KEY missing).' };
+    }
+
+    const t = emailTranslations[language] || emailTranslations.pt;
+    const content = t.orderShipped;
+
+    const sanitizedEmail = email.trim().toLowerCase();
+    const subject = content.subject.replace('{{orderNumber}}', orderNumber);
+    console.log(`📧 Shipping confirmation → to: "${sanitizedEmail}" | subject: "${subject}"`);
+
+    try {
+      const { data, error } = await this.resend.emails.send({
+        from: this.from,
+        to: sanitizedEmail,
+        subject,
+        html: this.getShippingConfirmationHTML(userName, orderNumber, orderDetails, content),
+        text: this.getShippingConfirmationText(userName, orderNumber, orderDetails, content)
+      });
+      if (error) throw new Error(error.message);
+      console.log(`✅ Shipping confirmation sent to "${sanitizedEmail}":`, data?.id);
+      return { success: true, messageId: data?.id };
+    } catch (error: any) {
+      console.error(`❌ Error sending shipping confirmation to "${sanitizedEmail}":`, error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  private getShippingConfirmationHTML(
+    userName: string,
+    orderNumber: string,
+    orderDetails: {
+      total: number;
+      created_at?: string;
+      customer_address?: string;
+      customer_city?: string;
+      customer_postal_code?: string;
+      payment_method?: string;
+      tracking_token?: string;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+    },
+    content: any
+  ): string {
+    const frontendUrl = process.env.FRONTEND_URL?.split(',')[0]?.trim() || 'http://localhost:5173';
+    const year = new Date().getFullYear().toString();
+    const brand = '#1E4D3B';
+    const shippedBadgeColor = '#16a34a';
+
+    const formatDate = (raw?: string): string => {
+      if (!raw) return '—';
+      const d = new Date(raw);
+      return isNaN(d.getTime()) ? raw : d.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    };
+
+    const addressParts = [
+      orderDetails.customer_address,
+      orderDetails.customer_postal_code,
+      orderDetails.customer_city
+    ].filter(Boolean);
+    const addressLine = addressParts.length > 0 ? addressParts.join(', ') : '—';
+
+    const trackUrl = orderDetails.tracking_token
+      ? `${frontendUrl}/track-order/${orderDetails.tracking_token}`
+      : `${frontendUrl}/conta`;
+
+    const itemsHTML = orderDetails.items.map((item) => {
+      const price = parseFloat(String(item.price));
+      const lineTotal = (price * item.quantity).toFixed(2);
+      const meta = [item.color, item.size].filter(Boolean).join(' · ');
+      return `
+      <tr>
+        <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; vertical-align: top;">
+          <div style="font-size: 14px; font-weight: 600; color: #1a2e25; margin-bottom: 2px;">${item.name}</div>
+          ${meta ? `<div style="font-size: 12px; color: #6b7280;">${meta}</div>` : ''}
+        </td>
+        <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; text-align: center; font-size: 14px; color: #374151; vertical-align: top; white-space: nowrap;">× ${item.quantity}</td>
+        <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; text-align: right; font-size: 14px; font-weight: 600; color: #1a2e25; vertical-align: top; white-space: nowrap;">${lineTotal}€</td>
+        <td style="padding: 14px 12px; border-bottom: 1px solid #e8f0ec; text-align: right; vertical-align: top; white-space: nowrap;">
+          <span style="display: inline-block; background-color: ${shippedBadgeColor}; color: #ffffff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.04em;">${content.shipped}</span>
+        </td>
       </tr>`;
     }).join('');
 
@@ -466,66 +872,86 @@ private getOrderConfirmationHTML(userName: string, orderNumber: string, orderDet
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${content.title}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #fcfaf8; min-height: 100vh;">
-  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 0; padding: 30px 10px;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="padding: 32px 16px;">
     <tr>
       <td align="center">
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 24px rgba(134, 75, 36, 0.06); overflow: hidden;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.07);">
+
+          <!-- Brand stripe -->
+          <tr><td style="height: 12px; background-color: ${brand};"></td></tr>
+
+          <!-- Header -->
           <tr>
-            <td style="padding: 40px 30px 24px; text-align: center;">
-              
-              <img src="images/logo-mail.png" alt="${content.shopName}" width="100" style="display: block; margin: 0 auto 24px auto; max-width: 120px; height: auto;" />
-              
-              <h1 style="margin: 0 0 8px; font-size: 26px; font-weight: 700; color: #2d1a11;">${content.title}</h1>
-              <p style="margin: 0; font-size: 15px; color: #8c8c8c;">${content.subtitle}</p>
+            <td style="padding: 36px 40px 28px; text-align: center; background-color: #ffffff;">
+              <img src="${frontendUrl}/images/logo.png" alt="Recicloth" width="140" style="display: block; margin: 0 auto 24px; max-width: 140px; height: auto;" />
+              <h1 style="margin: 0 0 8px; font-size: 26px; font-weight: 700; color: #1a2e25;">${content.title}</h1>
+              <p style="margin: 0; font-size: 15px; color: #6b7280;">${content.subtitle}</p>
             </td>
           </tr>
+
+          <!-- Prominent track button -->
           <tr>
-            <td style="padding: 0 30px 40px;">
-              <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.6; color: #4a3328;">
-                ${content.greeting}${userName ? ` <strong>${userName}</strong>` : ''},
+            <td style="padding: 8px 40px 28px; text-align: center;">
+              <a href="${trackUrl}" style="display: inline-block; background-color: ${brand}; color: #ffffff; font-size: 16px; font-weight: 700; text-decoration: none; padding: 16px 48px; border-radius: 8px; letter-spacing: 0.02em;">${content.trackButton}</a>
+            </td>
+          </tr>
+
+          <!-- Order meta band -->
+          <tr>
+            <td style="padding: 16px 40px; background-color: #f8fafc; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="font-size: 13px; color: #6b7280;">${content.orderDate}: <strong style="color: #1a2e25;">${formatDate(orderDetails.created_at)}</strong></td>
+                  <td style="font-size: 13px; color: #6b7280; text-align: right;">${content.orderNumber}: <strong style="color: #1a2e25;">#${orderNumber}</strong></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding: 32px 40px 0;">
+              <p style="margin: 0 0 28px; font-size: 15px; line-height: 1.7; color: #374151;">
+                ${content.greeting} <strong>${userName}</strong>, ${content.bodyText}
               </p>
-              
-              <div style="background: #faf7f5; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                  <tr>
-                    <td style="padding-bottom: 8px; font-size: 14px; color: #6b3a1a;">
-                      <strong>${content.orderNumber}:</strong> <span style="color: #4a3328;">#${orderNumber}</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="font-size: 14px; color: #6b3a1a;">
-                      <strong>${content.total}:</strong> <span style="color: #4a3328;">${parseFloat(String(orderDetails.total)).toFixed(2)}€</span>
-                    </td>
-                  </tr>
-                </table>
+
+              <!-- Shipping address -->
+              <div style="margin-bottom: 20px;">
+                <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af;">${content.shippingAddress}</p>
+                <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.6;">${addressLine}</p>
               </div>
 
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px; border-collapse: collapse;">
-                <thead>
-                  <tr>
-                    <th style="padding: 12px 8px; text-align: left; font-size: 13px; color: #8c8c8c; border-bottom: 2px solid #f0e9e4; font-weight: 600;">Artigo</th>
-                    <th style="padding: 12px 8px; text-align: center; font-size: 13px; color: #8c8c8c; border-bottom: 2px solid #f0e9e4; font-weight: 600;">Qtd</th>
-                    <th style="padding: 12px 8px; text-align: right; font-size: 13px; color: #8c8c8c; border-bottom: 2px solid #f0e9e4; font-weight: 600;">Preço</th>
-                  </tr>
-                </thead>
-                <tbody style="color: #4a3328; font-size: 14px;">
-                  ${itemsHTML}
-                </tbody>
+              <!-- Payment method -->
+              <div style="margin-bottom: 28px;">
+                <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af;">${content.paymentMethod}</p>
+                <p style="margin: 0; font-size: 14px; color: #374151;">${paymentMethodLabel(orderDetails.payment_method)}</p>
+              </div>
+
+              <!-- Products -->
+              <p style="margin: 0 0 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af;">${content.yourProducts}</p>
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 24px;">
+                <tbody>${itemsHTML}</tbody>
               </table>
 
-              <p style="margin: 0; font-size: 15px; text-align: center; color: #6b3a1a; font-weight: 500;">
-                ${content.thankYou}
-              </p>
+              <!-- Total -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px;">
+                <tr>
+                  <td style="padding: 12px 0; font-size: 16px; font-weight: 700; color: ${brand}; border-top: 2px solid #e5e7eb;">${content.total}</td>
+                  <td style="padding: 12px 0; font-size: 16px; font-weight: 700; color: ${brand}; text-align: right; border-top: 2px solid #e5e7eb;">${parseFloat(String(orderDetails.total)).toFixed(2)}€</td>
+                </tr>
+              </table>
             </td>
           </tr>
+
+          <!-- Footer -->
           <tr>
-            <td style="padding: 24px 30px; border-top: 1px solid #f0e9e4; text-align: center; background: #faf7f5;">
-              <p style="margin: 0; font-size: 12px; color: #a3958e;">
-                ${content.copyright.replace('{year}', new Date().getFullYear().toString())}
-              </p>
+            <td style="padding: 24px 40px; border-top: 1px solid #e5e7eb; background-color: #f8fafc; text-align: center;">
+              <p style="margin: 0 0 8px; font-size: 12px; color: #9ca3af;">${content.disclaimer}</p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">${content.copyright.replace('{{year}}', year)}</p>
             </td>
           </tr>
+
         </table>
       </td>
     </tr>
@@ -535,25 +961,46 @@ private getOrderConfirmationHTML(userName: string, orderNumber: string, orderDet
     `;
   }
 
-  private getOrderConfirmationText(userName: string, orderNumber: string, orderDetails: any, content: any): string {
-    const itemsText = orderDetails.items.map((item: any) =>
-      `${item.name} x${item.quantity} - ${parseFloat(String(item.price)).toFixed(2)}€`
-    ).join('\n');
+  private getShippingConfirmationText(
+    userName: string,
+    orderNumber: string,
+    orderDetails: {
+      total: number;
+      created_at?: string;
+      customer_address?: string;
+      customer_city?: string;
+      customer_postal_code?: string;
+      payment_method?: string;
+      tracking_token?: string;
+      items: Array<{ name: string; quantity: number; price: number; color?: string; size?: string }>;
+    },
+    content: any
+  ): string {
+    const year = new Date().getFullYear().toString();
+    const frontendUrl = process.env.FRONTEND_URL?.split(',')[0]?.trim() || 'http://localhost:5173';
+    const trackUrl = orderDetails.tracking_token
+      ? `${frontendUrl}/track-order/${orderDetails.tracking_token}`
+      : `${frontendUrl}/conta`;
+
+    const itemsText = orderDetails.items.map((item) => {
+      const meta = [item.color, item.size].filter(Boolean).join(', ');
+      return `${item.name}${meta ? ` (${meta})` : ''} x${item.quantity} - ${parseFloat(String(item.price)).toFixed(2)}€`;
+    }).join('\n');
 
     return `
 ${content.title}
 
-${content.greeting}${userName ? ` ${userName}` : ''},
+${content.greeting} ${userName}, ${content.bodyText}
 
 ${content.orderNumber}: #${orderNumber}
 ${content.total}: ${parseFloat(String(orderDetails.total)).toFixed(2)}€
 
-${content.items}:
+${content.yourProducts}:
 ${itemsText}
 
-${content.thankYou}
+${content.trackButton}: ${trackUrl}
 
-${content.copyright.replace('{year}', new Date().getFullYear().toString())}
+${content.copyright.replace('{{year}}', year)}
     `;
   }
 

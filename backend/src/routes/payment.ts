@@ -630,22 +630,36 @@ router.post('/webhook', async (req: any, res: any) => {
           console.log(`✅ Order ${orderId} → processing`);
           // Send confirmation email (only if we actually changed the status)
           const [orderRows]: any = await pool.query(
-            'SELECT customer_name, customer_email, total FROM orders WHERE id = ?', [orderId]
+            `SELECT customer_name, customer_email, total, subtotal, vat_amount, shipping_cost,
+                    created_at, customer_address, customer_city, customer_postal_code,
+                    payment_method, tracking_token
+             FROM orders WHERE id = ?`, [orderId]
           );
           const [itemRows]: any = await pool.query(
-            `SELECT oi.quantity, oi.price, p.name
+            `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name
              FROM order_items oi JOIN products p ON oi.product_id = p.id
              WHERE oi.order_id = ?`, [orderId]
           );
           if (orderRows.length > 0) {
+            const o = orderRows[0];
             emailService.sendOrderConfirmation(
-              orderRows[0].customer_email,
-              orderRows[0].customer_name,
+              o.customer_email,
+              o.customer_name,
               String(orderId),
               {
-                total: parseFloat(orderRows[0].total),
+                total: parseFloat(o.total),
+                subtotal: parseFloat(o.subtotal || o.total),
+                shipping_cost: parseFloat(o.shipping_cost || 0),
+                vat_amount: parseFloat(o.vat_amount || 0),
+                created_at: o.created_at,
+                customer_address: o.customer_address,
+                customer_city: o.customer_city,
+                customer_postal_code: o.customer_postal_code,
+                payment_method: o.payment_method,
+                tracking_token: o.tracking_token,
                 items: itemRows.map((r: any) => ({
-                  name: r.name, quantity: r.quantity, price: parseFloat(r.price)
+                  name: r.name, quantity: r.quantity, price: parseFloat(r.price),
+                  color: r.color || undefined, size: r.size || undefined
                 }))
               }
             ).catch((err: any) => console.error('❌ Webhook email error:', err.message));

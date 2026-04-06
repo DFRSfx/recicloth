@@ -12,7 +12,7 @@ interface FilterModalProps {
   categories?: string[];
   selectedColor?: string;
   onColorChange?: (value: string) => void;
-  colors?: string[];
+  colors?: { name: string; hex: string }[];
   priceRange?: [number, number];
   onPriceRangeChange?: (range: [number, number]) => void;
   onClearFilters?: () => void;
@@ -28,7 +28,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
   categories = [],
   selectedColor = '',
   onColorChange = () => undefined,
-  colors = [],
+  colors = [] as { name: string; hex: string }[],
   priceRange = [0, 100],
   onPriceRangeChange = () => undefined,
   onClearFilters = () => undefined,
@@ -51,18 +51,6 @@ const FilterModal: React.FC<FilterModalProps> = ({
   }, [isOpen]);
 
   if (!isOpen && !isAnimating) return null;
-
-  const getColorCode = (colorName: string): string => {
-    const colorMap: { [key: string]: string } = {
-      'Bege': '#F5F5DC', 'Castanho': '#8B4513', 'Branco': '#FFFFFF',
-      'Cru': '#F5E6D3', 'Verde': '#22C55E', 'Azul': '#3B82F6',
-      'Vermelho': '#EF4444', 'Rosa': '#EC4899', 'Amarelo': '#F59E0B',
-      'Preto': '#000000', 'Cinzento': '#6B7280', 'Bordô': '#7F1D1D',
-      'Verde floresta': '#2E8B57', 'Caqui': '#F0E68C', 'Multicolor': '#E5E7EB',
-      'Cinza': '#9CA3AF', 'Terracota': '#E2725B', 'Castanho Escuro': '#5C4033'
-    };
-    return colorMap[colorName] || '#E5E7EB';
-  };
 
   const sortOptions = [
     { value: 'name', label: t('filter.sort.alphaAZ') },
@@ -132,13 +120,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
             <h3 className="text-lg font-bold text-[#1a1a1a] mb-5">{t('common.color')}</h3>
             <div className="space-y-4">
               {colors.map((color) => (
-                <label key={color} className="flex items-center gap-4 cursor-pointer group">
+                <label key={color.hex} className="flex items-center gap-4 cursor-pointer group">
                   {/* CUSTOM CHECKBOX */}
                   <div className="relative flex items-center justify-center w-5 h-5 flex-shrink-0">
                     <input
                       type="checkbox"
-                      checked={selectedColor === color}
-                      onChange={(e) => onColorChange(e.target.checked ? color : '')}
+                      checked={selectedColor === color.hex}
+                      onChange={(e) => onColorChange(e.target.checked ? color.hex : '')}
                       className="peer sr-only"
                     />
                     <div className="w-5 h-5 rounded-[4px] border border-gray-300 peer-checked:border-[#1E4D3B] peer-checked:bg-[#1E4D3B] transition-all flex items-center justify-center">
@@ -149,10 +137,10 @@ const FilterModal: React.FC<FilterModalProps> = ({
                   <div className="flex items-center gap-3">
                     <span
                       className="w-5 h-5 rounded-full border border-gray-200 shadow-sm"
-                      style={{ backgroundColor: getColorCode(color) }}
+                      style={{ backgroundColor: color.hex || '#E5E7EB' }}
                     />
                     <span className="text-[15px] text-[#333333] group-hover:text-black leading-none pt-0.5 transition-colors">
-                      {color}
+                      {color.name}
                     </span>
                   </div>
                 </label>

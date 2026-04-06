@@ -250,7 +250,7 @@ const Shop: React.FC = () => {
         categories={allCategories.map(category => category.name)}
         selectedColor={selectedColor}
         onColorChange={handleColorChange}
-        colors={availableColors}
+        colors={uniqueColors}
         priceRange={priceRange}
         onPriceRangeChange={setPriceRange}
         onClearFilters={clearFilters}

@@ -402,6 +402,33 @@ router.patch(
         [req.params.id]
       );
 
+      if (mappedStatus === 'shipped') {
+        const [itemRows]: any = await pool.query(
+          `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name
+           FROM order_items oi JOIN products p ON oi.product_id = p.id
+           WHERE oi.order_id = ?`, [req.params.id]
+        );
+        const o = updatedOrder[0];
+        emailService.sendShippingConfirmation(
+          o.customer_email,
+          o.customer_name,
+          String(o.id),
+          {
+            total: parseFloat(o.total),
+            created_at: o.created_at,
+            customer_address: o.customer_address,
+            customer_city: o.customer_city,
+            customer_postal_code: o.customer_postal_code,
+            payment_method: o.payment_method,
+            tracking_token: o.tracking_token,
+            items: itemRows.map((r: any) => ({
+              name: r.name, quantity: r.quantity, price: parseFloat(r.price),
+              color: r.color || undefined, size: r.size || undefined
+            }))
+          }
+        ).catch((err: any) => console.error('❌ Shipping email error:', err.message));
+      }
+
       res.json(updatedOrder[0]);
     } catch (error) {
       console.error('Error updating order:', error);
