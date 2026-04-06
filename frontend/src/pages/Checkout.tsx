@@ -165,9 +165,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
     setPostalLookupLoading(true);
     try {
       const countryLower = country.toLowerCase();
-      // zippopotam.us accepts PT format with or without hyphen
-      const code = trimmed.replace('-', '');
-      const res = await fetch(`https://api.zippopotam.us/${countryLower}/${code}`);
+      const res = await fetch(`https://api.zippopotam.us/${countryLower}/${trimmed}`);
       if (res.ok) {
         const data = await res.json();
         const city = data.places?.[0]?.['place name'];

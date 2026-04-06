@@ -6,7 +6,7 @@ import CartItem from '../components/CartItem';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getRoutePath } from '../utils/routes';
-import { calcShipping, FREE_SHIPPING_THRESHOLD } from '../utils/shippingCalculator';
+import { calcShipping } from '../utils/shippingCalculator';
 import { useGeoCountry } from '../hooks/useGeoCountry';
 
 const Cart: React.FC = () => {
