@@ -1,4 +1,5 @@
 import PDFDocument from 'pdfkit';
+import sharp from 'sharp';
 
 const BRAND_GREEN = '#1E4D3B';
 const LIGHT_GRAY = '#f8fafc';
@@ -45,10 +46,37 @@ export interface InvoiceData {
     price: number;
     color?: string;
     size?: string;
+    image?: string;
   }>;
 }
 
-export function generateInvoicePdf(order: InvoiceData): Promise<Buffer> {
+async function fetchImageAsJpeg(imagePath: string): Promise<Buffer | null> {
+  try {
+    const baseUrl = (
+      process.env.BACKEND_URL ||
+      process.env.FRONTEND_URL?.split(',')[0]?.trim() ||
+      'http://localhost:3001'
+    ).replace(/\/$/, '');
+    const url = imagePath.startsWith('http')
+      ? imagePath
+      : `${baseUrl}/api/images/${imagePath.replace(/^\//, '')}`;
+
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    const raw = Buffer.from(await res.arrayBuffer());
+    // Convert to JPEG — pdfkit supports JPEG/PNG natively, not WebP
+    return await sharp(raw).jpeg({ quality: 85 }).toBuffer();
+  } catch {
+    return null;
+  }
+}
+
+export async function generateInvoicePdf(order: InvoiceData): Promise<Buffer> {
+  // Pre-fetch all item images in parallel before starting the PDF
+  const imageBuffers: (Buffer | null)[] = await Promise.all(
+    order.items.map(item => item.image ? fetchImageAsJpeg(item.image) : Promise.resolve(null))
+  );
+
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margin: 48, info: { Title: `Fatura Recicloth #${order.id}` } });
     const chunks: Buffer[] = [];
@@ -85,7 +113,7 @@ export function generateInvoicePdf(order: InvoiceData): Promise<Buffer> {
       .text(`#${invoiceNumber}`, LEFT, y + 36, { align: 'right', width: W })
       .text(orderDate, LEFT, y + 52, { align: 'right', width: W });
 
-    // "Recicloth" brand text (left, aligned with header)
+    // "Recicloth" brand text (left)
     doc.fontSize(20).font('Helvetica-Bold').fillColor(BRAND_GREEN)
       .text('Recicloth', LEFT, y + 6);
 
@@ -125,14 +153,11 @@ export function generateInvoicePdf(order: InvoiceData): Promise<Buffer> {
     const rightX = LEFT + colW;
     let ry = 110 + 16;
     doc.fontSize(8).font('Helvetica-Bold').fillColor(TEXT_LIGHT)
-      .text('DETALHES', rightX, ry, { characterSpacing: 1 });
-    ry += 14;
-    doc.fontSize(8).font('Helvetica-Bold').fillColor(TEXT_LIGHT)
       .text('PAGAMENTO', rightX, ry, { characterSpacing: 1 });
-    ry += 12;
-    doc.fontSize(10).font('Helvetica-Bold').fillColor(TEXT_DARK)
+    ry += 14;
+    doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK)
       .text(paymentLabel(order.payment_method), rightX, ry);
-    ry += 18;
+    ry += 20;
     doc.fontSize(8).font('Helvetica-Bold').fillColor(TEXT_LIGHT)
       .text('ESTADO', rightX, ry, { characterSpacing: 1 });
     ry += 12;
@@ -148,51 +173,77 @@ export function generateInvoicePdf(order: InvoiceData): Promise<Buffer> {
     y = 110 + bandH + 20;
 
     // ── Items table ───────────────────────────────────────────────────────────
+    const IMG_SIZE = 48;
+    const IMG_GAP = 10;
     const colQty = 40;
     const colPrice = 80;
     const colTotal = 80;
-    const colName = W - colQty - colPrice - colTotal;
+    // Name column: full width minus image space (only if at least one item has an image)
+    const hasAnyImage = imageBuffers.some(Boolean);
+    const imgOffset = hasAnyImage ? IMG_SIZE + IMG_GAP : 0;
+    const colName = W - imgOffset - colQty - colPrice - colTotal;
 
     // Table header
     doc.fontSize(8).font('Helvetica-Bold').fillColor(TEXT_LIGHT);
-    doc.text('DESCRIÇÃO', LEFT, y, { width: colName, characterSpacing: 1 });
-    doc.text('QTD', LEFT + colName, y, { width: colQty, align: 'center', characterSpacing: 1 });
-    doc.text('PREÇO', LEFT + colName + colQty, y, { width: colPrice, align: 'right', characterSpacing: 1 });
-    doc.text('TOTAL', LEFT + colName + colQty + colPrice, y, { width: colTotal, align: 'right', characterSpacing: 1 });
+    doc.text('DESCRIÇÃO', LEFT + imgOffset, y, { width: colName, characterSpacing: 1 });
+    doc.text('QTD', LEFT + imgOffset + colName, y, { width: colQty, align: 'center', characterSpacing: 1 });
+    doc.text('PREÇO', LEFT + imgOffset + colName + colQty, y, { width: colPrice, align: 'right', characterSpacing: 1 });
+    doc.text('TOTAL', LEFT + imgOffset + colName + colQty + colPrice, y, { width: colTotal, align: 'right', characterSpacing: 1 });
 
     y += 14;
     doc.rect(LEFT, y, W, 2).fill(BORDER);
-    y += 8;
+    y += 10;
 
     // Table rows
-    for (const item of order.items) {
+    order.items.forEach((item, i) => {
       const lineTotal = (item.price * item.quantity).toFixed(2);
-      const meta = [item.color, item.size].filter(Boolean).join(' · ');
-      const rowH = meta ? 38 : 24;
+      const meta = [
+        item.color ? `Cor: ${item.color}` : '',
+        item.size ? `Tam: ${item.size}` : '',
+      ].filter(Boolean).join(' | ');
+      const rowH = Math.max(meta ? 44 : 30, hasAnyImage ? IMG_SIZE + 10 : 0);
 
-      // Name + meta
+      // Product image
+      const imgBuf = imageBuffers[i];
+      if (imgBuf) {
+        try {
+          doc.image(imgBuf, LEFT, y + 2, {
+            width: IMG_SIZE,
+            height: IMG_SIZE,
+            cover: [IMG_SIZE, IMG_SIZE],
+          });
+          // Rounded clip is not trivial in pdfkit, so we draw a border rect instead
+          doc.rect(LEFT, y + 2, IMG_SIZE, IMG_SIZE).strokeColor(BORDER).lineWidth(0.5).stroke();
+        } catch {
+          // If image embedding fails, skip it silently
+        }
+      }
+
+      const textX = LEFT + imgOffset;
+
+      // Name
       doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK)
-        .text(item.name, LEFT, y, { width: colName - 8, lineBreak: false });
+        .text(item.name, textX, y + 2, { width: colName - 8, lineBreak: false });
       if (meta) {
         doc.fontSize(10).font('Helvetica').fillColor(TEXT_LIGHT)
-          .text(meta, LEFT, y + 14, { width: colName - 8, lineBreak: false });
+          .text(meta, textX, y + 16, { width: colName - 8, lineBreak: false });
       }
 
       // Qty
       doc.fontSize(11).font('Helvetica').fillColor(TEXT_MID)
-        .text(String(item.quantity), LEFT + colName, y, { width: colQty, align: 'center', lineBreak: false });
+        .text(String(item.quantity), textX + colName, y + 2, { width: colQty, align: 'center', lineBreak: false });
 
       // Price
       doc.fontSize(11).font('Helvetica').fillColor(TEXT_MID)
-        .text(`${Number(item.price).toFixed(2)}€`, LEFT + colName + colQty, y, { width: colPrice, align: 'right', lineBreak: false });
+        .text(`${Number(item.price).toFixed(2)}€`, textX + colName + colQty, y + 2, { width: colPrice, align: 'right', lineBreak: false });
 
       // Line total
       doc.fontSize(11).font('Helvetica-Bold').fillColor(TEXT_DARK)
-        .text(`${lineTotal}€`, LEFT + colName + colQty + colPrice, y, { width: colTotal, align: 'right', lineBreak: false });
+        .text(`${lineTotal}€`, textX + colName + colQty + colPrice, y + 2, { width: colTotal, align: 'right', lineBreak: false });
 
       y += rowH;
       doc.rect(LEFT, y - 4, W, 1).fill('#f1f5f9');
-    }
+    });
 
     y += 12;
 
@@ -213,7 +264,7 @@ export function generateInvoicePdf(order: InvoiceData): Promise<Buffer> {
     };
 
     drawTotalRow('Subtotal (s/ IVA)', `${subtotal.toFixed(2)}€`);
-    drawTotalRow(`IVA (23%)`, `${vatAmount.toFixed(2)}€`);
+    drawTotalRow('IVA (23%)', `${vatAmount.toFixed(2)}€`);
     if (shippingCost > 0) {
       drawTotalRow('Portes de Envio', `${shippingCost.toFixed(2)}€`);
     } else {
@@ -230,13 +281,15 @@ export function generateInvoicePdf(order: InvoiceData): Promise<Buffer> {
     doc.fillColor(BRAND_GREEN)
       .text(`${total.toFixed(2)}€`, totalsX + totalsW * 0.6, y, { width: totalsW * 0.4, align: 'right', lineBreak: false });
 
-    // ── Footer ────────────────────────────────────────────────────────────────
-    const footerY = doc.page.height - 60;
-    doc.rect(LEFT, footerY - 8, W, 1).fill(BORDER);
+    // ── Footer (inline after totals, no fixed page position) ─────────────────
+    y += 32;
+    doc.rect(LEFT, y, W, 1).fill(BORDER);
+    y += 12;
     doc.fontSize(10).font('Helvetica').fillColor(TEXT_LIGHT)
-      .text('Recicloth — Moda Sustentável e Upcycled', LEFT, footerY, { align: 'center', width: W });
+      .text('Recicloth — Moda Sustentável e Upcycled', LEFT, y, { align: 'center', width: W });
+    y += 14;
     doc.fontSize(9).fillColor('#94a3b8')
-      .text('Este documento é meramente informativo e não substitui uma fatura fiscal oficial.', LEFT, footerY + 14, { align: 'center', width: W });
+      .text('Este documento é meramente informativo e não substitui uma fatura fiscal oficial.', LEFT, y, { align: 'center', width: W });
 
     doc.end();
   });
