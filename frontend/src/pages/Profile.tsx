@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, MapPin, Save, Edit2, Lock, Shield, KeyRound, Plus, Trash2, Star, X } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Save, Edit2, Lock, Shield, KeyRound, Plus, X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 interface ShippingAddress {

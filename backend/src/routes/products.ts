@@ -1,6 +1,6 @@
 import express from 'express';
 import pool from '../config/database.js';
-import { requireAdmin, AuthRequest } from '../middleware/auth.js';
+import { requireAdmin, AuthRequest, authenticateToken } from '../middleware/auth.js';
 import { upload } from '../config/upload.js';
 import path from 'path';
 import fs from 'fs';
@@ -104,6 +104,244 @@ const parseImages = (images: any): string[] => {
   }
   return [];
 };
+
+// ── Reviews (admin moderation) ───────────────────────────────────────────────
+
+router.get('/reviews/pending', ...requireAdmin, async (_req: AuthRequest, res) => {
+  try {
+    const [rows]: any = await pool.query(
+      `SELECT
+         r.id, r.product_id, r.order_id, r.order_item_id, r.user_id,
+         r.reviewer_name, r.reviewer_email, r.rating, r.headline, r.content,
+         r.size, r.color, r.fit, r.height, r.likelihood, r.activities,
+         r.status, r.admin_notes, r.created_at,
+         p.name AS product_name
+       FROM product_reviews r
+       JOIN products p ON r.product_id = p.id
+       WHERE r.status = 'pending'
+       ORDER BY r.created_at DESC`
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching pending reviews:', error);
+    res.status(500).json({ error: 'Failed to fetch pending reviews' });
+  }
+});
+
+router.patch('/reviews/:reviewId', ...requireAdmin, async (req: AuthRequest, res) => {
+  try {
+    const reviewId = Number(req.params.reviewId);
+    const { status, admin_notes } = req.body || {};
+    if (!reviewId || Number.isNaN(reviewId)) {
+      res.status(400).json({ error: 'Invalid review id' });
+      return;
+    }
+    if (!['approved', 'rejected', 'pending'].includes(status)) {
+      res.status(400).json({ error: 'Invalid status' });
+      return;
+    }
+
+    const [result]: any = await pool.execute(
+      `UPDATE product_reviews
+       SET status = ?, admin_notes = ?, moderated_by = ?, moderated_at = NOW(), updated_at = NOW()
+       WHERE id = ?`,
+      [status, admin_notes || null, req.user?.id || null, reviewId]
+    );
+
+    if (result.affectedRows === 0) {
+      res.status(404).json({ error: 'Review not found' });
+      return;
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating review status:', error);
+    res.status(500).json({ error: 'Failed to update review status' });
+  }
+});
+
+// ── Reviews (public + authenticated) ─────────────────────────────────────────
+
+router.get('/:id/reviews', async (req, res) => {
+  try {
+    const productId = Number(req.params.id);
+    if (!productId || Number.isNaN(productId)) {
+      res.status(400).json({ error: 'Invalid product id' });
+      return;
+    }
+
+    const [rows]: any = await pool.query(
+      `SELECT
+         id, rating, headline, content, reviewer_name,
+         size, color, fit, height, likelihood, activities, created_at
+       FROM product_reviews
+       WHERE product_id = ? AND status = 'approved'
+       ORDER BY created_at DESC`,
+      [productId]
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching product reviews:', error);
+    res.status(500).json({ error: 'Failed to fetch reviews' });
+  }
+});
+
+router.get('/:id/reviews/eligible', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const productId = Number(req.params.id);
+    const userId = req.user?.id;
+    if (!productId || Number.isNaN(productId)) {
+      res.status(400).json({ error: 'Invalid product id' });
+      return;
+    }
+    if (!userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    const [rows]: any = await pool.query(
+      `SELECT
+         oi.id AS order_item_id,
+         o.id AS order_id,
+         o.created_at,
+         oi.size,
+         oi.color
+       FROM order_items oi
+       JOIN orders o ON o.id = oi.order_id
+       LEFT JOIN product_reviews r ON r.order_item_id = oi.id
+       WHERE oi.product_id = ?
+         AND o.user_id = ?
+         AND o.payment_status = 'paid'
+         AND o.status <> 'cancelled'
+         AND r.id IS NULL
+       ORDER BY o.created_at DESC`,
+      [productId, userId]
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching eligible review items:', error);
+    res.status(500).json({ error: 'Failed to fetch eligible reviews' });
+  }
+});
+
+router.post('/:id/reviews', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const productId = Number(req.params.id);
+    const userId = req.user?.id;
+    const {
+      order_item_id,
+      rating,
+      headline,
+      content,
+      fit,
+      height,
+      likelihood,
+      activities,
+      reviewer_name,
+    } = req.body || {};
+
+    if (!productId || Number.isNaN(productId)) {
+      res.status(400).json({ error: 'Invalid product id' });
+      return;
+    }
+    if (!userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+    if (!order_item_id || Number.isNaN(Number(order_item_id))) {
+      res.status(400).json({ error: 'Order item is required' });
+      return;
+    }
+    const numericRating = Number(rating);
+    if (!numericRating || numericRating < 1 || numericRating > 5) {
+      res.status(400).json({ error: 'Rating must be between 1 and 5' });
+      return;
+    }
+    if (!headline || !String(headline).trim()) {
+      res.status(400).json({ error: 'Headline is required' });
+      return;
+    }
+    if (!content || !String(content).trim()) {
+      res.status(400).json({ error: 'Content is required' });
+      return;
+    }
+
+    const [rows]: any = await pool.query(
+      `SELECT
+         oi.id,
+         oi.order_id,
+         oi.size,
+         oi.color,
+         o.user_id,
+         o.payment_status,
+         o.status
+       FROM order_items oi
+       JOIN orders o ON o.id = oi.order_id
+       WHERE oi.id = ? AND oi.product_id = ? AND o.user_id = ?`,
+      [order_item_id, productId, userId]
+    );
+
+    if (rows.length === 0) {
+      res.status(403).json({ error: 'Order item not eligible for review' });
+      return;
+    }
+
+    const orderItem = rows[0];
+    if (orderItem.payment_status !== 'paid' || orderItem.status === 'cancelled') {
+      res.status(403).json({ error: 'Only paid orders can be reviewed' });
+      return;
+    }
+
+    const [existing]: any = await pool.query(
+      'SELECT id FROM product_reviews WHERE order_item_id = ?',
+      [order_item_id]
+    );
+    if (existing.length > 0) {
+      res.status(409).json({ error: 'Review already exists for this order item' });
+      return;
+    }
+
+    const safeName = String(reviewer_name || req.user?.name || 'Cliente').trim();
+    const normalizedActivities = Array.isArray(activities)
+      ? activities.filter(Boolean).map((a: any) => String(a).trim()).filter(Boolean).join(', ')
+      : (activities ? String(activities).trim() : null);
+    const normalizedFit = fit ? String(fit).trim() : null;
+    const normalizedHeight = height ? String(height).trim() : null;
+    const normalizedLikelihood = likelihood ? String(likelihood).trim() : null;
+
+    const [insertResult]: any = await pool.execute(
+      `INSERT INTO product_reviews (
+         product_id, order_id, order_item_id, user_id,
+         reviewer_name, reviewer_email, rating, headline, content,
+         size, color, fit, height, likelihood, activities,
+         status
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        productId,
+        orderItem.order_id,
+        order_item_id,
+        userId,
+        safeName,
+        req.user?.email || '',
+        numericRating,
+        String(headline).trim(),
+        String(content).trim(),
+        orderItem.size || null,
+        orderItem.color || null,
+        normalizedFit,
+        normalizedHeight,
+        normalizedLikelihood,
+        normalizedActivities,
+        'pending',
+      ]
+    );
+
+    res.status(201).json({ success: true, id: insertResult.insertId, status: 'pending' });
+  } catch (error) {
+    console.error('Error creating review:', error);
+    res.status(500).json({ error: 'Failed to create review' });
+  }
+});
 
 // 🌍 i18n: Substitui os nomes das cores pelo valor traduzido para o lang pedido
 async function applyColorTranslations(
