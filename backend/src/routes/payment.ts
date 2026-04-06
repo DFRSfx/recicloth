@@ -417,7 +417,7 @@ router.post(
 
             // Fetch full order + items to send confirmation email
             const [orderRows]: any = await pool.query(
-              `SELECT customer_name, customer_email, total, subtotal, vat_amount, shipping_cost,
+              `SELECT customer_name, customer_email, customer_phone, total, subtotal, vat_amount, shipping_cost,
                       created_at, customer_address, customer_city, customer_postal_code,
                       payment_method, tracking_token
                FROM orders WHERE id = ?`, [orderId]
@@ -447,19 +447,30 @@ router.post(
                   image: r.first_image || undefined,
                 })),
               };
-              generateInvoicePdf({
-                id: orderId,
-                payment_status: 'paid',
-                customer_name: o.customer_name,
-                customer_email: o.customer_email,
-                customer_phone: o.customer_phone || '',
-                ...orderDetailsForEmail,
-              }).then(pdfBuffer =>
-                emailService.sendOrderConfirmation(
-                  o.customer_email, o.customer_name, String(orderId),
-                  orderDetailsForEmail, 'pt', pdfBuffer
-                )
-              ).catch((err: any) => console.error('❌ Finalize email error:', err.message));
+              // Send email — PDF is optional; don't let PDF failure block the email
+              (async () => {
+                let pdfBuffer: Buffer | undefined;
+                try {
+                  pdfBuffer = await generateInvoicePdf({
+                    id: orderId,
+                    payment_status: 'paid',
+                    customer_name: o.customer_name,
+                    customer_email: o.customer_email,
+                    customer_phone: o.customer_phone || '',
+                    ...orderDetailsForEmail,
+                  });
+                } catch (pdfErr: any) {
+                  console.error('❌ Finalize PDF error (email will send without attachment):', pdfErr.message);
+                }
+                try {
+                  await emailService.sendOrderConfirmation(
+                    o.customer_email, o.customer_name, String(orderId),
+                    orderDetailsForEmail, 'pt', pdfBuffer
+                  );
+                } catch (mailErr: any) {
+                  console.error('❌ Finalize email error:', mailErr.message);
+                }
+              })();
             }
           }
         } catch (piErr: any) {
@@ -678,7 +689,7 @@ router.post('/webhook', async (req: any, res: any) => {
           console.log(`✅ Order ${orderId} → processing`);
           // Send confirmation email (only if we actually changed the status)
           const [orderRows]: any = await pool.query(
-            `SELECT customer_name, customer_email, total, subtotal, vat_amount, shipping_cost,
+            `SELECT customer_name, customer_email, customer_phone, total, subtotal, vat_amount, shipping_cost,
                     created_at, customer_address, customer_city, customer_postal_code,
                     payment_method, tracking_token
              FROM orders WHERE id = ?`, [orderId]
@@ -708,19 +719,30 @@ router.post('/webhook', async (req: any, res: any) => {
                 image: r.first_image || undefined,
               })),
             };
-            generateInvoicePdf({
-              id: orderId,
-              payment_status: 'paid',
-              customer_name: o.customer_name,
-              customer_email: o.customer_email,
-              customer_phone: o.customer_phone || '',
-              ...orderDetailsForEmail,
-            }).then(pdfBuffer =>
-              emailService.sendOrderConfirmation(
-                o.customer_email, o.customer_name, String(orderId),
-                orderDetailsForEmail, 'pt', pdfBuffer
-              )
-            ).catch((err: any) => console.error('❌ Webhook email error:', err.message));
+            // Send email — PDF is optional; don't let PDF failure block the email
+            (async () => {
+              let pdfBuffer: Buffer | undefined;
+              try {
+                pdfBuffer = await generateInvoicePdf({
+                  id: orderId,
+                  payment_status: 'paid',
+                  customer_name: o.customer_name,
+                  customer_email: o.customer_email,
+                  customer_phone: o.customer_phone || '',
+                  ...orderDetailsForEmail,
+                });
+              } catch (pdfErr: any) {
+                console.error('❌ Webhook PDF error (email will send without attachment):', pdfErr.message);
+              }
+              try {
+                await emailService.sendOrderConfirmation(
+                  o.customer_email, o.customer_name, String(orderId),
+                  orderDetailsForEmail, 'pt', pdfBuffer
+                );
+              } catch (mailErr: any) {
+                console.error('❌ Webhook email error:', mailErr.message);
+              }
+            })();
           }
         } else {
           console.log(`ℹ️  Order ${orderId} already processed (webhook duplicate)`);
@@ -759,6 +781,85 @@ router.post('/webhook', async (req: any, res: any) => {
   } catch (error) {
     console.error('Error processing webhook event:', error);
     res.status(500).json({ error: 'Failed to process webhook' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/payment/resend-confirmation/:orderId
+// Admin: manually resend order confirmation email for an existing paid order.
+// ---------------------------------------------------------------------------
+router.post('/resend-confirmation/:orderId', async (req: any, res: any) => {
+  const orderId = parseInt(req.params.orderId);
+  if (isNaN(orderId)) {
+    res.status(400).json({ error: 'Invalid order ID' });
+    return;
+  }
+
+  try {
+    const [orderRows]: any = await pool.query(
+      `SELECT id, customer_name, customer_email, customer_phone, total, subtotal, vat_amount, shipping_cost,
+              created_at, customer_address, customer_city, customer_postal_code,
+              payment_method, tracking_token, payment_status
+       FROM orders WHERE id = ?`, [orderId]
+    );
+    if (orderRows.length === 0) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+    const o = orderRows[0];
+    const [itemRows]: any = await pool.query(
+      `SELECT oi.quantity, oi.price, oi.color, oi.size, p.name,
+              JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]')) AS first_image
+       FROM order_items oi JOIN products p ON oi.product_id = p.id
+       WHERE oi.order_id = ?`, [orderId]
+    );
+
+    const orderDetailsForEmail = {
+      total: parseFloat(o.total),
+      subtotal: parseFloat(o.subtotal || o.total),
+      shipping_cost: parseFloat(o.shipping_cost || 0),
+      vat_amount: parseFloat(o.vat_amount || 0),
+      created_at: o.created_at,
+      customer_address: o.customer_address,
+      customer_city: o.customer_city,
+      customer_postal_code: o.customer_postal_code,
+      payment_method: o.payment_method,
+      tracking_token: o.tracking_token,
+      items: itemRows.map((r: any) => ({
+        name: r.name, quantity: r.quantity, price: parseFloat(r.price),
+        color: r.color || undefined, size: r.size || undefined,
+        image: r.first_image || undefined,
+      })),
+    };
+
+    let pdfBuffer: Buffer | undefined;
+    try {
+      pdfBuffer = await generateInvoicePdf({
+        id: orderId,
+        payment_status: o.payment_status,
+        customer_name: o.customer_name,
+        customer_email: o.customer_email,
+        customer_phone: o.customer_phone || '',
+        ...orderDetailsForEmail,
+      });
+    } catch (pdfErr: any) {
+      console.error('❌ Resend PDF error:', pdfErr.message);
+    }
+
+    const result = await emailService.sendOrderConfirmation(
+      o.customer_email, o.customer_name, String(orderId),
+      orderDetailsForEmail, 'pt', pdfBuffer
+    );
+
+    if (result.success) {
+      console.log(`✅ Confirmation re-sent for order ${orderId} to ${o.customer_email}`);
+      res.json({ success: true, messageId: result.messageId });
+    } else {
+      res.status(500).json({ success: false, error: result.error });
+    }
+  } catch (error: any) {
+    console.error('Error resending confirmation:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

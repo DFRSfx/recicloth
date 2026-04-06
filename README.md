@@ -545,7 +545,6 @@ Emails enviados pelo sistema:
 | Faturação / PDF de fatura automático | Parcial | Componente `Invoice.tsx` existe mas não é gerado automaticamente |
 | Gestão de devoluções no painel admin | Não implementado | Política publicada; processo manual por email |
 | Programa de fidelização / pontos | Não implementado | — |
-| Newsletter (backend) | Parcial | Modal de subscrição existe; envio de newsletters não implementado |
 
 ---
 

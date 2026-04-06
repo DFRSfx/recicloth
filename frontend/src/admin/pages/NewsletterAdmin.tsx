@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { useConfirmStore } from '../../hooks/useConfirm';
 import {
   Send, Trash2, Edit2, Plus, Users,
   Loader2, AlertCircle, CheckCircle, ArrowLeft, Image,
-  FileText,
+  FileText, Code, X as XIcon,
 } from 'lucide-react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import { apiService } from '../../utils/api';
 
 const API = (path: string) => `/api/newsletter${path}`;
@@ -50,41 +49,6 @@ const authFetch = async (url: string, options: RequestInit = {}) => {
   return res.json();
 };
 
-// ── Simple toolbar for the HTML editor ───────────────────────────────────────
-function EditorToolbar({ editor, onImageUpload }: { editor: any; onImageUpload: () => void }) {
-  if (!editor) return null;
-  const btn = (action: () => void, label: string, active?: boolean) => (
-    <button
-      type="button"
-      onClick={action}
-      title={label}
-      className={`px-2 py-1 text-sm rounded transition-colors ${active ? 'bg-primary-100 text-primary-700 font-bold' : 'text-gray-600 hover:bg-gray-100'}`}
-    >
-      {label}
-    </button>
-  );
-  return (
-    <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 bg-gray-50 rounded-t-md">
-      {btn(() => editor.chain().focus().toggleBold().run(), 'B', editor.isActive('bold'))}
-      {btn(() => editor.chain().focus().toggleItalic().run(), 'I', editor.isActive('italic'))}
-      {btn(() => editor.chain().focus().toggleHeading({ level: 2 }).run(), 'H2', editor.isActive('heading', { level: 2 }))}
-      {btn(() => editor.chain().focus().toggleHeading({ level: 3 }).run(), 'H3', editor.isActive('heading', { level: 3 }))}
-      {btn(() => editor.chain().focus().toggleBulletList().run(), '• List', editor.isActive('bulletList'))}
-      {btn(() => editor.chain().focus().toggleOrderedList().run(), '1. List', editor.isActive('orderedList'))}
-      {btn(() => editor.chain().focus().setParagraph().run(), '¶')}
-      <div className="w-px bg-gray-300 mx-1" />
-      <button
-        type="button"
-        onClick={onImageUpload}
-        className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors"
-        title="Inserir imagem"
-      >
-        <Image className="h-4 w-4" /> Imagem
-      </button>
-    </div>
-  );
-}
-
 // ── Campaign form (create / edit) ─────────────────────────────────────────────
 function CampaignForm({
   initial,
@@ -96,40 +60,38 @@ function CampaignForm({
   onCancel: () => void;
 }) {
   const [subject, setSubject] = useState(initial?.subject || '');
-  const [mode, setMode] = useState<'visual' | 'html'>('visual');
-  const [rawHtml, setRawHtml] = useState('');
+  const [mode, setMode] = useState<'html' | 'image'>('html');
+  const [rawHtml, setRawHtml] = useState(initial?.content_html || '');
+  // For image mode: uploaded URL + preview
+  const [imageUrl, setImageUrl] = useState('');
+  const [imagePreview, setImagePreview] = useState('');
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const editor = useEditor({
-    extensions: [StarterKit],
-    content: initial?.content_html || '',
-    onUpdate({ editor }) {
-      setRawHtml(editor.getHTML());
-    },
-  });
-
+  // Detect if existing campaign was image-based and restore preview
   useEffect(() => {
-    if (editor && initial?.content_html) {
-      setRawHtml(initial.content_html);
+    if (initial?.content_html) {
+      const match = initial.content_html.match(/src="([^"]+)"/);
+      if (match && initial.content_html.includes('<img') && !initial.content_html.includes('<p>')) {
+        setMode('image');
+        setImageUrl(match[1]);
+        setImagePreview(match[1]);
+      }
     }
-  }, [editor, initial?.content_html]);
-
-  const getContent = () => {
-    if (mode === 'html') return rawHtml;
-    return editor?.getHTML() || '';
-  };
+  }, []);
 
   const handleImageUpload = async (file: File) => {
     setUploading(true);
+    setError('');
     try {
       const form = new FormData();
       form.append('image', file);
       const data = await authFetch(API('/admin/upload-image'), { method: 'POST', body: form });
-      if (data?.url && editor) {
-        editor.chain().focus().insertContent(`<img src="${data.url}" alt="newsletter image" style="max-width:100%;height:auto;" />`).run();
+      if (data?.url) {
+        setImageUrl(data.url);
+        setImagePreview(data.url);
       }
     } catch (e: any) {
       setError(`Erro ao fazer upload: ${e.message}`);
@@ -138,10 +100,18 @@ function CampaignForm({
     }
   };
 
+  const getContent = (): string => {
+    if (mode === 'html') return rawHtml.trim();
+    if (!imageUrl) return '';
+    return `<div style="text-align:center;padding:24px 0;">
+  <img src="${imageUrl}" alt="Newsletter" style="max-width:100%;height:auto;display:inline-block;" />
+</div>`;
+  };
+
   const handleSave = async () => {
     if (!subject.trim()) { setError('Assunto obrigatório'); return; }
     const html = getContent();
-    if (!html || html === '<p></p>') { setError('Conteúdo obrigatório'); return; }
+    if (!html) { setError(mode === 'image' ? 'Carregue uma imagem' : 'Conteúdo HTML obrigatório'); return; }
     setSaving(true);
     setError('');
     try {
@@ -182,6 +152,7 @@ function CampaignForm({
       )}
 
       <div className="space-y-5">
+        {/* Subject */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Assunto *</label>
           <input
@@ -189,92 +160,125 @@ function CampaignForm({
             value={subject}
             onChange={e => setSubject(e.target.value)}
             placeholder="Ex: Novidades de abril — Recicloth"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
           />
         </div>
 
+        {/* Mode selector */}
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-sm font-medium text-gray-700">Conteúdo *</label>
-            <div className="flex border border-gray-200 rounded overflow-hidden text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  if (mode === 'html') {
-                    editor?.commands.setContent(rawHtml);
-                  }
-                  setMode('visual');
-                }}
-                className={`px-3 py-1 transition-colors ${mode === 'visual' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-              >
-                Visual
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setRawHtml(editor?.getHTML() || rawHtml);
-                  setMode('html');
-                }}
-                className={`px-3 py-1 transition-colors ${mode === 'html' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-              >
-                HTML
-              </button>
-            </div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de conteúdo *</label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setMode('html')}
+              className={`flex items-center gap-3 px-4 py-3 border-2 rounded-lg text-left transition-colors ${
+                mode === 'html'
+                  ? 'border-primary-600 bg-primary-50 text-primary-700'
+                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+              }`}
+            >
+              <Code className="h-5 w-5 flex-shrink-0" />
+              <div>
+                <div className="text-sm font-semibold">HTML</div>
+                <div className="text-xs text-gray-400 mt-0.5">Colar código HTML</div>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('image')}
+              className={`flex items-center gap-3 px-4 py-3 border-2 rounded-lg text-left transition-colors ${
+                mode === 'image'
+                  ? 'border-primary-600 bg-primary-50 text-primary-700'
+                  : 'border-gray-200 hover:border-gray-300 text-gray-600'
+              }`}
+            >
+              <Image className="h-5 w-5 flex-shrink-0" />
+              <div>
+                <div className="text-sm font-semibold">Imagem</div>
+                <div className="text-xs text-gray-400 mt-0.5">Enviar como imagem</div>
+              </div>
+            </button>
           </div>
+        </div>
 
-          {mode === 'visual' ? (
-            <div className="border border-gray-300 rounded-md overflow-hidden">
-              <EditorToolbar
-                editor={editor}
-                onImageUpload={() => fileRef.current?.click()}
-              />
-              <EditorContent
-                editor={editor}
-                className="prose max-w-none p-4 min-h-[240px] focus:outline-none text-sm"
-              />
-            </div>
-          ) : (
+        {/* HTML mode */}
+        {mode === 'html' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Código HTML *</label>
             <textarea
               value={rawHtml}
               onChange={e => setRawHtml(e.target.value)}
-              rows={14}
+              rows={16}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none font-mono text-xs resize-y"
-              placeholder="<p>Conteúdo HTML da newsletter...</p>"
+              placeholder={'<div style="padding:32px;font-family:sans-serif;">\n  <h1>Olá!</h1>\n  <p>Novidades da Recicloth...</p>\n</div>'}
             />
-          )}
-        </div>
+            <p className="mt-1.5 text-xs text-gray-400">
+              O HTML será inserido dentro do wrapper de email com cabeçalho Recicloth e rodapé de cancelamento.
+            </p>
+          </div>
+        )}
 
-        {/* Hidden file input for image upload */}
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={e => {
-            const f = e.target.files?.[0];
-            if (f) handleImageUpload(f);
-            e.target.value = '';
-          }}
-        />
-
-        {uploading && (
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Loader2 className="h-4 w-4 animate-spin" /> A fazer upload da imagem…
+        {/* Image mode */}
+        {mode === 'image' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Imagem da newsletter *</label>
+            {imagePreview ? (
+              <div className="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full max-h-80 object-contain"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setImageUrl(''); setImagePreview(''); }}
+                  className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow text-gray-500 hover:text-red-500 transition-colors"
+                >
+                  <XIcon className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="w-full flex flex-col items-center justify-center gap-3 border-2 border-dashed border-gray-300 rounded-lg py-12 hover:border-primary-400 hover:bg-primary-50 transition-colors disabled:opacity-50"
+              >
+                {uploading
+                  ? <Loader2 className="h-8 w-8 text-primary-400 animate-spin" />
+                  : <Image className="h-8 w-8 text-gray-400" />}
+                <span className="text-sm text-gray-500">
+                  {uploading ? 'A fazer upload…' : 'Clique para carregar imagem'}
+                </span>
+                <span className="text-xs text-gray-400">PNG, JPG, WebP — máx. 10 MB</span>
+              </button>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={e => {
+                const f = e.target.files?.[0];
+                if (f) handleImageUpload(f);
+                e.target.value = '';
+              }}
+            />
           </div>
         )}
 
         <div className="flex gap-3 pt-2">
           <button
             onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 bg-primary-600 text-white px-5 py-2 rounded-md hover:bg-primary-700 disabled:opacity-50 transition-colors font-medium"
+            disabled={saving || uploading}
+            className="flex items-center gap-2 bg-primary-600 text-white px-5 py-2 rounded-md hover:bg-primary-700 disabled:opacity-50 transition-colors font-medium text-sm"
           >
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             Guardar
           </button>
           <button
             onClick={onCancel}
-            className="px-5 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+            className="px-5 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors text-sm"
           >
             Cancelar
           </button>
@@ -291,6 +295,7 @@ export default function NewsletterAdmin() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [editingCampaign, setEditingCampaign] = useState<(Campaign & { content_html?: string }) | null>(null);
   const [loading, setLoading] = useState(false);
+  const { openConfirm } = useConfirmStore();
   const [error, setError] = useState('');
   const [sendingId, setSendingId] = useState<number | null>(null);
   const [sendResult, setSendResult] = useState<{ id: number; total: number } | null>(null);
@@ -349,20 +354,27 @@ export default function NewsletterAdmin() {
     }
   };
 
-  const handleSend = async (campaign: Campaign) => {
-    if (!confirm(`Enviar "${campaign.subject}" para todos os subscritores ativos?`)) return;
-    setSendingId(campaign.id);
-    setSendResult(null);
-    setError('');
-    try {
-      const data = await authFetch(API(`/admin/campaigns/${campaign.id}/send`), { method: 'POST' });
-      setSendResult({ id: campaign.id, total: data.total });
-      loadCampaigns();
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setSendingId(null);
-    }
+  const handleSend = (campaign: Campaign) => {
+    openConfirm({
+      title: 'Enviar campanha',
+      message: `Enviar "${campaign.subject}" para todos os subscritores ativos? Esta ação não pode ser revertida.`,
+      confirmText: 'Enviar',
+      confirmButtonClass: 'bg-primary-600 hover:bg-primary-700',
+      onConfirm: async () => {
+        setSendingId(campaign.id);
+        setSendResult(null);
+        setError('');
+        try {
+          const data = await authFetch(API(`/admin/campaigns/${campaign.id}/send`), { method: 'POST' });
+          setSendResult({ id: campaign.id, total: data.total });
+          loadCampaigns();
+        } catch (e: any) {
+          setError(e.message);
+        } finally {
+          setSendingId(null);
+        }
+      },
+    });
   };
 
   const activeCount = subscribers.filter(s => s.is_active).length;
