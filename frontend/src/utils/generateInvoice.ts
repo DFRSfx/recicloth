@@ -3,6 +3,8 @@ export interface InvoiceOrderItem {
   quantity: number;
   price: number;
   product: { id: number; name: string; image: string };
+  selected_color?: string;
+  selected_size?: string;
 }
 
 export interface InvoiceOrder {
@@ -40,11 +42,18 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
   });
   const year = new Date(order.created_at).getFullYear();
   const invoiceNumber = `${year}-${String(order.id).padStart(4, '0')}`;
-  const logoUrl = `${window.location.origin}/images/logo.svg`;
+  const logoUrl = `${window.location.origin}/images/logo.png`;
 
   const itemsHtml = order.order_items.map(item => `
     <tr>
-      <td class="td-name">${item.product.name}</td>
+      <td class="td-name">
+        <div class="item-name">${item.product.name}</div>
+        <div class="item-meta">
+          ${item.selected_color ? `Cor: ${item.selected_color}` : ''} 
+          ${item.selected_color && item.selected_size ? ' | ' : ''}
+          ${item.selected_size ? `Tam: ${item.selected_size}` : ''}
+        </div>
+      </td>
       <td class="td-center">${item.quantity}</td>
       <td class="td-right">${Number(item.price).toFixed(2)}€</td>
       <td class="td-right td-bold">${(item.quantity * Number(item.price)).toFixed(2)}€</td>
@@ -52,7 +61,7 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
   `).join('');
 
   const statusBadge = order.payment_status === 'paid'
-    ? '<span class="badge-paid">Pago</span>'
+    ? '<span class="badge-paid">PAGO</span>'
     : `<span>${order.payment_status}</span>`;
 
   return `<!DOCTYPE html>
@@ -63,126 +72,142 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* CSS Reset for Print */
+    @page { 
+      margin: 0; /* REMOVE OS CABEÇALHOS E RODAPÉS DO BROWSER (about:blank, data, etc) */
+      size: A4;
+    }
+
     body {
-      font-family: 'Georgia', 'Times New Roman', serif;
-      background: #f7f0eb;
-      color: #2c1810;
-      padding: 32px 16px 48px;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #f9f9f9;
+      color: #111827;
+      padding: 40px;
+      -webkit-font-smoothing: antialiased;
     }
 
     @media print {
-      body { background: white; padding: 0; }
-      .invoice-wrapper { box-shadow: none !important; margin: 0 !important; max-width: 100% !important; }
-      @page { margin: 12mm 14mm; size: A4; }
+      body { 
+        background: white; 
+        padding: 40px !important; /* Margem interna da folha */
+      }
+      .invoice-wrapper { 
+        box-shadow: none !important; 
+        margin: 0 !important; 
+        border: none !important;
+      }
     }
 
     .invoice-wrapper {
-      max-width: 820px;
+      max-width: 800px;
       margin: 0 auto;
       background: #fff;
-      border-radius: 4px;
+      border: 1px solid #e5e7eb;
       overflow: hidden;
-      box-shadow: 0 6px 48px rgba(0,0,0,.13);
+      box-shadow: 0 4px 20px rgba(0,0,0,.05);
     }
 
+    /* TOP STRIPE DA MARCA */
     .stripe-top {
-      height: 10px;
-      background: linear-gradient(90deg, #5a2810 0%, #9c4e28 40%, #c87748 70%, #9c4e28 100%);
+      height: 12px;
+      background: #1E4D3B; /* Verde floresta escuro */
     }
 
     .invoice-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      padding: 40px 52px 32px;
-      border-bottom: 1px solid #ede0d4;
+      align-items: flex-end;
+      padding: 48px 48px 40px;
     }
-    .brand { display: flex; align-items: center; gap: 18px; }
-    .brand img { height: 72px; width: auto; object-fit: contain; }
-    .brand-name { font-size: 22px; font-weight: 700; color: #7c3d1e; letter-spacing: .3px; }
-    .brand-sub  { font-size: 12.5px; color: #a07060; margin-top: 4px; font-style: italic; }
+
+    .brand img { height: 45px; width: auto; object-fit: contain; }
 
     .inv-title-block { text-align: right; }
     .inv-title {
-      font-size: 40px; font-weight: 700; letter-spacing: 4px;
-      text-transform: uppercase; color: #7c3d1e;
+      font-size: 32px; 
+      font-weight: 800; 
+      letter-spacing: -0.5px;
+      color: #111827;
+      margin-bottom: 8px;
     }
-    .inv-number { font-size: 14px; color: #a07060; margin-top: 4px; }
-    .inv-date   { font-size: 13px; color: #a07060; margin-top: 3px; }
+    .inv-number { font-size: 14px; color: #6b7280; font-weight: 500; }
+    .inv-date   { font-size: 14px; color: #6b7280; margin-top: 2px; }
 
     .info-band {
       display: flex;
       justify-content: space-between;
       gap: 32px;
-      padding: 28px 52px;
-      background: #fdf7f2;
-      border-bottom: 1px solid #ede0d4;
+      padding: 32px 48px;
+      background: #f8fafc; /* Cinza muito claro */
+      border-top: 1px solid #f1f5f9;
+      border-bottom: 1px solid #f1f5f9;
     }
+    
+    .info-block { flex: 1; }
     .info-block h4 {
-      font-size: 10px; font-weight: 700; letter-spacing: 1.8px;
-      text-transform: uppercase; color: #a07060; margin-bottom: 12px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: #94a3b8; margin-bottom: 12px;
     }
-    .info-block p { font-size: 13.5px; line-height: 1.75; color: #2c1810; }
-    .info-block .strong { font-weight: 700; }
+    .info-block p { font-size: 14px; line-height: 1.6; color: #334155; }
+    .info-block .strong { font-weight: 700; color: #0f172a; margin-bottom: 4px; }
 
-    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px; }
+    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
     .meta-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 1.4px;
-      text-transform: uppercase; color: #a07060; margin-bottom: 3px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: #94a3b8; margin-bottom: 4px;
     }
-    .meta-val { font-size: 13.5px; font-weight: 600; color: #2c1810; }
+    .meta-val { font-size: 14px; font-weight: 600; color: #0f172a; }
+    
     .badge-paid {
       display: inline-block; background: #dcfce7; color: #166534;
-      padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+      padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;
     }
 
-    .items-wrap { padding: 32px 52px 24px; }
+    .items-wrap { padding: 40px 48px 24px; }
     table { width: 100%; border-collapse: collapse; }
-    thead tr { background: #7c3d1e; color: #fff; }
+    thead tr { border-bottom: 2px solid #e2e8f0; }
     thead th {
-      padding: 11px 10px; font-size: 11px; font-weight: 700;
+      padding: 12px 8px; font-size: 11px; font-weight: 700; color: #64748b;
       letter-spacing: 1px; text-transform: uppercase;
     }
-    thead th:first-child { text-align: left; padding-left: 18px; }
-    thead th:last-child  { padding-right: 18px; }
-    .td-name   { padding: 13px 10px 13px 18px; font-size: 14px; border-bottom: 1px solid #f5ece4; }
-    .td-center { padding: 13px 10px; text-align: center; font-size: 14px; border-bottom: 1px solid #f5ece4; }
-    .td-right  { padding: 13px 10px; text-align: right; font-size: 14px; border-bottom: 1px solid #f5ece4; }
-    .td-right:last-child { padding-right: 18px; }
-    .td-bold   { font-weight: 700; }
-    tbody tr:nth-child(even) { background: #fdf7f2; }
+    thead th:first-child { text-align: left; padding-left: 0; }
+    thead th:last-child  { padding-right: 0; text-align: right; }
+    
+    .td-name   { padding: 20px 8px 20px 0; border-bottom: 1px solid #f1f5f9; }
+    .item-name { font-size: 14px; font-weight: 600; color: #0f172a; }
+    .item-meta { font-size: 12px; color: #64748b; margin-top: 4px; }
+    
+    .td-center { padding: 20px 8px; text-align: center; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; }
+    .td-right  { padding: 20px 8px; text-align: right; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; }
+    .td-right:last-child { padding-right: 0; }
+    .td-bold   { font-weight: 700; color: #0f172a; }
 
-    .totals-wrap { display: flex; justify-content: flex-end; padding: 8px 52px 40px; }
-    .totals-box { width: 300px; border: 1px solid #ede0d4; border-radius: 8px; overflow: hidden; }
+    .totals-wrap { display: flex; justify-content: flex-end; padding: 16px 48px 48px; }
+    .totals-box { width: 320px; }
     .t-row {
       display: flex; justify-content: space-between;
-      padding: 10px 18px; font-size: 14px; border-bottom: 1px solid #f0e6de;
+      padding: 12px 0; font-size: 14px; border-bottom: 1px solid #f1f5f9;
     }
     .t-row:last-child { border-bottom: none; }
+    .t-row .lbl { color: #64748b; font-weight: 500; }
+    .t-row .val { color: #0f172a; font-weight: 500; }
+    .t-row .free { color: #16a34a; font-weight: 600; }
+    
     .t-row.t-total {
-      background: #7c3d1e; color: #fff;
-      font-size: 16px; font-weight: 700; padding: 13px 18px;
+      margin-top: 8px;
+      padding-top: 16px;
+      border-top: 2px solid #1E4D3B;
+      font-size: 18px; 
     }
-    .t-row .lbl { color: #7a5040; }
-    .t-row.t-total .lbl { color: #f0d0b8; }
-    .free { color: #16a34a; font-weight: 600; }
-
-    .ornament {
-      text-align: center; color: #c8906a; font-size: 18px;
-      letter-spacing: 8px; padding: 0 52px 12px;
-    }
+    .t-row.t-total .lbl { color: #0f172a; font-weight: 800; }
+    .t-row.t-total .val { color: #1E4D3B; font-weight: 800; }
 
     .invoice-footer {
-      border-top: 1px solid #ede0d4; padding: 20px 52px;
-      background: #fdf7f2; text-align: center;
+      padding: 32px 48px;
+      text-align: center;
     }
-    .invoice-footer p { font-size: 12px; color: #a07060; line-height: 1.9; }
-    .invoice-footer .note { font-style: italic; margin-top: 4px; font-size: 11px; color: #c0a090; }
-
-    .stripe-bottom {
-      height: 7px;
-      background: linear-gradient(90deg, #5a2810 0%, #9c4e28 40%, #c87748 70%, #9c4e28 100%);
-    }
+    .invoice-footer p { font-size: 12px; color: #64748b; font-weight: 500; }
+    .invoice-footer .note { margin-top: 6px; font-size: 11px; color: #94a3b8; }
   </style>
 </head>
 <body>
@@ -192,14 +217,10 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
     <div class="invoice-header">
       <div class="brand">
         <img src="${logoUrl}" alt="Recicloth" onerror="this.style.display='none'" />
-        <div>
-          <div class="brand-name">Recicloth</div>
-          <div class="brand-sub">Artesanato em Crochê Feito à Mão</div>
-        </div>
       </div>
       <div class="inv-title-block">
-        <div class="inv-title">Fatura</div>
-        <div class="inv-number">N.º ${invoiceNumber}</div>
+        <div class="inv-title">FATURA</div>
+        <div class="inv-number">#${invoiceNumber}</div>
         <div class="inv-date">${orderDate}</div>
       </div>
     </div>
@@ -214,16 +235,8 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
         <p>${order.customer_postal_code} ${order.customer_city}</p>
       </div>
       <div class="info-block">
-        <h4>Detalhes da Encomenda</h4>
+        <h4>Detalhes</h4>
         <div class="meta-grid">
-          <div>
-            <div class="meta-label">N.º Encomenda</div>
-            <div class="meta-val">#${order.id}</div>
-          </div>
-          <div>
-            <div class="meta-label">Data</div>
-            <div class="meta-val">${orderDate}</div>
-          </div>
           <div>
             <div class="meta-label">Pagamento</div>
             <div class="meta-val">${paymentLabel(order.payment_method)}</div>
@@ -240,9 +253,9 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
       <table>
         <thead>
           <tr>
-            <th style="text-align:left">Produto</th>
-            <th style="text-align:center">Qtd.</th>
-            <th style="text-align:right">Preço Unit.</th>
+            <th>Descrição</th>
+            <th style="text-align:center">Qtd</th>
+            <th style="text-align:right">Preço</th>
             <th style="text-align:right">Total</th>
           </tr>
         </thead>
@@ -250,34 +263,31 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
       </table>
     </div>
 
-    <div class="ornament">· · ·</div>
-
     <div class="totals-wrap">
       <div class="totals-box">
         <div class="t-row">
           <span class="lbl">Subtotal (s/ IVA)</span>
-          <span>${subtotalExVat.toFixed(2)}€</span>
+          <span class="val">${subtotalExVat.toFixed(2)}€</span>
         </div>
         <div class="t-row">
           <span class="lbl">IVA (23%)</span>
-          <span>${vatAmount.toFixed(2)}€</span>
+          <span class="val">${vatAmount.toFixed(2)}€</span>
         </div>
         <div class="t-row">
-          <span class="lbl">Envio</span>
+          <span class="lbl">Portes de Envio</span>
           <span class="free">Grátis</span>
         </div>
         <div class="t-row t-total">
           <span class="lbl">Total</span>
-          <span>${total.toFixed(2)}€</span>
+          <span class="val">${total.toFixed(2)}€</span>
         </div>
       </div>
     </div>
 
     <div class="invoice-footer">
-      <p>Recicloth · Artesanato em Crochê Feito à Mão</p>
+      <p>Recicloth — Moda Sustentável e Upcycled</p>
       <p class="note">Este documento é meramente informativo e não substitui uma fatura fiscal oficial.</p>
     </div>
-    <div class="stripe-bottom"></div>
   </div>
 </body>
 </html>`;

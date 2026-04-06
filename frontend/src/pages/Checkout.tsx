@@ -280,12 +280,17 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
   useEffect(() => {
     if (isAuthenticated) {
       loadSavedAddresses();
-      setCustomerInfo(prev => ({ ...prev, name: user?.name || '', email: user?.email || '' }));
     } else {
       const timer = setTimeout(() => setShowGuestWarning(true), 2000);
       return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, loadSavedAddresses, user]);
+  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      setCustomerInfo(prev => ({ ...prev, name: user.name || '', email: user.email || '' }));
+    }
+  }, [isAuthenticated, user?.name, user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
