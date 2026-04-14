@@ -20,6 +20,8 @@ export interface InvoiceOrder {
   customer_address: string;
   customer_city: string;
   customer_postal_code: string;
+  delivery_country?: string;
+  vat_rate?: number;
   order_items: InvoiceOrderItem[];
 }
 
@@ -52,7 +54,9 @@ const paymentLabel = (method: string): string => {
 
 export const getInvoiceHtml = (order: InvoiceOrder): string => {
   const total = Number(order.total);
-  const subtotalExVat = total / 1.23;
+  const vatRate = order.vat_rate ?? 0.23;
+  const vatRatePct = Math.round(vatRate * 100);
+  const subtotalExVat = total / (1 + vatRate);
   const vatAmount = total - subtotalExVat;
   const orderDate = new Date(order.created_at).toLocaleDateString('pt-PT', {
     day: '2-digit', month: 'long', year: 'numeric',
@@ -299,7 +303,7 @@ export const getInvoiceHtml = (order: InvoiceOrder): string => {
           <span class="val">${subtotalExVat.toFixed(2)}€</span>
         </div>
         <div class="t-row">
-          <span class="lbl">IVA (23%)</span>
+          <span class="lbl">IVA (${vatRatePct}%)</span>
           <span class="val">${vatAmount.toFixed(2)}€</span>
         </div>
         <div class="t-row">

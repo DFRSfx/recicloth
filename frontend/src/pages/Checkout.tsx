@@ -8,6 +8,7 @@ import 'react-phone-number-input/style.css';
 import PhoneCountrySelect from '../components/PhoneCountrySelect';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
 import { calcShipping, EU_SHIPPING_COUNTRIES } from '../utils/shippingCalculator';
+import { getVatRate } from '../utils/vatRates';
 import { useGeoCountry } from '../hooks/useGeoCountry';
 import { loadStripe } from '@stripe/stripe-js';
 import type { Appearance } from '@stripe/stripe-js';
@@ -113,7 +114,8 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
   const totalItemCount = items.reduce((s, i) => s + i.quantity, 0);
   const shippingCost = calcShipping(deliveryCountry, totalItemCount, amount);
   const displayTotal = parseFloat((amount + shippingCost).toFixed(2));
-  const subtotalExVat = amount / 1.23;
+  const vatRate = getVatRate(deliveryCountry);
+  const subtotalExVat = amount / (1 + vatRate);
   const ivaAmount = amount - subtotalExVat;
 
   const [customerInfo, setCustomerInfo] = useState({
@@ -867,7 +869,7 @@ const CheckoutInner: React.FC<CheckoutInnerProps> = ({ amount, setAmount, paymen
                     }
                   </div>
                   <div className="flex justify-between">
-                    <span>{t('cart.vat')}</span>
+                    <span>{t('cart.vat')} ({Math.round(vatRate * 100)}%)</span>
                     <span className="font-medium text-gray-900">{ivaAmount.toFixed(2)}€</span>
                   </div>
                   <div className="flex justify-between text-lg font-bold border-t border-gray-100 pt-3 mt-2 text-gray-900">

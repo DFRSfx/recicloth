@@ -8,6 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { getRoutePath } from '../utils/routes';
 import { calcShipping } from '../utils/shippingCalculator';
 import { useGeoCountry } from '../hooks/useGeoCountry';
+import { getVatRate } from '../utils/vatRates';
 
 const Cart: React.FC = () => {
   const { items, total, clearCart, itemCount } = useCart();
@@ -20,7 +21,8 @@ const Cart: React.FC = () => {
   const [showClearModal, setShowClearModal] = useState(false);
 
   const geoCountry = useGeoCountry();
-  const subtotalExVat = total / 1.23;
+  const vatRate = getVatRate(geoCountry);
+  const subtotalExVat = total / (1 + vatRate);
   const ivaAmount = total - subtotalExVat;
   const estimatedShipping = calcShipping(geoCountry, itemCount, total);
 
@@ -144,7 +146,7 @@ const Cart: React.FC = () => {
                   }
                 </div>
                 <div className="flex justify-between text-gray-600 text-[15px]">
-                  <span>{t('cart.vat')}</span>
+                  <span>{t('cart.vat')} ({Math.round(vatRate * 100)}%)</span>
                   <span className="font-medium text-gray-900">{ivaAmount.toFixed(2)}€</span>
                 </div>
 

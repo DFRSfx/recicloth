@@ -327,6 +327,7 @@ class EmailService {
       subtotal?: number;
       shipping_cost?: number;
       vat_amount?: number;
+      vat_rate?: number;
       created_at?: string;
       customer_address?: string;
       customer_city?: string;
@@ -572,6 +573,7 @@ private getOrderConfirmationHTML(
       subtotal?: number;
       shipping_cost?: number;
       vat_amount?: number;
+      vat_rate?: number;
       created_at?: string;
       customer_address?: string;
       customer_city?: string;
@@ -602,6 +604,7 @@ private getOrderConfirmationHTML(
     const subtotal = orderDetails.subtotal ?? orderDetails.total;
     const shippingCost = orderDetails.shipping_cost ?? 0;
     const vatAmount = orderDetails.vat_amount ?? 0;
+    const vatRatePct = Math.round((orderDetails.vat_rate ?? 0.23) * 100);
 
     const backendUrl = process.env.BACKEND_URL || process.env.FRONTEND_URL?.split(',')[0]?.trim() || 'http://localhost:3001';
     const itemsHTML = orderDetails.items.map((item) => {
@@ -705,7 +708,7 @@ private getOrderConfirmationHTML(
                   <td style="padding: 6px 0; font-size: 14px; color: #374151; text-align: right;">${shippingCost > 0 ? `${parseFloat(String(shippingCost)).toFixed(2)}€` : 'Grátis'}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">${content.vat}</td>
+                  <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">${content.vat.replace('23%', `${vatRatePct}%`)}</td>
                   <td style="padding: 6px 0; font-size: 14px; color: #374151; text-align: right;">${parseFloat(String(vatAmount)).toFixed(2)}€</td>
                 </tr>
                 <tr>

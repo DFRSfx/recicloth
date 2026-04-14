@@ -4,7 +4,7 @@ import pool from '../config/database.js';
 import { requireAdmin, authenticateToken, AuthRequest } from '../middleware/auth.js';
 import crypto from 'crypto';
 import emailService from '../emailService.js';
-import { BUSINESS_RULES, ORDER_STATUS_MAP, OrderStatusLabel } from '../config/businessRules.js';
+import { BUSINESS_RULES, ORDER_STATUS_MAP, OrderStatusLabel, getVatRate } from '../config/businessRules.js';
 import { calculateShipping } from '../utils/shippingCalculator.js';
 
 const router = express.Router();
@@ -224,7 +224,8 @@ router.post(
       }
 
       const subtotal = items.reduce((sum: number, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0);
-      const vatAmount = Number((subtotal * BUSINESS_RULES.VAT_RATE).toFixed(2));
+      const vatRate = getVatRate(normalizedCountry);
+      const vatAmount = Number((subtotal * vatRate).toFixed(2));
       const totalItemCount = items.reduce((sum: number, item: any) => sum + Number(item.quantity), 0);
       const shipping = calculateShipping(normalizedCountry, totalItemCount, subtotal);
       const shippingCost = Number(shipping.cost.toFixed(2));
@@ -339,6 +340,8 @@ router.post(
         String(orderId),
         {
           total,
+          vat_rate: vatRate,
+          vat_amount: vatAmount,
           items: items.map((item: any) => ({
             name: item.name || `Produto #${item.product_id}`,
             quantity: Number(item.quantity),
@@ -352,7 +355,7 @@ router.post(
         ...newOrder,
         totals: {
           subtotal: Number(subtotal.toFixed(2)),
-          vat_rate: BUSINESS_RULES.VAT_RATE,
+          vat_rate: vatRate,
           vat_amount: vatAmount,
           shipping_cost: shippingCost,
           total,

@@ -186,7 +186,7 @@
   "cart.shipping": "Shipping",
   "cart.shippingCalculated": "Calculated at checkout",
   "cart.totalEstimated": "VAT incl. · estimated shipping",
-  "cart.vat": "VAT (23%)",
+  "cart.vat": "VAT",
   "cart.total": "Total (incl. VAT)",
   "cart.vatIncluded": "VAT included",
   "cart.checkout": "Checkout",

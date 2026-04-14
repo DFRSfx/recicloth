@@ -8,6 +8,7 @@ import SEO from '../components/SEO';
 import { useLanguage } from '../context/LanguageContext';
 import { getProductPath, getRoutePath, getTrackOrderPath } from '../utils/routes';
 import { getPaymentMethodLabel } from '../utils/paymentLabels';
+import { getVatRate } from '../utils/vatRates';
 
 interface OrderItem {
   id: number;
@@ -40,6 +41,7 @@ interface Order {
   customer_address: string;
   customer_city: string;
   customer_postal_code: string;
+  delivery_country?: string;
   order_items: OrderItem[];
 }
 
@@ -374,7 +376,7 @@ const Orders: React.FC = () => {
                                 <span className="font-medium text-gray-900">{formatMoney(order.shipping_cost)}€</span>
                               </div>
                               <div className="flex justify-between">
-                                <span>{t('cart.vat')}</span>
+                                <span>{t('cart.vat')} ({Math.round(getVatRate(order.delivery_country ?? 'PT') * 100)}%)</span>
                                 <span className="font-medium text-gray-900">{formatMoney(order.vat_amount)}€</span>
                               </div>
                               <div className="flex justify-between text-base font-semibold text-gray-900 border-t pt-2 mt-2">

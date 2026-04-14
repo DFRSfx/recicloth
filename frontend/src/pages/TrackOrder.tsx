@@ -6,6 +6,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { getTrackOrderPath } from '../utils/routes';
 import { getAbsoluteImageUrl } from '../utils/imageUtils';
 import { getPaymentMethodLabel } from '../utils/paymentLabels';
+import { getVatRate } from '../utils/vatRates';
 
 interface OrderItem {
   id: number;
@@ -49,6 +50,7 @@ interface Order {
   payment_method: string;
   created_at: string;
   updated_at: string;
+  delivery_country?: string;
   order_items: OrderItem[];
 }
 
@@ -381,7 +383,7 @@ const TrackOrder: React.FC = () => {
                   <span className="font-medium text-gray-900">{formatMoney(order.shipping_cost)}€</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>{t('cart.vat')}</span>
+                  <span>{t('cart.vat')} ({Math.round(getVatRate(order.delivery_country ?? 'PT') * 100)}%)</span>
                   <span className="font-medium text-gray-900">{formatMoney(order.vat_amount)}€</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold border-t pt-3 mt-2 text-gray-900">

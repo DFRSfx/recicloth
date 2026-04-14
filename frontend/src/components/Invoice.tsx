@@ -20,7 +20,9 @@ interface Props {
 
 const Invoice: React.FC<Props> = ({ order }) => {
   const total = Number(order.total);
-  const subtotalExVat = total / 1.23;
+  const vatRate = order.vat_rate ?? 0.23;
+  const vatRatePct = Math.round(vatRate * 100);
+  const subtotalExVat = total / (1 + vatRate);
   const vatAmount = total - subtotalExVat;
 
   const orderDate = new Date(order.created_at).toLocaleDateString('pt-PT', {
@@ -134,7 +136,7 @@ const Invoice: React.FC<Props> = ({ order }) => {
             <span style={{ color: '#0f172a', fontWeight: 500 }}>{subtotalExVat.toFixed(2)}€</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', fontSize: 14, borderBottom: '1px solid #f1f5f9' }}>
-            <span style={{ color: '#64748b', fontWeight: 500 }}>IVA (23%)</span>
+            <span style={{ color: '#64748b', fontWeight: 500 }}>IVA ({vatRatePct}%)</span>
             <span style={{ color: '#0f172a', fontWeight: 500 }}>{vatAmount.toFixed(2)}€</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', fontSize: 14, borderBottom: '1px solid #f1f5f9' }}>
