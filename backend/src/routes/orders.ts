@@ -247,8 +247,10 @@ router.post(
       const orderId = orderResult.insertId;
 
       for (const item of items) {
+        // FOR UPDATE locks the row so concurrent transactions must wait,
+        // preventing overselling when two checkouts race on the same product.
         const [products]: any = await connection.query(
-          'SELECT id, stock, name FROM products WHERE id = ?',
+          'SELECT id, stock, stock_mode, size_stock, name FROM products WHERE id = ? FOR UPDATE',
           [item.product_id]
         );
 
@@ -256,18 +258,49 @@ router.post(
           throw new Error(`Produto ${item.product_id} não encontrado`);
         }
 
-        if (Number(products[0].stock) < Number(item.quantity)) {
-          throw new Error(`Stock insuficiente para o produto ${products[0].name}`);
+        const product = products[0];
+        const qty = Number(item.quantity);
+        const isApparelOrShoes = product.stock_mode === 'apparel' || product.stock_mode === 'shoes';
+
+        if (isApparelOrShoes && item.size) {
+          // Check and deduct per-size stock
+          const sizeStock: { size: string; stock: number }[] =
+            typeof product.size_stock === 'string'
+              ? JSON.parse(product.size_stock)
+              : product.size_stock || [];
+
+          const sizeEntry = sizeStock.find((s: any) => s.size === item.size);
+          if (!sizeEntry || Number(sizeEntry.stock) < qty) {
+            throw new Error(
+              `Stock insuficiente para o produto ${product.name} (tamanho ${item.size})`
+            );
+          }
+
+          const updatedSizeStock = sizeStock.map((s: any) =>
+            s.size === item.size
+              ? { ...s, stock: Math.max(0, Number(s.stock) - qty) }
+              : s
+          );
+
+          await connection.query(
+            'UPDATE products SET size_stock = ? WHERE id = ?',
+            [JSON.stringify(updatedSizeStock), item.product_id]
+          );
+        } else {
+          // Unit-mode: check and deduct global stock
+          if (Number(product.stock) < qty) {
+            throw new Error(`Stock insuficiente para o produto ${product.name}`);
+          }
+
+          await connection.query(
+            'UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?',
+            [qty, item.product_id]
+          );
         }
 
         await connection.query(
           'INSERT INTO order_items (order_id, product_id, quantity, price, color, size) VALUES (?, ?, ?, ?, ?, ?)',
           [orderId, item.product_id, item.quantity, item.price, item.color || null, item.size || null]
-        );
-
-        await connection.query(
-          'UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?',
-          [item.quantity, item.product_id]
         );
       }
 
