@@ -91,6 +91,7 @@
   "product.shareError": "Erro ao partilhar produto",
   "product.selectSize": "Escolher tamanho",
   "product.selectSizeFirst": "Escolha um tamanho",
+  "product.maxStockReached": "Stock esgotado no carrinho",
   "product.review.basedOn": "Baseado em",
   "product.review.reviewSingular": "Review",
   "product.review.reviewPlural": "Reviews",

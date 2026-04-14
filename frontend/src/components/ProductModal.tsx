@@ -17,7 +17,7 @@ interface ProductModalProps {
 
 const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose, activeColor, activeImage, onAdded }) => {
   const [selectedSize, setSelectedSize] = useState('');
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
   const { t } = useLanguage();
 
   // Reset size selection whenever modal opens
@@ -29,8 +29,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose, a
 
   const sizes = product.size_stock ?? [];
 
+  // How many of this product+size the user already has in the cart
+  const cartQtyForSize = (size: string) =>
+    items.find(i => String(i.product.id) === String(product.id) && i.selectedSize === size)?.quantity ?? 0;
+
+  const stockForSize = (size: string) =>
+    sizes.find(s => s.size === size)?.stock ?? 0;
+
+  const selectedSizeMaxed =
+    !!selectedSize && cartQtyForSize(selectedSize) >= stockForSize(selectedSize);
+
   const handleAddToCart = () => {
-    if (!selectedSize) return;
+    if (!selectedSize || selectedSizeMaxed) return;
     addItem(product, activeColor || undefined, selectedSize);
     fireCartToast({
       productId: product.id,
@@ -96,13 +106,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose, a
           <div className="flex flex-wrap gap-2.5">
             {sizes.map(({ size, stock }) => {
               const outOfStock = Number(stock) <= 0;
+              const maxedInCart = cartQtyForSize(size) >= Number(stock);
+              const unavailable = outOfStock || maxedInCart;
               return (
                 <button
                   key={size}
-                  disabled={outOfStock}
+                  disabled={unavailable}
                   onClick={() => setSelectedSize(size)}
                   className={`min-w-[60px] h-12 flex items-center justify-center px-4 text-[15px] font-medium transition-all ${
-                    outOfStock
+                    unavailable
                       ? 'border border-gray-200 text-gray-300 cursor-not-allowed line-through'
                       : selectedSize === size
                       ? 'border-2 border-black text-black'
@@ -120,14 +132,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, isOpen, onClose, a
         <div className="px-6 pb-6 pt-4">
           <button
             onClick={handleAddToCart}
-            disabled={!selectedSize}
+            disabled={!selectedSize || selectedSizeMaxed}
             className={`w-full h-14 font-bold text-[16px] transition-colors focus:outline-none ${
-              !selectedSize 
-                ? 'bg-[#e2e4e7] text-[#8e98a8] cursor-not-allowed' 
+              !selectedSize || selectedSizeMaxed
+                ? 'bg-[#e2e4e7] text-[#8e98a8] cursor-not-allowed'
                 : 'bg-black text-white hover:bg-gray-900'
             }`}
           >
-            {selectedSize ? t('product.addToCart') : t('product.selectSizeFirst')}
+            {!selectedSize
+              ? t('product.selectSizeFirst')
+              : selectedSizeMaxed
+              ? t('product.maxStockReached')
+              : t('product.addToCart')}
           </button>
         </div>
 

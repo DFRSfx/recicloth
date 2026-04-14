@@ -91,6 +91,7 @@
   "product.shareError": "Error sharing product",
   "product.selectSize": "Choose size",
   "product.selectSizeFirst": "Choose a size",
+  "product.maxStockReached": "Max stock in cart",
   "product.review.basedOn": "Based on",
   "product.review.reviewSingular": "Review",
   "product.review.reviewPlural": "Reviews",

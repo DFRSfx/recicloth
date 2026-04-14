@@ -49,7 +49,7 @@ interface EligibleReviewItem {
 
 const Product: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
   const { isAuthenticated, token, user } = useAuth();
   const { product, loading, error } = useProduct(id || '');
@@ -552,8 +552,18 @@ const Product: React.FC = () => {
   const hasSizes = (product.stock_mode === 'apparel' || product.stock_mode === 'shoes') && (product.size_stock?.length ?? 0) > 0;
   const sizeRequired = hasSizes && !selectedSize;
 
+  // Cart quantity already held for this product+size
+  const cartQtyForSize = (size: string) =>
+    items.find(i => String(i.product.id) === String(product.id) && i.selectedSize === size)?.quantity ?? 0;
+
+  const stockForSize = (size: string) =>
+    product.size_stock?.find(s => s.size === size)?.stock ?? 0;
+
+  const selectedSizeMaxed =
+    hasSizes && !!selectedSize && cartQtyForSize(selectedSize) >= stockForSize(selectedSize);
+
   const handleAddToCart = () => {
-    if (!product.inStock || isAdded || sizeRequired) return;
+    if (!product.inStock || isAdded || sizeRequired || selectedSizeMaxed) return;
     addItem(product, selectedColor, selectedSize || undefined);
     const previewImage = mainImage || product.images[0];
     fireCartToast({ productId: product.id, colorName: selectedColor, productName: product.name, image: imgVariant(previewImage, 'sm'), type: 'added' });
@@ -766,14 +776,16 @@ const Product: React.FC = () => {
               <div className="flex flex-wrap gap-2">
                 {product.size_stock!.map(({ size, stock }) => {
                   const outOfStock = Number(stock) <= 0;
+                  const maxedInCart = cartQtyForSize(size) >= Number(stock);
+                  const unavailable = outOfStock || maxedInCart;
                   return (
                     <button
                       key={size}
                       type="button"
-                      disabled={outOfStock}
+                      disabled={unavailable}
                       onClick={() => setSelectedSize(size)}
                       className={`min-w-[48px] px-3 py-2 text-sm font-medium border transition-all rounded-sm ${
-                        outOfStock
+                        unavailable
                           ? 'border-gray-200 text-gray-300 cursor-not-allowed line-through'
                           : selectedSize === size
                           ? 'border-black bg-black text-white'
@@ -791,18 +803,24 @@ const Product: React.FC = () => {
           <div className="flex items-center gap-3 mb-10">
             <button
               onClick={handleAddToCart}
-              disabled={!product.inStock || isAdded || sizeRequired}
+              disabled={!product.inStock || isAdded || sizeRequired || selectedSizeMaxed}
               className={`flex-1 h-14 font-bold text-[15px] transition-all rounded-sm flex items-center justify-center gap-2 ${
-                !product.inStock
+                !product.inStock || sizeRequired || selectedSizeMaxed
                   ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : isAdded
                   ? 'bg-[#1E4D3B] text-white border border-[#1E4D3B]'
-                  : sizeRequired
-                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   : 'bg-black text-white hover:bg-gray-900 shadow-[0_4px_14px_rgba(0,0,0,0.15)]'
               }`}
             >
-              {!product.inStock ? t('product.soldOut') : isAdded ? <><Check size={18} strokeWidth={3} /> {t('product.added')}</> : sizeRequired ? t('product.selectSizeFirst') : t('product.addToCart')}
+              {!product.inStock
+                ? t('product.soldOut')
+                : isAdded
+                ? <><Check size={18} strokeWidth={3} /> {t('product.added')}</>
+                : sizeRequired
+                ? t('product.selectSizeFirst')
+                : selectedSizeMaxed
+                ? t('product.maxStockReached')
+                : t('product.addToCart')}
             </button>
 
             <button
