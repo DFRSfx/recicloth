@@ -57,7 +57,17 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
   // ID composto gerado em tempo real
   const cartItemId = `${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`;
 
+  // Available stock for the selected size (or global stock for unit-mode products)
+  const availableStock = (() => {
+    const { stock_mode, size_stock, stock } = item.product;
+    if ((stock_mode === 'apparel' || stock_mode === 'shoes') && item.selectedSize && size_stock) {
+      return size_stock.find(s => s.size === item.selectedSize)?.stock ?? 0;
+    }
+    return stock ?? Infinity;
+  })();
+
   const handleQuantityChange = (newQuantity: number) => {
+    if (newQuantity > availableStock) return;
     if (newQuantity <= 0) {
       fireCartToast({ 
         productId: item.product.id, 
@@ -159,7 +169,8 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
                 </span>
                 <button
                   onClick={() => handleQuantityChange(item.quantity + 1)}
-                  className="px-3 h-full flex items-center justify-center hover:bg-gray-50 transition-colors text-gray-600 active:bg-gray-100"
+                  disabled={item.quantity >= availableStock}
+                  className="px-3 h-full flex items-center justify-center transition-colors text-gray-600 active:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:bg-gray-50"
                   aria-label="Aumentar quantidade"
                 >
                   <Plus className="h-3.5 w-3.5" />
